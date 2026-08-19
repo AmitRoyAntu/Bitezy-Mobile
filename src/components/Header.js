@@ -1,24 +1,35 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SIZES, SHADOWS } from '../constants/theme';
 
 export default function Header() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.navbar}>
-      <View style={styles.logoContainer}>
-        <Ionicons name="fast-food" size={22} color={COLORS.primary} />
-        <Text style={styles.logoText}>Bitezy</Text>
-      </View>
-      <View style={styles.adminBadge}>
-        <Ionicons name="shield-checkmark" size={16} color={COLORS.primary} />
-        <Text style={styles.adminText}>Admin</Text>
+    <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+      <View style={styles.navbar}>
+        <View style={styles.logoContainer}>
+          <Ionicons name="fast-food" size={22} color={COLORS.primary} />
+          <Text style={styles.logoText}>Bitezy</Text>
+        </View>
+        <View style={styles.adminBadge}>
+          <Ionicons name="shield-checkmark" size={16} color={COLORS.primary} />
+          <Text style={styles.adminText}>Admin</Text>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    ...SHADOWS.sm,
+  },
   navbar: {
     height: SIZES.headerHeight,
     backgroundColor: COLORS.white,
@@ -26,9 +37,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    ...SHADOWS.sm,
   },
   logoContainer: {
     flexDirection: 'row',
