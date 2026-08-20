@@ -25,8 +25,17 @@ class LocalDataService {
       else await AsyncStorage.setItem('bitezy_mock_users', JSON.stringify(this.users));
 
       const storedProviders = await AsyncStorage.getItem('bitezy_mock_providers');
-      if (storedProviders) this.providers = JSON.parse(storedProviders);
-      else await AsyncStorage.setItem('bitezy_mock_providers', JSON.stringify(this.providers));
+      if (storedProviders) {
+        const parsed = JSON.parse(storedProviders);
+        this.providers = parsed.map((p) => {
+          const init = initialProviders.find(
+            (ip) => String(ip._id) === String(p._id) || String(ip.id) === String(p.id)
+          );
+          return init ? { ...p, lat: init.lat, lng: init.lng, mapQuery: init.mapQuery } : p;
+        });
+      } else {
+        await AsyncStorage.setItem('bitezy_mock_providers', JSON.stringify(this.providers));
+      }
 
       const storedMenu = await AsyncStorage.getItem('bitezy_mock_menu');
       if (storedMenu) this.menu = JSON.parse(storedMenu);

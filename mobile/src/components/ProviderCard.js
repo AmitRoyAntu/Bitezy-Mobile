@@ -1,9 +1,20 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fonts } from '../theme/colors';
 
 const ProviderCard = ({ provider, onPress }) => {
+  const handleMapPress = (e) => {
+    e.stopPropagation();
+    const lat = provider.lat || 22.4621;
+    const lng = provider.lng || 91.9729;
+    const targetQuery = provider.mapQuery || `${provider.name}, CUET, Chittagong`;
+    const query = encodeURIComponent(targetQuery);
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+    });
+  };
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -30,6 +41,14 @@ const ProviderCard = ({ provider, onPress }) => {
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={13} color={colors.textGray} style={{ marginRight: 4 }} />
             <Text style={styles.locationText} numberOfLines={1}>{provider.location}</Text>
+            <TouchableOpacity
+              style={styles.mapPill}
+              onPress={handleMapPress}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="navigate-outline" size={11} color={colors.primary} style={{ marginRight: 2 }} />
+              <Text style={styles.mapPillText}>Map</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
         <View style={styles.metaRow}>
@@ -136,6 +155,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textGray,
     flex: 1,
+  },
+  mapPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadiusFull,
+    marginLeft: 6,
+  },
+  mapPillText: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
   },
   metaRow: {
     flexDirection: 'row',

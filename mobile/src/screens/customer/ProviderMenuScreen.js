@@ -11,10 +11,11 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FoodItemCard from '../../components/FoodItemCard';
-import { colors, spacing } from '../../theme/colors';
+import { colors, spacing, fonts } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
@@ -61,6 +62,34 @@ const ProviderMenuScreen = ({ route, navigation }) => {
     setSelectedCategory(cat);
   };
 
+  const handleOpenGoogleMaps = () => {
+    const lat = provider.lat || 22.4621;
+    const lng = provider.lng || 91.9729;
+    const targetQuery = provider.mapQuery || `${provider.name}, CUET, Chittagong`;
+    const query = encodeURIComponent(targetQuery);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+    Linking.openURL(mapsUrl).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`).catch(() => {
+        showToast('Could not open Google Maps', 'error');
+      });
+    });
+  };
+
+  const handleGetDirections = () => {
+    const lat = provider.lat || 22.4621;
+    const lng = provider.lng || 91.9729;
+    const targetQuery = provider.mapQuery || `${provider.name}, CUET`;
+    const destination = encodeURIComponent(targetQuery);
+    const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+    Linking.openURL(dirUrl).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${destination}`).catch(() => {
+        showToast('Could not open directions in Google Maps', 'error');
+      });
+    });
+  };
+
   const getItemQty = (itemName) => {
     const found = cart.find((c) => c.name === itemName);
     return found ? found.qty : 0;
@@ -75,7 +104,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
       {/* Banner */}
       <View style={styles.bannerContainer}>
         <Image
-          source={{ uri: provider.img || 'https://via.placeholder.com/400x200?text=Vendor' }}
+          source={{ uri: provider.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80' }}
           style={styles.bannerImage}
         />
         <View style={styles.bannerOverlay}>
@@ -92,7 +121,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
         </View>
       </View>
 
-      {/* Canteen Details / Description */}
+      {/* Canteen Details / Description & Map Card */}
       <View style={styles.aboutCard}>
         {provider.description ? (
           <Text style={styles.providerDescription}>{provider.description}</Text>
@@ -110,6 +139,57 @@ const ProviderMenuScreen = ({ route, navigation }) => {
               <Text style={styles.infoBadgeText}>{provider.deliveryTime}</Text>
             </View>
           ) : null}
+        </View>
+
+        {/* Google Maps Campus Location Preview */}
+        <View style={styles.mapCard}>
+          <View style={styles.mapVisual}>
+            <View style={styles.mapHeaderRow}>
+              <View style={styles.mapBadge}>
+                <Ionicons name="map" size={13} color={colors.primary} style={{ marginRight: 4 }} />
+                <Text style={styles.mapBadgeText}>Google Maps • CUET</Text>
+              </View>
+              <Text style={styles.coordText}>22.46° N, 91.97° E</Text>
+            </View>
+
+            <View style={styles.mapGraphic}>
+              {/* Simulated Map Layout */}
+              <View style={styles.mapRoadH} />
+              <View style={styles.mapRoadV} />
+              <View style={styles.mapPinPulse}>
+                <View style={styles.mapPin}>
+                  <Ionicons name="restaurant" size={14} color={colors.white} />
+                </View>
+              </View>
+              <View style={styles.mapPinLabel}>
+                <Text style={styles.mapPinTitle} numberOfLines={1}>{provider.name}</Text>
+                <Text style={styles.mapPinSubtitle} numberOfLines={1}>
+                  {provider.location || 'CUET Campus'}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.mapActions}>
+            <TouchableOpacity
+              style={styles.directionsBtn}
+              onPress={handleGetDirections}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="navigate-circle" size={18} color={colors.white} style={{ marginRight: 6 }} />
+              <Text style={styles.directionsBtnText}>Get Directions</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.openMapBtn}
+              onPress={handleOpenGoogleMaps}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="open-outline" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+              <Text style={styles.openMapBtnText}>Open in Google Maps</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -254,13 +334,165 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadiusSm,
   },
   infoBadgeText: {
+    fontFamily: fonts.semiBold,
     fontSize: 12,
     color: colors.primary,
-    fontWeight: '600',
   },
+
+  /* Google Map Card */
+  mapCard: {
+    marginTop: spacing.md,
+    backgroundColor: '#F1F8F5',
+    borderRadius: spacing.borderRadiusMd,
+    borderWidth: 1,
+    borderColor: '#D4EADF',
+    overflow: 'hidden',
+  },
+  mapVisual: {
+    padding: spacing.md,
+    backgroundColor: '#E8F5EE',
+  },
+  mapHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  mapBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  mapBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.primary,
+  },
+  coordText: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    color: colors.textGray,
+  },
+  mapGraphic: {
+    height: 90,
+    backgroundColor: '#DCF0E5',
+    borderRadius: spacing.borderRadiusSm,
+    borderWidth: 1,
+    borderColor: '#C3E4D2',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  mapRoadH: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 14,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.8,
+    top: 38,
+  },
+  mapRoadV: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 14,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.8,
+    left: '48%',
+  },
+  mapPinPulse: {
+    position: 'absolute',
+    top: 14,
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  mapPin: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  mapPinLabel: {
+    position: 'absolute',
+    bottom: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusSm,
+    maxWidth: '90%',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    zIndex: 2,
+  },
+  mapPinTitle: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.textDark,
+  },
+  mapPinSubtitle: {
+    fontFamily: fonts.regular,
+    fontSize: 10,
+    color: colors.textGray,
+  },
+  mapActions: {
+    flexDirection: 'row',
+    padding: spacing.sm,
+    gap: spacing.xs,
+    backgroundColor: colors.card,
+    borderTopWidth: 1,
+    borderTopColor: '#D4EADF',
+  },
+  directionsBtn: {
+    flex: 1.2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 9,
+    borderRadius: spacing.borderRadiusSm,
+  },
+  directionsBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.white,
+  },
+  openMapBtn: {
+    flex: 1.1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingVertical: 9,
+    borderRadius: spacing.borderRadiusSm,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+  },
+  openMapBtnText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12,
+    color: colors.primary,
+  },
+
   sectionTitle: {
+    fontFamily: fonts.headingBold,
     fontSize: 18,
-    fontWeight: '700',
     color: colors.textDark,
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
@@ -285,8 +517,8 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   categoryText: {
+    fontFamily: fonts.semiBold,
     fontSize: 12,
-    fontWeight: '600',
     color: colors.textGray,
   },
   categoryTextActive: {
@@ -308,6 +540,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
+    fontFamily: fonts.regular,
     color: colors.textGray,
     fontSize: 14,
   },
