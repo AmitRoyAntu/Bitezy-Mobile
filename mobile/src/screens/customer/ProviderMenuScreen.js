@@ -73,6 +73,16 @@ const ProviderMenuScreen = ({ route, navigation }) => {
     return ['All', ...(hasFavs ? ['Saved Items'] : []), ...Array.from(cats)];
   }, [menuItems, isFavorite]);
 
+  const ratingDistribution = useMemo(() => {
+    const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    if (!reviews || reviews.length === 0) return dist;
+    reviews.forEach((r) => {
+      const star = Math.min(Math.max(Math.round(r.rating || 5), 1), 5);
+      dist[star] = (dist[star] || 0) + 1;
+    });
+    return dist;
+  }, [reviews]);
+
   const displayedMenuItems = useMemo(() => {
     if (selectedCategory === 'All') return menuItems;
     if (selectedCategory === 'Saved Items') return menuItems.filter((m) => isFavorite(m));
@@ -320,28 +330,48 @@ const ProviderMenuScreen = ({ route, navigation }) => {
               {renderHeader()}
               {/* Reviews Summary Header Card */}
               <View style={styles.reviewsSummaryCard}>
-                <View style={styles.ratingScoreBox}>
-                  <Text style={styles.ratingLargeScore}>{avgRating}</Text>
-                  <View style={styles.starsRowSmall}>
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Ionicons
-                        key={s}
-                        name={s <= Math.round(Number(avgRating)) ? 'star' : 'star-outline'}
-                        size={14}
-                        color={colors.rating}
-                      />
-                    ))}
+                <View style={styles.summaryTopRow}>
+                  <View style={styles.ratingScoreBox}>
+                    <Text style={styles.ratingLargeScore}>{avgRating}</Text>
+                    <View style={styles.starsRowSmall}>
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Ionicons
+                          key={s}
+                          name={s <= Math.round(Number(avgRating)) ? 'star' : 'star-outline'}
+                          size={16}
+                          color="#F59E0B"
+                        />
+                      ))}
+                    </View>
+                    <Text style={styles.ratingSubCount}>{reviews.length} Student Reviews</Text>
                   </View>
-                  <Text style={styles.ratingSubCount}>{reviews.length} Student Reviews</Text>
+
+                  {/* Rating Distribution Progress Bars */}
+                  <View style={styles.ratingBreakdownCol}>
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const count = ratingDistribution[star] || 0;
+                      const percent = reviews.length > 0 ? (count / reviews.length) * 100 : (star === 5 ? 100 : 0);
+                      return (
+                        <View key={star} style={styles.distRow}>
+                          <Text style={styles.distStarText}>{star}★</Text>
+                          <View style={styles.distBarTrack}>
+                            <View style={[styles.distBarFill, { width: `${percent}%` }]} />
+                          </View>
+                          <Text style={styles.distCountText}>{count}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
                 </View>
 
+                {/* Write Review CTA Button */}
                 <TouchableOpacity
                   style={styles.writeReviewBtn}
                   onPress={() => setReviewModalVisible(true)}
                   activeOpacity={0.85}
                 >
                   <Ionicons name="create-outline" size={16} color={colors.white} style={{ marginRight: 6 }} />
-                  <Text style={styles.writeReviewBtnText}>Write Review</Text>
+                  <Text style={styles.writeReviewBtnText}>Share Your Review</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -357,22 +387,47 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                   </Text>
                 </View>
                 <View style={styles.reviewerInfo}>
-                  <Text style={styles.reviewerName}>
-                    {item.user ? item.user.name : 'CUET Student'}
-                  </Text>
+                  <View style={styles.reviewerNameRow}>
+                    <Text style={styles.reviewerName} numberOfLines={1}>
+                      {item.user ? item.user.name : 'CUET Student'}
+                    </Text>
+                    <View style={styles.verifiedStudentBadge}>
+                      <Ionicons name="school" size={10} color={colors.primary} style={{ marginRight: 3 }} />
+                      <Text style={styles.verifiedStudentText}>CUET Student</Text>
+                    </View>
+                  </View>
                   <Text style={styles.reviewDate}>
-                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Verified Buyer'}
+                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Verified Buyer'}
                   </Text>
-                </View>
-                <View style={styles.reviewStarBadge}>
-                  <Ionicons name="star" size={12} color={colors.rating} style={{ marginRight: 3 }} />
-                  <Text style={styles.reviewStarScore}>{item.rating}</Text>
                 </View>
               </View>
-              <Text style={styles.reviewCommentText}>{item.comment}</Text>
+
+              {/* Star Rating Row */}
+              <View style={styles.reviewCardStarRow}>
+                <View style={styles.reviewStarsGroup}>
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Ionicons
+                      key={s}
+                      name={s <= item.rating ? 'star' : 'star-outline'}
+                      size={13}
+                      color="#F59E0B"
+                      style={{ marginRight: 2 }}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.reviewRatingNumber}>{item.rating}.0</Text>
+              </View>
+
+              {/* Comment Content */}
+              <View style={styles.reviewCommentBox}>
+                <Text style={styles.reviewCommentText}>{item.comment}</Text>
+              </View>
             </View>
           )}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: totalItems > 0 ? 120 : 40 },
+          ]}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="chatbubbles-outline" size={42} color={colors.textLight} style={{ marginBottom: 8 }} />
@@ -757,113 +812,216 @@ const styles = StyleSheet.create({
 
   /* Reviews Tab */
   reviewsSummaryCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     backgroundColor: colors.card,
     marginHorizontal: spacing.lg,
     marginVertical: spacing.md,
-    padding: spacing.md,
+    padding: spacing.md + 2,
     borderRadius: spacing.borderRadiusMd,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(18, 18, 23, 0.04)',
+      },
+    }),
+  },
+  summaryTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
   },
   ratingScoreBox: {
     alignItems: 'flex-start',
+    paddingRight: spacing.md,
+    borderRightWidth: 1,
+    borderRightColor: colors.border,
+    minWidth: 110,
   },
   ratingLargeScore: {
     fontFamily: fonts.headingExtraBold,
-    fontSize: 26,
+    fontSize: 34,
     color: colors.textDark,
+    lineHeight: 38,
   },
   starsRowSmall: {
     flexDirection: 'row',
-    marginVertical: 2,
+    gap: 2,
+    marginVertical: 4,
   },
   ratingSubCount: {
-    fontFamily: fonts.regular,
-    fontSize: 12,
+    fontFamily: fonts.medium,
+    fontSize: 11,
     color: colors.textGray,
+  },
+  ratingBreakdownCol: {
+    flex: 1,
+    paddingLeft: spacing.md,
+    gap: 3,
+  },
+  distRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  distStarText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 10,
+    color: colors.textGray,
+    width: 18,
+  },
+  distBarTrack: {
+    flex: 1,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceSubtle,
+    overflow: 'hidden',
+  },
+  distBarFill: {
+    height: '100%',
+    backgroundColor: '#F59E0B',
+    borderRadius: 3,
+  },
+  distCountText: {
+    fontFamily: fonts.medium,
+    fontSize: 10,
+    color: colors.textLight,
+    width: 14,
+    textAlign: 'right',
   },
   writeReviewBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 9,
-    borderRadius: spacing.borderRadiusSm,
+    paddingVertical: 10,
+    borderRadius: spacing.borderRadiusFull,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   writeReviewBtnText: {
     fontFamily: fonts.bold,
     fontSize: 13,
     color: colors.white,
+    letterSpacing: 0.2,
   },
   reviewCard: {
     backgroundColor: colors.card,
     marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.sm + 2,
     padding: spacing.md,
     borderRadius: spacing.borderRadiusMd,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 1,
+      },
+      web: {
+        boxShadow: '0 1px 4px rgba(18, 18, 23, 0.03)',
+      },
+    }),
   },
   reviewHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xs + 2,
   },
   reviewerAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 75, 38, 0.15)',
   },
   reviewerAvatarText: {
-    fontFamily: fonts.bold,
-    fontSize: 13,
+    fontFamily: fonts.headingBold,
+    fontSize: 14,
     color: colors.primary,
   },
   reviewerInfo: {
     flex: 1,
+  },
+  reviewerNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   reviewerName: {
     fontFamily: fonts.bold,
     fontSize: 13,
     color: colors.textDark,
   },
+  verifiedStudentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  verifiedStudentText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 9,
+    color: colors.textDark,
+  },
   reviewDate: {
     fontFamily: fonts.regular,
     fontSize: 11,
-    color: colors.textLight,
+    color: colors.textGray,
+    marginTop: 1,
   },
-  reviewStarBadge: {
+  reviewCardStarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF5E9',
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: spacing.borderRadiusFull,
+    marginBottom: spacing.xs,
+    gap: 4,
   },
-  reviewStarScore: {
+  reviewStarsGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reviewRatingNumber: {
     fontFamily: fonts.bold,
-    fontSize: 12,
-    color: '#D35400',
+    fontSize: 11,
+    color: colors.textDark,
+    marginLeft: 2,
+  },
+  reviewCommentBox: {
+    backgroundColor: colors.surfaceSubtle,
+    padding: spacing.sm + 2,
+    borderRadius: spacing.borderRadiusSm,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+    marginTop: 4,
   },
   reviewCommentText: {
     fontFamily: fonts.regular,
     fontSize: 13,
     color: colors.textDark,
-    lineHeight: 18,
-    marginTop: 4,
+    lineHeight: 19,
   },
 
   /* About Tab */
