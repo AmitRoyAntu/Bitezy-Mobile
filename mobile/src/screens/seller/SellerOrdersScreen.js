@@ -16,6 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import StatusBadge from '../../components/StatusBadge';
+import OrderTypeBadge from '../../components/OrderTypeBadge';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { useToast } from '../../context/ToastContext';
 import DataService from '../../api/DataService';
@@ -180,17 +181,7 @@ const SellerOrdersScreen = () => {
                   <View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={styles.orderIdText}>{orderIdShort}</Text>
-                      <View style={[styles.typePill, isDelivery ? styles.typeDelivery : styles.typePickup]}>
-                        <Ionicons
-                          name={isDelivery ? 'bicycle' : 'bag-handle'}
-                          size={11}
-                          color={isDelivery ? colors.primary : '#8E44AD'}
-                          style={{ marginRight: 3 }}
-                        />
-                        <Text style={[styles.typePillText, isDelivery ? { color: colors.primary } : { color: '#8E44AD' }]}>
-                          {isDelivery ? 'Delivery' : 'Pickup'}
-                        </Text>
-                      </View>
+                      <OrderTypeBadge type={item.type} style={{ marginLeft: 6 }} />
                     </View>
                     <Text style={styles.orderTimeText}>
                       {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
@@ -205,9 +196,12 @@ const SellerOrdersScreen = () => {
                     <Text style={styles.customerName}>
                       {item.customer?.name || 'Student Buyer'}
                     </Text>
-                    <Text style={styles.customerLocation} numberOfLines={1}>
-                      📍 {item.deliveryAddress || item.customer?.residence || 'CUET Campus'}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                      <Ionicons name="location-outline" size={12} color={colors.textGray} style={{ marginRight: 3 }} />
+                      <Text style={styles.customerLocation} numberOfLines={1}>
+                        {item.deliveryAddress || item.customer?.residence || 'CUET Campus'}
+                      </Text>
+                    </View>
                   </View>
 
                   {/* Customer Contact Action Buttons */}

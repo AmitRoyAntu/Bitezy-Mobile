@@ -16,6 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import OrderTypeBadge from '../../components/OrderTypeBadge';
 import { colors, spacing, fonts } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useCart } from '../../context/CartContext';
@@ -316,27 +317,7 @@ const OrderHistoryScreen = ({ navigation }) => {
               <Text style={styles.canteenSubtext}>
                 {formattedDate} • {itemsCount} {itemsCount === 1 ? 'item' : 'items'}
               </Text>
-              <View
-                style={[
-                  styles.methodTag,
-                  item.type === 'delivery' ? styles.methodTagDelivery : styles.methodTagPickup,
-                ]}
-              >
-                <Ionicons
-                  name={item.type === 'delivery' ? 'bicycle' : 'storefront-outline'}
-                  size={11}
-                  color={item.type === 'delivery' ? colors.primary : '#4F46E5'}
-                  style={{ marginRight: 3 }}
-                />
-                <Text
-                  style={[
-                    styles.methodTagText,
-                    item.type === 'delivery' ? styles.methodTagTextDelivery : styles.methodTagTextPickup,
-                  ]}
-                >
-                  {item.type === 'delivery' ? 'Hall Delivery' : 'Counter Pickup'}
-                </Text>
-              </View>
+              <OrderTypeBadge type={item.type} />
             </View>
           </View>
 

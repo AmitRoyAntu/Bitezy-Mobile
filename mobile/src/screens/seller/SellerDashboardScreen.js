@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logo from '../../components/Logo';
+import OrderTypeBadge from '../../components/OrderTypeBadge';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -299,12 +300,12 @@ const SellerDashboardScreen = ({ navigation }) => {
             <View style={styles.progressItem}>
               <View style={styles.progressLabelRow}>
                 <Text style={styles.progressLabel}>
-                  <Ionicons name="bag-handle" size={13} color="#8E44AD" /> Pickup
+                  <Ionicons name="storefront-outline" size={13} color="#4F46E5" /> Pickup
                 </Text>
                 <Text style={styles.progressPercent}>{pickupPercent}%</Text>
               </View>
               <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: `${pickupPercent}%`, backgroundColor: '#8E44AD' }]} />
+                <View style={[styles.progressBarFill, { width: `${pickupPercent}%`, backgroundColor: '#4F46E5' }]} />
               </View>
             </View>
           </View>
@@ -360,7 +361,6 @@ const SellerDashboardScreen = ({ navigation }) => {
             recentOrders.map((ord) => {
               const orderIdShort = ord._id ? `#${ord._id.slice(-5)}` : '#N/A';
               const customerName = ord.customer?.name || 'Student Buyer';
-              const isDelivery = (ord.type || '').toLowerCase() === 'delivery';
 
               return (
                 <View key={ord._id || ord.id} style={styles.recentOrderRow}>
@@ -370,9 +370,12 @@ const SellerDashboardScreen = ({ navigation }) => {
                     </View>
                     <View>
                       <Text style={styles.orderCustomerName} numberOfLines={1}>{customerName}</Text>
-                      <Text style={styles.orderTypeSub}>
-                        {isDelivery ? '🛵 Delivery' : '🛍️ Pickup'} • ৳{ord.total}
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+                        <OrderTypeBadge type={ord.type} />
+                        <Text style={{ fontFamily: fonts.bold, fontSize: 11, color: colors.textDark, marginLeft: 6 }}>
+                          ৳{ord.total}
+                        </Text>
+                      </View>
                     </View>
                   </View>
 
