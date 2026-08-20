@@ -892,26 +892,40 @@ const styles = StyleSheet.create({
     color: colors.textGray,
   },
 
-  /* Circular Contact Buttons */
-  circleBtnWhatsApp: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
+  /* Active Contact Bar */
+  contactBar: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+    marginBottom: 2,
   },
-  circleBtnCall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
+  contactPillWhatsApp: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 75, 38, 0.2)',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    paddingVertical: 5,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  contactPillWhatsAppText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: '#059669',
+  },
+  contactPillCall: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingVertical: 5,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  contactPillCallText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.primary,
   },
 
   /* Card Footer */
