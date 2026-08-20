@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Animated, Platform, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import ProviderListScreen from '../screens/customer/ProviderListScreen';
@@ -11,8 +11,12 @@ import CartScreen from '../screens/customer/CartScreen';
 import OrderHistoryScreen from '../screens/customer/OrderHistoryScreen';
 import CustomerProfileScreen from '../screens/customer/CustomerProfileScreen';
 
-import { colors } from '../theme/colors';
+import { colors, fonts } from '../theme/colors';
 import { useCart } from '../context/CartContext';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -37,20 +41,42 @@ const ExploreStack = () => (
   </Stack.Navigator>
 );
 
-const TabIcon = ({ name, nameFocused, focused, badge }) => (
-  <View style={styles.iconContainer}>
-    <Ionicons
-      name={focused ? nameFocused : name}
-      size={24}
-      color={focused ? colors.primary : colors.textGray}
-    />
-    {badge > 0 && (
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{badge}</Text>
-      </View>
-    )}
-  </View>
-);
+const TabIcon = ({ name, nameFocused, focused, badge }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (badge > 0) {
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.35,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 4,
+          tension: 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [badge]);
+
+  return (
+    <View style={styles.iconContainer}>
+      <Ionicons
+        name={focused ? nameFocused : name}
+        size={24}
+        color={focused ? colors.primary : colors.textGray}
+      />
+      {badge > 0 && (
+        <Animated.View style={[styles.badge, { transform: [{ scale: scaleAnim }] }]}>
+          <Text style={styles.badgeText}>{badge}</Text>
+        </Animated.View>
+      )}
+    </View>
+  );
+};
 
 const CustomerNavigator = () => {
   const { totalItems } = useCart();

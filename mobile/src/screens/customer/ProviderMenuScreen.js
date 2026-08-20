@@ -8,6 +8,9 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FoodItemCard from '../../components/FoodItemCard';
@@ -15,6 +18,10 @@ import { colors, spacing } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const ProviderMenuScreen = ({ route, navigation }) => {
   const { provider } = route.params;
@@ -48,6 +55,11 @@ const ProviderMenuScreen = ({ route, navigation }) => {
     if (selectedCategory === 'All') return menuItems;
     return menuItems.filter((m) => m.category === selectedCategory);
   }, [menuItems, selectedCategory]);
+
+  const handleSelectCategory = (cat) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSelectedCategory(cat);
+  };
 
   const getItemQty = (itemName) => {
     const found = cart.find((c) => c.name === itemName);
@@ -118,7 +130,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                 styles.categoryChip,
                 selectedCategory === cat && styles.categoryChipActive,
               ]}
-              onPress={() => setSelectedCategory(cat)}
+              onPress={() => handleSelectCategory(cat)}
               activeOpacity={0.8}
             >
               <Text

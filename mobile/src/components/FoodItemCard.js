@@ -1,9 +1,48 @@
-import React from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fonts } from '../theme/colors';
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
+  const qtyScaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (quantity > 0) {
+      Animated.sequence([
+        Animated.timing(qtyScaleAnim, {
+          toValue: 1.3,
+          duration: 90,
+          useNativeDriver: true,
+        }),
+        Animated.spring(qtyScaleAnim, {
+          toValue: 1,
+          friction: 4,
+          tension: 120,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [quantity]);
+
+  const handleUpdate = (change) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+    onUpdateQty(item, change);
+  };
+
   return (
     <View style={styles.card}>
       <Image
@@ -23,15 +62,22 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
             <View style={styles.counter}>
               <TouchableOpacity
                 style={styles.counterBtn}
-                onPress={() => onUpdateQty(item, -1)}
+                onPress={() => handleUpdate(-1)}
                 activeOpacity={0.7}
               >
                 <Ionicons name="remove" size={16} color={colors.primary} />
               </TouchableOpacity>
-              <Text style={styles.qtyText}>{quantity}</Text>
+              <Animated.Text
+                style={[
+                  styles.qtyText,
+                  { transform: [{ scale: qtyScaleAnim }] },
+                ]}
+              >
+                {quantity}
+              </Animated.Text>
               <TouchableOpacity
                 style={styles.counterBtn}
-                onPress={() => onUpdateQty(item, 1)}
+                onPress={() => handleUpdate(1)}
                 activeOpacity={0.7}
               >
                 <Ionicons name="add" size={16} color={colors.primary} />
@@ -40,7 +86,7 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
           ) : (
             <TouchableOpacity
               style={styles.addBtn}
-              onPress={() => onUpdateQty(item, 1)}
+              onPress={() => handleUpdate(1)}
               activeOpacity={0.8}
             >
               <Ionicons name="add" size={15} color={colors.primary} style={{ marginRight: 2 }} />

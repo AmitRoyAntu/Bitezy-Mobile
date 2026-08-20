@@ -8,10 +8,11 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import StatusBadge from '../../components/StatusBadge';
-import { colors, spacing } from '../../theme/colors';
+import { colors, spacing, fonts } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
@@ -67,6 +68,31 @@ const OrderHistoryScreen = ({ navigation }) => {
   const handleRefresh = () => {
     setRefreshing(true);
     loadOrders();
+  };
+
+  const handleCall = (phoneNumber) => {
+    const phone = phoneNumber || '01811112222';
+    Linking.openURL(`tel:${phone}`).catch(() => {
+      showToast(`Phone dialer unavailable. Number: ${phone}`, 'info');
+    });
+  };
+
+  const handleWhatsApp = (phoneNumber, orderId, providerName) => {
+    let cleanPhone = (phoneNumber || '01811112222').replace(/[^0-9]/g, '');
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '88' + cleanPhone;
+    } else if (!cleanPhone.startsWith('88')) {
+      cleanPhone = '88' + cleanPhone;
+    }
+
+    const message = encodeURIComponent(
+      `Hello ${providerName || 'Canteen'}, I am inquiring regarding my Bitezy order ${orderId ? `#${orderId}` : ''}.`
+    );
+    const url = `https://wa.me/${cleanPhone}?text=${message}`;
+
+    Linking.openURL(url).catch(() => {
+      showToast(`Could not open WhatsApp for ${phoneNumber}`, 'info');
+    });
   };
 
   const handleReorder = (order) => {
@@ -177,6 +203,9 @@ const OrderHistoryScreen = ({ navigation }) => {
               : '';
             const orderIdShort = item._id ? `#${item._id.slice(-6)}` : '#N/A';
             const providerName = item.provider ? item.provider.name : item.providerName || 'Canteen';
+            const providerPhone = item.provider?.phone || '01811112222';
+            const isActive = ['PENDING', 'PREPARING', 'READY', 'ON_THE_WAY'].includes(item.status);
+            const isDeliveryActive = item.type === 'delivery' && ['READY', 'ON_THE_WAY'].includes(item.status);
 
             return (
               <View style={styles.orderCard}>
@@ -193,6 +222,45 @@ const OrderHistoryScreen = ({ navigation }) => {
 
                 {/* Visual Order Progress Timeline */}
                 {renderTimeline(item.status)}
+
+                {/* Quick Contact Bar for Active Orders */}
+                {isActive && (
+                  <View style={styles.contactContainer}>
+                    <Text style={styles.contactHeader}>
+                      {isDeliveryActive ? '🚴 Delivery on the way • Contact Rider / Canteen:' : '📞 Need assistance with this order?'}
+                    </Text>
+                    <View style={styles.contactButtonsRow}>
+                      <TouchableOpacity
+                        style={styles.contactActionBtn}
+                        onPress={() => handleCall(providerPhone)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="call-outline" size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                        <Text style={styles.contactBtnText}>Call</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.contactActionBtn, styles.whatsappActionBtn]}
+                        onPress={() => handleWhatsApp(providerPhone, item._id || item.id, providerName)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="logo-whatsapp" size={15} color="#25D366" style={{ marginRight: 4 }} />
+                        <Text style={styles.whatsappBtnText}>WhatsApp</Text>
+                      </TouchableOpacity>
+
+                      {isDeliveryActive && (
+                        <TouchableOpacity
+                          style={[styles.contactActionBtn, styles.riderActionBtn]}
+                          onPress={() => handleCall('01822334455')}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="bicycle" size={14} color={colors.white} style={{ marginRight: 4 }} />
+                          <Text style={styles.riderBtnText}>Call Rider</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                )}
 
                 <View style={styles.rowBetweenFooter}>
                   <View>
@@ -352,6 +420,61 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  /* Contact Bar for Active Orders */
+  contactContainer: {
+    backgroundColor: colors.background,
+    borderRadius: spacing.borderRadiusSm,
+    padding: spacing.sm + 2,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  contactHeader: {
+    fontFamily: fonts.semiBold,
+    fontSize: 11,
+    color: colors.textDark,
+    marginBottom: spacing.xs + 2,
+  },
+  contactButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
+  },
+  contactActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 7,
+    borderRadius: spacing.borderRadiusSm,
+  },
+  contactBtnText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12,
+    color: colors.primary,
+  },
+  whatsappActionBtn: {
+    borderColor: '#D4F5E1',
+    backgroundColor: '#F0FBF4',
+  },
+  whatsappBtnText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12,
+    color: '#128C7E',
+  },
+  riderActionBtn: {
+    backgroundColor: colors.purple,
+    borderColor: colors.purple,
+  },
+  riderBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.white,
+  },
+
   rowBetweenFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -360,8 +483,8 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     paddingTop: spacing.sm,
   },
-  dateText: { fontSize: 11, color: colors.textLight, marginBottom: 2 },
-  totalVal: { fontSize: 16, fontWeight: '800', color: colors.textDark },
+  dateText: { fontFamily: fonts.regular, fontSize: 11, color: colors.textLight, marginBottom: 2 },
+  totalVal: { fontFamily: fonts.headingBold, fontSize: 16, color: colors.textDark },
   reorderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -371,8 +494,8 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadiusSm,
   },
   reorderBtnText: {
+    fontFamily: fonts.bold,
     fontSize: 13,
-    fontWeight: '700',
     color: colors.primary,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -386,8 +509,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textDark },
-  emptySubtitle: { fontSize: 13, color: colors.textGray, marginTop: spacing.xs },
+  emptyTitle: { fontFamily: fonts.headingBold, fontSize: 18, color: colors.textDark },
+  emptySubtitle: { fontFamily: fonts.regular, fontSize: 13, color: colors.textGray, marginTop: spacing.xs },
 });
 
 export default OrderHistoryScreen;

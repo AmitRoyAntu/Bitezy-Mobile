@@ -7,15 +7,22 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '../../theme/colors';
+import { colors, spacing, fonts } from '../../theme/colors';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import DataService from '../../api/DataService';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const CartScreen = ({ navigation }) => {
   const {
@@ -30,6 +37,16 @@ const CartScreen = ({ navigation }) => {
     removeItem,
     clearCart,
   } = useCart();
+
+  const handleUpdateQty = (name, price, change, img, provider, desc) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+    updateQty(name, price, change, img, provider, desc);
+  };
+
+  const handleSetOrderType = (type) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOrderType(type);
+  };
 
   const { currentUser } = useAuth();
   const { showToast } = useToast();
@@ -147,7 +164,7 @@ const CartScreen = ({ navigation }) => {
                 styles.toggleOption,
                 orderType === 'Delivery' && styles.toggleOptionActive,
               ]}
-              onPress={() => setOrderType('Delivery')}
+              onPress={() => handleSetOrderType('Delivery')}
             >
               <Ionicons
                 name="bicycle"
@@ -170,7 +187,7 @@ const CartScreen = ({ navigation }) => {
                 styles.toggleOption,
                 orderType === 'Pickup' && styles.toggleOptionActive,
               ]}
-              onPress={() => setOrderType('Pickup')}
+              onPress={() => handleSetOrderType('Pickup')}
             >
               <Ionicons
                 name="bag-handle"
@@ -225,7 +242,7 @@ const CartScreen = ({ navigation }) => {
               <View style={styles.stepperContainer}>
                 <TouchableOpacity
                   style={[styles.stepperBtn, item.qty === 1 && styles.stepperBtnDanger]}
-                  onPress={() => updateQty(item.name, item.price, -1, item.img, item.provider, item.desc)}
+                  onPress={() => handleUpdateQty(item.name, item.price, -1, item.img, item.provider, item.desc)}
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -237,7 +254,7 @@ const CartScreen = ({ navigation }) => {
                 <Text style={styles.stepperQtyText}>{item.qty}</Text>
                 <TouchableOpacity
                   style={styles.stepperBtn}
-                  onPress={() => updateQty(item.name, item.price, 1, item.img, item.provider, item.desc)}
+                  onPress={() => handleUpdateQty(item.name, item.price, 1, item.img, item.provider, item.desc)}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="add" size={14} color={colors.primary} />
