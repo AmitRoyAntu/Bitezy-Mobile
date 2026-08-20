@@ -11,6 +11,7 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import StatusBadge from '../../components/StatusBadge';
 import { colors, spacing, fonts } from '../../theme/colors';
 import DataService from '../../api/DataService';
@@ -42,6 +43,7 @@ const getStepIndex = (status) => {
 };
 
 const OrderHistoryScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -187,7 +189,7 @@ const OrderHistoryScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>My Orders</Text>
+      <Text style={[styles.headerTitle, { paddingTop: Math.max(insets.top + spacing.md, 48) }]}>My Orders</Text>
 
       {loading ? (
         <View style={styles.center}>

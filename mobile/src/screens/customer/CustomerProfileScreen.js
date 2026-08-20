@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomInput from '../../components/CustomInput';
 import CustomSelect from '../../components/CustomSelect';
 import CustomButton from '../../components/CustomButton';
@@ -18,6 +19,7 @@ import { useToast } from '../../context/ToastContext';
 import DataService from '../../api/DataService';
 
 const CustomerProfileScreen = () => {
+  const insets = useSafeAreaInsets();
   const { currentUser, logout, updateUser } = useAuth();
   const { showToast } = useToast();
 
@@ -96,7 +98,10 @@ const CustomerProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + spacing.md, 36) }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header Hero Card */}
         <View style={styles.headerCard}>
           <View style={styles.avatar}>

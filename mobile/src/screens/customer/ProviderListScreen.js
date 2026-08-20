@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ProviderCard from '../../components/ProviderCard';
 import Logo from '../../components/Logo';
 import { colors, spacing, fonts } from '../../theme/colors';
@@ -25,6 +26,7 @@ const CATEGORIES = [
 ];
 
 const ProviderListScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [providers, setProviders] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,7 +73,7 @@ const ProviderListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top + spacing.md, 48) }]}>
         <View style={styles.brandRow}>
           <Logo size="small" showTagline={false} />
           <Text style={styles.greetingTag}>CUET Campus</Text>

@@ -14,6 +14,7 @@ import {
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -25,6 +26,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const CartScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const {
     cart,
     orderType,
@@ -135,7 +137,7 @@ const CartScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + spacing.md, 36) }]}>
         {/* Provider Header */}
         <View style={styles.card}>
           <Text style={styles.providerLabel}>Ordering From:</Text>

@@ -8,7 +8,7 @@ const Logo = ({ size = 'medium', showTagline = true, light = false, align = 'cen
   const isSmall = size === 'small';
 
   // Balanced icon sizes
-  const iconSize = isSmall ? 15 : isLarge ? 28 : 20;
+  const iconSize = isSmall ? 18 : isLarge ? 28 : 20;
 
   return (
     <View style={[styles.container, align === 'left' && styles.alignLeft]}>
@@ -78,10 +78,10 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   iconBadgeSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    marginRight: 7,
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    marginRight: 8,
     elevation: 2,
   },
   iconBadgeLarge: {
@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   brandSmall: {
-    fontSize: 18,
-    letterSpacing: -0.4,
+    fontSize: 22,
+    letterSpacing: -0.5,
   },
   brandLarge: {
     fontSize: 32,
