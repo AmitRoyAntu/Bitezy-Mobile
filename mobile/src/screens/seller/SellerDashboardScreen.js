@@ -8,11 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logo from '../../components/Logo';
 import OrderTypeBadge from '../../components/OrderTypeBadge';
+import StatusBadge from '../../components/StatusBadge';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -65,7 +67,7 @@ const SellerDashboardScreen = ({ navigation }) => {
     try {
       await DataService.updateProvider(provider._id || provider.id, { isOpen: newStatus });
       setProvider({ ...provider, isOpen: newStatus });
-      showToast(`Canteen is now marked as ${newStatus ? 'OPEN' : 'CLOSED'}`);
+      showToast(`Canteen is now ${newStatus ? 'OPEN' : 'CLOSED'}`);
     } catch (err) {
       showToast('Failed to update canteen status', 'error');
     }
@@ -158,11 +160,11 @@ const SellerDashboardScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Top Brand Navbar */}
-      <View style={[styles.topNavbar, { paddingTop: Math.max(insets.top + spacing.md, 48) }]}>
+      {/* Top Navbar */}
+      <View style={[styles.topNavbar, { paddingTop: Math.max(insets.top + spacing.sm, 40) }]}>
         <Logo size="small" showTagline={false} />
         <View style={styles.navBusinessBadge}>
-          <Ionicons name="storefront" size={14} color={colors.primary} style={{ marginRight: 5 }} />
+          <Ionicons name="storefront" size={13} color={colors.primary} style={{ marginRight: 5 }} />
           <Text style={styles.navBusinessText} numberOfLines={1}>
             {provider?.name || `${currentUser?.name}'s Canteen`}
           </Text>
@@ -172,16 +174,22 @@ const SellerDashboardScreen = ({ navigation }) => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
       >
-        {/* Canteen Header Hero */}
+        {/* Canteen Hero Card */}
         <View style={styles.headerHero}>
+          <View style={styles.headerHeroGlow} />
           <View style={styles.headerTopRow}>
-            <View style={{ flex: 1 }}>
+            <View style={styles.canteenIconBox}>
+              <Ionicons name="storefront" size={18} color={colors.primary} />
+            </View>
+
+            <View style={{ flex: 1, marginRight: spacing.xs }}>
+              <Text style={styles.heroEyebrow}>Your Canteen</Text>
               <Text style={styles.canteenTitle} numberOfLines={1}>
                 {provider?.name || `${currentUser?.name}'s Canteen`}
               </Text>
-              <Text style={styles.managerSubtitle}>
+              <Text style={styles.managerSubtitle} numberOfLines={1}>
                 CUET Campus • {provider?.location || 'Ground Floor'}
               </Text>
             </View>
@@ -200,7 +208,7 @@ const SellerDashboardScreen = ({ navigation }) => {
                   provider?.isOpen === false ? styles.dotClosed : styles.dotOpen,
                 ]}
               />
-              <Text style={styles.statusToggleText}>
+              <Text style={[styles.statusToggleText, provider?.isOpen === false && { color: colors.danger }]}>
                 {provider?.isOpen === false ? 'Closed' : 'Open'}
               </Text>
             </TouchableOpacity>
@@ -209,20 +217,20 @@ const SellerDashboardScreen = ({ navigation }) => {
 
         {/* 3 KPI Stats Cards */}
         <View style={styles.kpiGrid}>
-          {/* Today's Revenue */}
+          {/* Today's Sales */}
           <View style={styles.kpiCard}>
-            <View style={[styles.kpiIconBox, { backgroundColor: '#E8F5E9' }]}>
-              <Ionicons name="wallet-outline" size={18} color="#2ECC71" />
+            <View style={[styles.kpiIconBox, { backgroundColor: colors.successLight }]}>
+              <Ionicons name="wallet-outline" size={16} color={colors.success} />
             </View>
             <Text style={styles.kpiLabel}>Today's Sales</Text>
             <Text style={styles.kpiValue}>৳ {todayRevenue.toLocaleString()}</Text>
             <Text style={styles.kpiSub}>Total: ৳ {totalRevenue.toLocaleString()}</Text>
           </View>
 
-          {/* Orders */}
+          {/* Total Orders */}
           <View style={styles.kpiCard}>
-            <View style={[styles.kpiIconBox, { backgroundColor: '#FFF3E0' }]}>
-              <Ionicons name="receipt-outline" size={18} color="#FF9800" />
+            <View style={[styles.kpiIconBox, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name="receipt-outline" size={16} color={colors.primary} />
             </View>
             <Text style={styles.kpiLabel}>Total Orders</Text>
             <Text style={styles.kpiValue}>{totalOrdersCount}</Text>
@@ -233,12 +241,12 @@ const SellerDashboardScreen = ({ navigation }) => {
 
           {/* Rating */}
           <View style={styles.kpiCard}>
-            <View style={[styles.kpiIconBox, { backgroundColor: '#FFF8E1' }]}>
-              <Ionicons name="star" size={18} color="#FFC107" />
+            <View style={[styles.kpiIconBox, { backgroundColor: colors.ratingBg }]}>
+              <Ionicons name="star" size={15} color={colors.rating} />
             </View>
             <Text style={styles.kpiLabel}>Avg. Rating</Text>
             <Text style={styles.kpiValue}>★ {avgRating}</Text>
-            <Text style={styles.kpiSub}>{reviews.length} Reviews</Text>
+            <Text style={styles.kpiSub}>{reviews.length} {reviews.length === 1 ? 'Review' : 'Reviews'}</Text>
           </View>
         </View>
 
@@ -246,10 +254,12 @@ const SellerDashboardScreen = ({ navigation }) => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <View>
+              <Text style={styles.sectionEyebrow}>Performance</Text>
               <Text style={styles.sectionHeading}>Weekly Sales Trend</Text>
               <Text style={styles.sectionSub}>Daily revenue (BDT)</Text>
             </View>
             <View style={styles.timeTag}>
+              <Ionicons name="calendar-outline" size={11} color={colors.textGray} style={{ marginRight: 4 }} />
               <Text style={styles.timeTagText}>Last 7 Days</Text>
             </View>
           </View>
@@ -282,14 +292,18 @@ const SellerDashboardScreen = ({ navigation }) => {
         <View style={styles.splitRow}>
           {/* Order Distribution */}
           <View style={styles.halfCard}>
-            <Text style={styles.sectionHeading}>Order Distribution</Text>
-            <Text style={styles.sectionSub}>Fulfillment breakdown</Text>
+            <Text style={styles.sectionEyebrow}>Breakdown</Text>
+            <Text style={styles.sectionHeading}>Distribution</Text>
+            <Text style={styles.sectionSub}>Fulfillment split</Text>
 
             <View style={styles.progressItem}>
               <View style={styles.progressLabelRow}>
-                <Text style={styles.progressLabel}>
-                  <Ionicons name="bicycle" size={13} color={colors.primary} /> Delivery
-                </Text>
+                <View style={styles.progressLabelLeft}>
+                  <View style={[styles.progressIconChip, { backgroundColor: colors.primaryLight }]}>
+                    <Ionicons name="bicycle" size={11} color={colors.primary} />
+                  </View>
+                  <Text style={styles.progressLabel}>Delivery</Text>
+                </View>
                 <Text style={styles.progressPercent}>{deliveryPercent}%</Text>
               </View>
               <View style={styles.progressBarBg}>
@@ -299,33 +313,40 @@ const SellerDashboardScreen = ({ navigation }) => {
 
             <View style={styles.progressItem}>
               <View style={styles.progressLabelRow}>
-                <Text style={styles.progressLabel}>
-                  <Ionicons name="storefront-outline" size={13} color="#4F46E5" /> Pickup
-                </Text>
+                <View style={styles.progressLabelLeft}>
+                  <View style={[styles.progressIconChip, { backgroundColor: colors.infoLight }]}>
+                    <Ionicons name="storefront-outline" size={11} color={colors.info} />
+                  </View>
+                  <Text style={styles.progressLabel}>Pickup</Text>
+                </View>
                 <Text style={styles.progressPercent}>{pickupPercent}%</Text>
               </View>
               <View style={styles.progressBarBg}>
-                <View style={[styles.progressBarFill, { width: `${pickupPercent}%`, backgroundColor: '#4F46E5' }]} />
+                <View style={[styles.progressBarFill, { width: `${pickupPercent}%`, backgroundColor: colors.info }]} />
               </View>
             </View>
           </View>
 
           {/* Top Selling Items */}
           <View style={styles.halfCard}>
+            <Text style={styles.sectionEyebrow}>Bestsellers</Text>
             <Text style={styles.sectionHeading}>Top Dishes</Text>
             <Text style={styles.sectionSub}>Most ordered</Text>
 
             {topItems.length === 0 ? (
-              <Text style={styles.noDataText}>No completed orders yet</Text>
+              <View style={styles.noDataBox}>
+                <Ionicons name="restaurant-outline" size={22} color={colors.textLight} />
+                <Text style={styles.noDataText}>No orders yet</Text>
+              </View>
             ) : (
               topItems.map((item, idx) => (
                 <View key={item.name} style={styles.topDishRow}>
                   <View
                     style={[
                       styles.rankCircle,
-                      idx === 0 && { backgroundColor: '#FFD700' },
-                      idx === 1 && { backgroundColor: '#C0C0C0' },
-                      idx === 2 && { backgroundColor: '#CD7F32' },
+                      idx === 0 && styles.rankGold,
+                      idx === 1 && styles.rankSilver,
+                      idx === 2 && styles.rankBronze,
                     ]}
                   >
                     <Text style={styles.rankNum}>{idx + 1}</Text>
@@ -344,17 +365,21 @@ const SellerDashboardScreen = ({ navigation }) => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <View>
+              <Text style={styles.sectionEyebrow}>Activity</Text>
               <Text style={styles.sectionHeading}>Incoming & Recent Orders</Text>
-              <Text style={styles.sectionSub}>Latest requests from students</Text>
+              <Text style={styles.sectionSub}>Latest student requests</Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('Orders')} activeOpacity={0.7}>
-              <Text style={styles.viewAllLink}>View All →</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Orders')} activeOpacity={0.7} style={styles.viewAllBtn}>
+              <Text style={styles.viewAllLink}>View All</Text>
+              <Ionicons name="chevron-forward" size={13} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
           {recentOrders.length === 0 ? (
             <View style={styles.emptyRecentBox}>
-              <Ionicons name="receipt-outline" size={32} color={colors.textLight} />
+              <View style={styles.emptyRecentIcon}>
+                <Ionicons name="receipt-outline" size={22} color={colors.primary} />
+              </View>
               <Text style={styles.emptyRecentText}>No orders received yet.</Text>
             </View>
           ) : (
@@ -368,11 +393,11 @@ const SellerDashboardScreen = ({ navigation }) => {
                     <View style={styles.orderIdBadge}>
                       <Text style={styles.orderIdText}>{orderIdShort}</Text>
                     </View>
-                    <View>
+                    <View style={{ flex: 1 }}>
                       <Text style={styles.orderCustomerName} numberOfLines={1}>{customerName}</Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 6 }}>
                         <OrderTypeBadge type={ord.type} />
-                        <Text style={{ fontFamily: fonts.bold, fontSize: 11, color: colors.textDark, marginLeft: 6 }}>
+                        <Text style={styles.orderPriceText}>
                           ৳{ord.total}
                         </Text>
                       </View>
@@ -380,25 +405,7 @@ const SellerDashboardScreen = ({ navigation }) => {
                   </View>
 
                   <View style={styles.orderRightCol}>
-                    <View
-                      style={[
-                        styles.orderStatusPill,
-                        ord.status === 'PENDING' && { backgroundColor: '#FFF3E0' },
-                        ord.status === 'PREPARING' && { backgroundColor: '#E3F2FD' },
-                        ord.status === 'DELIVERED' && { backgroundColor: '#E8F5E9' },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.orderStatusText,
-                          ord.status === 'PENDING' && { color: '#E67E22' },
-                          ord.status === 'PREPARING' && { color: '#2980B9' },
-                          ord.status === 'DELIVERED' && { color: '#27AE60' },
-                        ]}
-                      >
-                        {ord.status}
-                      </Text>
-                    </View>
+                    <StatusBadge status={ord.status} />
                   </View>
                 </View>
               );
@@ -411,95 +418,152 @@ const SellerDashboardScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   topNavbar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.sm + 2,
     backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomLeftRadius: spacing.borderRadiusLg,
+    borderBottomRightRadius: spacing.borderRadiusLg,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 3,
   },
   navBusinessBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: spacing.borderRadiusFull,
-    maxWidth: '55%',
+    maxWidth: '58%',
   },
   navBusinessText: {
     fontFamily: fonts.bold,
-    fontSize: 12,
+    fontSize: 11,
     color: colors.primary,
   },
-  scrollContent: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xxl },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  scrollContent: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: 110,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
+  /* Canteen Hero Card */
   headerHero: {
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    overflow: 'hidden',
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  headerHeroGlow: {
+    position: 'absolute',
+    top: -40,
+    right: -40,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: colors.primaryGlow,
   },
   headerTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
+  canteenIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  heroEyebrow: {
+    fontFamily: fonts.semiBold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: 3,
+  },
   canteenTitle: {
-    fontFamily: fonts.headingExtraBold,
-    fontSize: 20,
+    fontFamily: fonts.headingBold,
+    fontSize: 17,
     color: colors.textDark,
+    letterSpacing: -0.3,
   },
   managerSubtitle: {
-    fontFamily: fonts.medium,
-    fontSize: 12,
+    fontFamily: fonts.regular,
+    fontSize: 11.5,
     color: colors.textGray,
-    marginTop: 2,
+    marginTop: 3,
   },
   statusTogglePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 11,
     paddingVertical: 6,
     borderRadius: spacing.borderRadiusFull,
   },
-  statusOpen: { backgroundColor: '#E8F5E9' },
-  statusClosed: { backgroundColor: '#FFEBEE' },
-  statusDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
-  dotOpen: { backgroundColor: colors.success },
-  dotClosed: { backgroundColor: colors.danger },
+  statusOpen: {
+    backgroundColor: colors.successLight,
+  },
+  statusClosed: {
+    backgroundColor: colors.dangerLight,
+  },
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  dotOpen: {
+    backgroundColor: colors.success,
+  },
+  dotClosed: {
+    backgroundColor: colors.danger,
+  },
   statusToggleText: {
     fontFamily: fonts.bold,
-    fontSize: 12,
-    color: colors.textDark,
+    fontSize: 11,
+    color: colors.success,
   },
 
   /* KPIs */
   kpiGrid: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 10,
     marginBottom: spacing.md,
   },
   kpiCard: {
     flex: 1,
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
-    padding: spacing.sm + 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderRadius: spacing.borderRadiusLg,
+    padding: 12,
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 3,
   },
   kpiIconBox: {
     width: 30,
@@ -507,65 +571,78 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   kpiLabel: {
     fontFamily: fonts.semiBold,
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textGray,
     textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   kpiValue: {
     fontFamily: fonts.headingBold,
     fontSize: 16,
     color: colors.textDark,
-    marginVertical: 2,
+    marginTop: 4,
+    letterSpacing: -0.2,
   },
   kpiSub: {
-    fontFamily: fonts.regular,
+    fontFamily: fonts.medium,
     fontSize: 10,
     color: colors.textLight,
+    marginTop: 4,
   },
 
   /* Section Card */
   sectionCard: {
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 3,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: spacing.md,
+  },
+  sectionEyebrow: {
+    fontFamily: fonts.semiBold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 3,
   },
   sectionHeading: {
     fontFamily: fonts.headingBold,
     fontSize: 15,
     color: colors.textDark,
+    letterSpacing: -0.2,
   },
   sectionSub: {
     fontFamily: fonts.regular,
     fontSize: 11,
     color: colors.textGray,
+    marginTop: 2,
   },
   timeTag: {
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: spacing.borderRadiusFull,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   timeTagText: {
     fontFamily: fonts.semiBold,
-    fontSize: 11,
+    fontSize: 10.5,
     color: colors.textGray,
   },
 
@@ -575,8 +652,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     height: 140,
-    paddingTop: 20,
-    paddingBottom: 4,
+    paddingTop: 12,
+    paddingBottom: 2,
   },
   chartCol: {
     flex: 1,
@@ -586,62 +663,74 @@ const styles = StyleSheet.create({
   },
   chartBarValue: {
     fontFamily: fonts.semiBold,
-    fontSize: 9,
-    color: colors.textDark,
+    fontSize: 9.5,
+    color: colors.textGray,
     marginBottom: 4,
   },
   chartTrack: {
     width: 14,
     height: 85,
-    backgroundColor: '#F1F2F6',
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: 7,
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },
   chartBarFill: {
     width: '100%',
-    backgroundColor: '#BDC3C7',
+    backgroundColor: colors.border,
     borderRadius: 7,
   },
   chartBarActive: {
     backgroundColor: colors.primary,
   },
   chartDayLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 11,
+    fontFamily: fonts.semiBold,
+    fontSize: 10.5,
     color: colors.textGray,
-    marginTop: 6,
+    marginTop: 7,
   },
 
   /* Split Row */
   splitRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 10,
     marginBottom: spacing.md,
   },
   halfCard: {
     flex: 1,
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 3,
   },
   progressItem: {
-    marginTop: spacing.sm,
+    marginTop: spacing.sm + 2,
   },
   progressLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
+  },
+  progressLabelLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  progressIconChip: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   progressLabel: {
     fontFamily: fonts.semiBold,
-    fontSize: 12,
+    fontSize: 11.5,
     color: colors.textDark,
   },
   progressPercent: {
@@ -650,8 +739,8 @@ const styles = StyleSheet.create({
     color: colors.textDark,
   },
   progressBarBg: {
-    height: 8,
-    backgroundColor: '#F1F2F6',
+    height: 7,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -665,13 +754,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.sm,
     gap: 8,
+    paddingVertical: 4,
   },
   rankCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.surfaceSubtle,
+  },
+  rankGold: {
+    backgroundColor: colors.rating,
+  },
+  rankSilver: {
+    backgroundColor: colors.textLight,
+  },
+  rankBronze: {
+    backgroundColor: colors.ratingText,
   },
   rankNum: {
     fontFamily: fonts.bold,
@@ -679,62 +779,87 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   dishName: {
-    fontFamily: fonts.bold,
+    fontFamily: fonts.semiBold,
     fontSize: 12,
     color: colors.textDark,
   },
   dishSales: {
     fontFamily: fonts.regular,
-    fontSize: 10,
+    fontSize: 10.5,
     color: colors.textGray,
+    marginTop: 1,
+  },
+  noDataBox: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    gap: 4,
   },
   noDataText: {
     fontFamily: fonts.regular,
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textLight,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
 
   /* Recent Orders */
+  viewAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: spacing.borderRadiusFull,
+    gap: 2,
+  },
   viewAllLink: {
     fontFamily: fonts.bold,
-    fontSize: 12,
+    fontSize: 11.5,
     color: colors.primary,
   },
   emptyRecentBox: {
-    padding: spacing.lg,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  emptyRecentIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyRecentText: {
-    fontFamily: fonts.regular,
+    fontFamily: fonts.medium,
     fontSize: 12,
     color: colors.textGray,
-    marginTop: 4,
+    marginTop: 2,
   },
   recentOrderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   orderLeftCol: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 10,
     flex: 1,
+    marginRight: spacing.xs,
   },
   orderIdBadge: {
     backgroundColor: colors.primaryLight,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: spacing.borderRadiusSm,
   },
   orderIdText: {
     fontFamily: fonts.bold,
-    fontSize: 11,
+    fontSize: 10.5,
     color: colors.primary,
   },
   orderCustomerName: {
@@ -742,24 +867,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textDark,
   },
-  orderTypeSub: {
-    fontFamily: fonts.regular,
-    fontSize: 11,
-    color: colors.textGray,
-    marginTop: 1,
+  orderPriceText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.textDark,
   },
   orderRightCol: {
     alignItems: 'flex-end',
-  },
-  orderStatusPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: spacing.borderRadiusFull,
-  },
-  orderStatusText: {
-    fontFamily: fonts.bold,
-    fontSize: 10,
-    textTransform: 'uppercase',
   },
 });
 
