@@ -109,6 +109,7 @@ const CustomerProfileScreen = () => {
       >
         {/* Header Hero Card */}
         <View style={styles.headerCard}>
+          <View style={styles.headerGlow} />
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
               {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
@@ -133,15 +134,24 @@ const CustomerProfileScreen = () => {
 
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, styles.statCardBorderRight]}>
+            <View style={styles.statIconBadge}>
+              <Ionicons name="bag-handle-outline" size={14} color={colors.primary} />
+            </View>
             <Text style={styles.statNumber}>{stats.totalOrders}</Text>
-            <Text style={styles.statLabel}>Orders Placed</Text>
+            <Text style={styles.statLabel}>Orders</Text>
           </View>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, styles.statCardBorderRight]}>
+            <View style={[styles.statIconBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+              <Ionicons name="wallet-outline" size={14} color="#10B981" />
+            </View>
             <Text style={styles.statNumber}>৳ {stats.totalSpent}</Text>
-            <Text style={styles.statLabel}>Total Spent</Text>
+            <Text style={styles.statLabel}>Spent</Text>
           </View>
           <View style={styles.statCard}>
+            <View style={[styles.statIconBadge, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+              <Ionicons name="checkmark-done-circle-outline" size={14} color="#3B82F6" />
+            </View>
             <Text style={styles.statNumber}>{stats.completedOrders}</Text>
             <Text style={styles.statLabel}>Delivered</Text>
           </View>
@@ -151,8 +161,20 @@ const CustomerProfileScreen = () => {
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
             <Text style={styles.cardTitle}>Campus & Contact Details</Text>
-            <TouchableOpacity onPress={() => setIsEditing(!isEditing)} activeOpacity={0.7}>
-              <Text style={styles.editBtnText}>{isEditing ? 'Cancel' : 'Edit'}</Text>
+            <TouchableOpacity
+              onPress={() => setIsEditing(!isEditing)}
+              activeOpacity={0.7}
+              style={[styles.editPill, isEditing && styles.editPillActive]}
+            >
+              <Ionicons
+                name={isEditing ? 'close' : 'pencil'}
+                size={13}
+                color={isEditing ? colors.white : colors.primary}
+                style={{ marginRight: 4 }}
+              />
+              <Text style={[styles.editBtnText, isEditing && styles.editBtnTextActive]}>
+                {isEditing ? 'Cancel' : 'Edit'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -245,7 +267,7 @@ const CustomerProfileScreen = () => {
                 </View>
               </View>
 
-              <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+              <View style={[styles.infoRow, styles.infoRowLast]}>
                 <View style={styles.infoIconBox}>
                   <Ionicons name="location-outline" size={18} color={colors.primary} />
                 </View>
@@ -258,16 +280,59 @@ const CustomerProfileScreen = () => {
           )}
         </View>
 
+        {/* Quick Shortcuts & Support */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Help & Campus Support</Text>
+          
+          <TouchableOpacity
+            style={styles.supportRow}
+            onPress={() => {
+              const url = `https://wa.me/8801811112222?text=${encodeURIComponent('Hello Bitezy Support, I need help with my campus dining order.')}`;
+              Linking.openURL(url).catch(() => showToast('Could not open WhatsApp', 'info'));
+            }}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.supportIconBox, { backgroundColor: colors.successLight }]}>
+              <Ionicons name="logo-whatsapp" size={18} color="#059669" />
+            </View>
+            <View style={styles.supportTextCol}>
+              <Text style={styles.supportTitle}>Bitezy WhatsApp Helpdesk</Text>
+              <Text style={styles.supportSub}>Direct support for delayed orders or payment issues</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.supportRow, { borderBottomWidth: 0 }]}
+            onPress={() => showToast('CUET Canteen Dining Guidelines: Open 7:00 AM - 11:30 PM', 'info')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.supportIconBox, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name="restaurant-outline" size={18} color={colors.primary} />
+            </View>
+            <View style={styles.supportTextCol}>
+              <Text style={styles.supportTitle}>CUET Canteen Guidelines</Text>
+              <Text style={styles.supportSub}>Operating hours, mess tokens & hall delivery rules</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
+          </TouchableOpacity>
+        </View>
+
         {/* Logout Button */}
-        <CustomButton
-          title="Log Out"
+        <TouchableOpacity
+          style={styles.logoutPillBtn}
           onPress={logout}
-          variant="outline"
-          style={styles.logoutBtn}
-        />
+          activeOpacity={0.8}
+        >
+          <Ionicons name="log-out-outline" size={18} color={colors.danger} style={{ marginRight: 6 }} />
+          <Text style={styles.logoutPillBtnText}>Log Out Account</Text>
+        </TouchableOpacity>
 
-
-
+        {/* Brand Footer */}
+        <View style={styles.brandFooter}>
+          <Text style={styles.brandFooterText}>Bitezy Campus Dining • v1.2.0</Text>
+          <Text style={styles.brandFooterSubtext}>Crafted for CUETians 🎓</Text>
+        </View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -280,36 +345,48 @@ const styles = StyleSheet.create({
   scrollContent: { padding: spacing.lg, paddingBottom: 140 },
   bottomSpacer: { height: 60 },
   headerCard: {
-
+    position: 'relative',
+    overflow: 'hidden',
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
     padding: spacing.xl,
     alignItems: 'center',
     marginBottom: spacing.md,
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowRadius: 14,
+    elevation: 4,
     borderWidth: 1,
     borderColor: colors.border,
   },
+  headerGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 90,
+    backgroundColor: colors.primaryLight,
+    opacity: 0.7,
+  },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    borderWidth: 3,
+    borderColor: colors.white,
   },
-  avatarText: { fontSize: 34, fontWeight: '900', color: colors.primary },
-  userName: { fontSize: 22, fontWeight: '800', color: colors.textDark },
-  userEmail: { fontSize: 13, color: colors.textGray, marginTop: 2 },
+  avatarText: { fontFamily: fonts.extraBold, fontSize: 36, color: colors.primary },
+  userName: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.textDark },
+  userEmail: { fontFamily: fonts.regular, fontSize: 13, color: colors.textGray, marginTop: 2 },
   badgeRow: {
     flexDirection: 'row',
     gap: 8,
@@ -320,44 +397,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.primaryLight,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: 6,
     borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
   },
-  roleTagText: { fontSize: 12, fontWeight: '700', color: colors.primary },
+  roleTagText: { fontFamily: fonts.bold, fontSize: 12, color: colors.primary },
   verifiedTag: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.successLight,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: 6,
     borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.successBorder,
   },
-  verifiedTagText: { fontSize: 12, fontWeight: '700', color: colors.success },
+  verifiedTagText: { fontFamily: fonts.bold, fontSize: 12, color: colors.success },
   statsGrid: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    backgroundColor: colors.card,
+    borderRadius: spacing.borderRadiusLg,
+    paddingVertical: spacing.md,
     marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   statCard: {
     flex: 1,
-    backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
-    padding: spacing.md,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    elevation: 1,
+    paddingHorizontal: spacing.xs,
+  },
+  statCardBorderRight: {
+    borderRightWidth: 1,
+    borderRightColor: colors.border,
   },
   statNumber: {
+    fontFamily: fonts.headingBold,
     fontSize: 18,
-    fontWeight: '800',
     color: colors.primary,
   },
   statLabel: {
+    fontFamily: fonts.medium,
     fontSize: 11,
-    fontWeight: '600',
     color: colors.textGray,
-    marginTop: 2,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   card: {
     backgroundColor: colors.card,
@@ -377,9 +468,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  cardTitle: { fontSize: 16, fontWeight: '800', color: colors.textDark },
-  editBtnText: { fontSize: 14, fontWeight: '700', color: colors.primary },
+  cardTitle: { fontFamily: fonts.headingBold, fontSize: 16, color: colors.textDark },
+  editPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: spacing.borderRadiusFull,
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+  },
+  editPillActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  editBtnText: { fontFamily: fonts.bold, fontSize: 13, color: colors.primary },
+  editBtnTextActive: { color: colors.white },
   formContainer: {
     marginTop: spacing.xs,
   },
@@ -392,18 +501,32 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm + 2,
+    paddingVertical: spacing.sm + 4,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  infoRowLast: {
+    borderBottomWidth: 0,
+  },
   infoIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+  },
+  statIconBadge: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   infoTextContainer: {
     flex: 1,
@@ -413,17 +536,80 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textGray,
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
   },
   infoValue: {
     fontFamily: fonts.bold,
     fontSize: 14,
     color: colors.textDark,
-    marginTop: 2,
+    marginTop: 3,
   },
-  logoutBtn: {
-    marginTop: spacing.xs,
+
+  /* Support Section */
+  supportRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  supportIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  supportTextCol: {
+    flex: 1,
+    marginRight: spacing.xs,
+  },
+  supportTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 13,
+    color: colors.textDark,
+  },
+  supportSub: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textGray,
+    marginTop: 1,
+  },
+
+  /* Logout Pill */
+  logoutPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.dangerLight,
+    borderWidth: 1.5,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    paddingVertical: 12,
+    borderRadius: spacing.borderRadiusFull,
     marginBottom: spacing.lg,
+  },
+  logoutPillBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    color: colors.danger,
+  },
+
+  /* Brand Footer */
+  brandFooter: {
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  brandFooterText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12,
+    color: colors.textLight,
+  },
+  brandFooterSubtext: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textLight,
+    marginTop: 2,
   },
 
   /* Favorites Section */
