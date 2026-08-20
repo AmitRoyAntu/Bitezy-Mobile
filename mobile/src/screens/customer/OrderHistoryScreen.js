@@ -20,10 +20,10 @@ import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 
 const TIMELINE_STEPS = [
-  { key: 'PLACED', label: 'Placed' },
-  { key: 'PREPARING', label: 'Preparing' },
-  { key: 'READY', label: 'On the Way' },
-  { key: 'COMPLETED', label: 'Delivered' },
+  { key: 'PLACED', label: 'Placed', icon: 'receipt-outline', desc: 'Order received by canteen' },
+  { key: 'PREPARING', label: 'Kitchen', icon: 'restaurant-outline', desc: 'Preparing your fresh meal' },
+  { key: 'READY', label: 'On Way', icon: 'bicycle-outline', desc: 'Dispatched / Ready for pickup' },
+  { key: 'COMPLETED', label: 'Delivered', icon: 'checkmark-circle-outline', desc: 'Delivered to your hall' },
 ];
 
 const getStepIndex = (status) => {
@@ -40,6 +40,27 @@ const getStepIndex = (status) => {
       return 3;
     default:
       return -1;
+  }
+};
+
+const getStatusMessage = (status, orderType) => {
+  const isDelivery = orderType === 'delivery';
+  switch (status) {
+    case 'PENDING':
+      return 'Waiting for canteen confirmation...';
+    case 'PREPARING':
+      return '👨‍🍳 Chef is currently preparing your meal';
+    case 'READY':
+      return isDelivery ? '🚴 Order is ready & on the way!' : '🛍️ Your order is ready for pickup!';
+    case 'ON_THE_WAY':
+      return '🚴 Rider is on the way to your hall';
+    case 'DELIVERED':
+    case 'PICKED_UP':
+      return '✨ Order completed. Enjoy your meal!';
+    case 'CANCELLED':
+      return '❌ This order was cancelled.';
+    default:
+      return 'Processing order...';
   }
 };
 
@@ -177,7 +198,7 @@ const OrderHistoryScreen = ({ navigation }) => {
     }
   };
 
-  const renderTimeline = (status) => {
+  const renderTimeline = (status, orderType) => {
     if (status === 'CANCELLED') {
       return (
         <View style={styles.cancelledBanner}>
@@ -188,53 +209,75 @@ const OrderHistoryScreen = ({ navigation }) => {
     }
 
     const currentStep = getStepIndex(status);
+    const statusMsg = getStatusMessage(status, orderType);
 
     return (
-      <View style={styles.timelineContainer}>
-        {TIMELINE_STEPS.map((step, idx) => {
-          const isDone = idx <= currentStep;
-          const isCurrent = idx === currentStep;
+      <View style={styles.trackerCard}>
+        {/* Step Nodes Bar */}
+        <View style={styles.timelineRow}>
+          {TIMELINE_STEPS.map((step, idx) => {
+            const isCompleted = idx < currentStep;
+            const isCurrent = idx === currentStep;
+            const isUpcoming = idx > currentStep;
 
-          return (
-            <React.Fragment key={step.key}>
-              <View style={styles.stepItem}>
-                <View
-                  style={[
-                    styles.stepCircle,
-                    isDone && styles.stepCircleDone,
-                    isCurrent && styles.stepCircleCurrent,
-                  ]}
-                >
-                  {isDone ? (
-                    <Ionicons name="checkmark" size={10} color={colors.white} />
-                  ) : (
-                    <View style={styles.stepDotInner} />
-                  )}
+            return (
+              <React.Fragment key={step.key}>
+                <View style={styles.stepNodeContainer}>
+                  <View
+                    style={[
+                      styles.stepNode,
+                      isCompleted && styles.stepNodeCompleted,
+                      isCurrent && styles.stepNodeCurrent,
+                      isUpcoming && styles.stepNodeUpcoming,
+                    ]}
+                  >
+                    <Ionicons
+                      name={isCompleted ? 'checkmark' : step.icon}
+                      size={isCompleted ? 14 : 13}
+                      color={
+                        isCompleted
+                          ? colors.white
+                          : isCurrent
+                          ? colors.white
+                          : colors.textLight
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.stepNodeLabel,
+                      isCompleted && styles.stepNodeLabelCompleted,
+                      isCurrent && styles.stepNodeLabelCurrent,
+                    ]}
+                  >
+                    {step.label}
+                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.stepLabel,
-                    isDone && styles.stepLabelDone,
-                    isCurrent && styles.stepLabelCurrent,
-                  ]}
-                >
-                  {step.label}
-                </Text>
-              </View>
-              {idx < TIMELINE_STEPS.length - 1 && (
-                <View
-                  style={[
-                    styles.stepConnector,
-                    idx < currentStep && styles.stepConnectorDone,
-                  ]}
-                />
-              )}
-            </React.Fragment>
-          );
-        })}
+
+                {idx < TIMELINE_STEPS.length - 1 && (
+                  <View
+                    style={[
+                      styles.stepLine,
+                      idx < currentStep && styles.stepLineCompleted,
+                    ]}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </View>
+
+        {/* Live Status Hint */}
+        <View style={styles.liveStatusRow}>
+          <View style={[styles.liveStatusDot, currentStep === 3 ? styles.liveStatusDotDone : styles.liveStatusDotActive]} />
+          <Text style={styles.liveStatusText} numberOfLines={1}>
+            {statusMsg}
+          </Text>
+        </View>
       </View>
     );
   };
+
 
   return (
     <View style={styles.container}>
@@ -272,7 +315,7 @@ const OrderHistoryScreen = ({ navigation }) => {
                 <Text style={styles.itemsSummary}>{itemsSummary}</Text>
 
                 {/* Visual Order Progress Timeline */}
-                {renderTimeline(item.status)}
+                {renderTimeline(item.status, item.type)}
 
                 {/* Quick Contact Bar for Active Orders */}
                 {isActive && (
@@ -295,7 +338,7 @@ const OrderHistoryScreen = ({ navigation }) => {
                         onPress={() => handleWhatsApp(providerPhone, item._id || item.id, providerName)}
                         activeOpacity={0.8}
                       >
-                        <Ionicons name="logo-whatsapp" size={15} color="#25D366" style={{ marginRight: 4 }} />
+                        <Ionicons name="logo-whatsapp" size={15} color={colors.whatsApp} style={{ marginRight: 4 }} />
                         <Text style={styles.whatsappBtnText}>WhatsApp</Text>
                       </TouchableOpacity>
 
@@ -330,17 +373,17 @@ const OrderHistoryScreen = ({ navigation }) => {
                         activeOpacity={0.8}
                       >
                         <Ionicons name="close-circle-outline" size={14} color={colors.danger} style={{ marginRight: 4 }} />
-                        <Text style={styles.cancelOrderBtnText}>Cancel Order</Text>
+                        <Text style={styles.cancelOrderBtnText}>Cancel</Text>
                       </TouchableOpacity>
                     )}
 
-                    {/* Quick Reorder Button */}
+                    {/* Quick 1-Tap Reorder Button */}
                     <TouchableOpacity
                       style={styles.reorderBtn}
                       onPress={() => handleReorder(item)}
-                      activeOpacity={0.8}
+                      activeOpacity={0.82}
                     >
-                      <Ionicons name="refresh-outline" size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                      <Ionicons name="repeat" size={14} color={colors.white} style={{ marginRight: 4 }} />
                       <Text style={styles.reorderBtnText}>Reorder</Text>
                     </TouchableOpacity>
                   </View>
@@ -350,16 +393,21 @@ const OrderHistoryScreen = ({ navigation }) => {
           }}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIconCircle}>
-                <Ionicons name="receipt-outline" size={40} color={colors.primary} />
+                <Ionicons name="receipt-outline" size={38} color={colors.primary} />
               </View>
               <Text style={styles.emptyTitle}>No orders placed yet</Text>
               <Text style={styles.emptySubtitle}>
-                Your order history will appear here
+                Your orders will show here with real-time live tracking
               </Text>
             </View>
           }
@@ -370,35 +418,43 @@ const OrderHistoryScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F6F8FA' },
+  container: { flex: 1, backgroundColor: colors.background },
   headerTitle: {
-    fontFamily: fonts.headingExtraBold,
+    fontFamily: fonts.headingBold,
     fontSize: 22,
-    fontWeight: '800',
     color: colors.textDark,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm + 2,
     backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    letterSpacing: -0.4,
   },
   listContent: {
-    padding: spacing.lg,
+    padding: spacing.md,
     paddingBottom: 130,
   },
-
-
   orderCard: {
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusLg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 4,
+    borderRadius: spacing.borderRadiusMd,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 4px 14px rgba(18, 18, 23, 0.06)',
+      },
+    }),
   },
   rowBetween: {
     flexDirection: 'row',
@@ -410,73 +466,123 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  orderId: { fontSize: 14, fontWeight: '700', color: colors.textDark },
-  providerName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.primary,
-    marginTop: spacing.xs,
-    marginBottom: 2,
+  orderId: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    color: colors.textDark,
   },
-  itemsSummary: { fontSize: 13, color: colors.textGray, marginBottom: spacing.md },
+  providerName: {
+    fontFamily: fonts.headingBold,
+    fontSize: 16,
+    color: colors.primary,
+    marginTop: 2,
+    marginBottom: 2,
+    letterSpacing: -0.2,
+  },
+  itemsSummary: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textGray,
+    marginBottom: spacing.sm,
+    lineHeight: 18,
+  },
   
-  /* Timeline */
-  timelineContainer: {
+  /* Live Tracker Card */
+  trackerCard: {
+    backgroundColor: '#F8F9FC',
+    borderRadius: spacing.borderRadiusMd - 2,
+    padding: spacing.sm + 4,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    marginBottom: spacing.sm + 2,
+  },
+  timelineRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.background,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.sm,
-    borderRadius: spacing.borderRadiusSm,
-    marginBottom: spacing.md,
+    marginBottom: 6,
+    paddingHorizontal: 2,
   },
-  stepItem: {
+  stepNodeContainer: {
     alignItems: 'center',
-    flex: 1,
+    zIndex: 2,
   },
-  stepCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.border,
+  stepNode: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.surfaceSubtle,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 3,
+    borderWidth: 1.5,
+    borderColor: colors.borderDark,
   },
-  stepCircleDone: {
+  stepNodeCompleted: {
     backgroundColor: colors.success,
+    borderColor: colors.success,
   },
-  stepCircleCurrent: {
+  stepNodeCurrent: {
     backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
-  stepDotInner: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.textLight,
+  stepNodeUpcoming: {
+    backgroundColor: '#EEF0F4',
+    borderColor: colors.borderDark,
   },
-  stepLabel: {
+  stepNodeLabel: {
+    fontFamily: fonts.semiBold,
     fontSize: 10,
     color: colors.textLight,
-    fontWeight: '600',
+    marginTop: 4,
     textAlign: 'center',
   },
-  stepLabelDone: {
+  stepNodeLabelCompleted: {
     color: colors.textDark,
+    fontFamily: fonts.bold,
   },
-  stepLabelCurrent: {
+  stepNodeLabelCurrent: {
     color: colors.primary,
-    fontWeight: '700',
+    fontFamily: fonts.headingBold,
   },
-  stepConnector: {
-    height: 2,
-    flex: 0.7,
-    backgroundColor: colors.border,
-    marginBottom: 14,
+  stepLine: {
+    flex: 1,
+    height: 2.5,
+    backgroundColor: colors.borderDark,
+    marginBottom: 16,
+    marginHorizontal: -4,
+    zIndex: 1,
   },
-  stepConnectorDone: {
+  stepLineCompleted: {
     backgroundColor: colors.success,
+  },
+  liveStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: 2,
+  },
+  liveStatusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    marginRight: 6,
+  },
+  liveStatusDotActive: {
+    backgroundColor: colors.primary,
+  },
+  liveStatusDotDone: {
+    backgroundColor: colors.success,
+  },
+  liveStatusText: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    color: colors.textDark,
+    flex: 1,
   },
   cancelledBanner: {
     flexDirection: 'row',
@@ -488,17 +594,17 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   cancelledText: {
+    fontFamily: fonts.bold,
     fontSize: 12,
     color: colors.danger,
-    fontWeight: '600',
   },
 
   /* Contact Bar for Active Orders */
   contactContainer: {
-    backgroundColor: colors.background,
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: '#F8F9FC',
+    borderRadius: spacing.borderRadiusSm + 2,
     padding: spacing.sm + 2,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm + 2,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -520,7 +626,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderDark,
     paddingVertical: 7,
     borderRadius: spacing.borderRadiusSm,
   },
@@ -530,13 +636,13 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   whatsappActionBtn: {
-    borderColor: '#D4F5E1',
-    backgroundColor: '#F0FBF4',
+    borderColor: colors.successBorder,
+    backgroundColor: colors.successLight,
   },
   whatsappBtnText: {
     fontFamily: fonts.semiBold,
     fontSize: 12,
-    color: '#128C7E',
+    color: '#0D9488',
   },
   riderActionBtn: {
     backgroundColor: colors.purple,
@@ -556,8 +662,17 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     paddingTop: spacing.sm,
   },
-  dateText: { fontFamily: fonts.regular, fontSize: 11, color: colors.textLight, marginBottom: 2 },
-  totalVal: { fontFamily: fonts.headingBold, fontSize: 16, color: colors.textDark },
+  dateText: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textLight,
+    marginBottom: 2,
+  },
+  totalVal: {
+    fontFamily: fonts.headingBold,
+    fontSize: 17,
+    color: colors.textDark,
+  },
   footerActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -566,12 +681,12 @@ const styles = StyleSheet.create({
   cancelOrderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFEBEE',
+    backgroundColor: colors.dangerLight,
     borderWidth: 1,
-    borderColor: '#FFCDD2',
+    borderColor: colors.dangerBorder,
     paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: spacing.borderRadiusSm,
+    paddingVertical: 6,
+    borderRadius: spacing.borderRadiusFull,
   },
   cancelOrderBtnText: {
     fontFamily: fonts.bold,
@@ -581,29 +696,55 @@ const styles = StyleSheet.create({
   reorderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: spacing.borderRadiusFull,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(255, 75, 38, 0.22)',
+      },
+    }),
   },
   reorderBtnText: {
     fontFamily: fonts.bold,
-    fontSize: 13,
-    color: colors.primary,
+    fontSize: 12,
+    color: colors.white,
+    letterSpacing: 0.1,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyContainer: { padding: spacing.xl, alignItems: 'center', marginTop: 40 },
   emptyIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
-  emptyTitle: { fontFamily: fonts.headingBold, fontSize: 18, color: colors.textDark },
-  emptySubtitle: { fontFamily: fonts.regular, fontSize: 13, color: colors.textGray, marginTop: spacing.xs },
+  emptyTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 17,
+    color: colors.textDark,
+  },
+  emptySubtitle: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textGray,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
 });
 
 export default OrderHistoryScreen;
+

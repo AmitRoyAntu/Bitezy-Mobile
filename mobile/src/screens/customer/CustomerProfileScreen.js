@@ -255,11 +255,12 @@ const CustomerProfileScreen = () => {
 
         {/* Logout Button */}
         <CustomButton
-          title="Log Out of Bitezy"
+          title="Log Out"
           onPress={logout}
-          variant="danger"
+          variant="outline"
           style={styles.logoutBtn}
         />
+
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

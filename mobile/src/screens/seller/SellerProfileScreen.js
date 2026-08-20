@@ -347,11 +347,12 @@ const SellerProfileScreen = ({ navigation }) => {
 
         {/* Log Out Button */}
         <CustomButton
-          title="Sign Out of Bitezy Seller"
+          title="Log Out"
           onPress={logout}
-          variant="danger"
+          variant="outline"
           style={styles.logoutBtn}
         />
+
       </ScrollView>
     </View>
   );
