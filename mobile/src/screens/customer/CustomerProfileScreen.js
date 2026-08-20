@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,12 +17,16 @@ import { colors, spacing, fonts } from '../../theme/colors';
 import { CUET_HALLS, CUET_DEPARTMENTS } from '../../data/cuetOptions';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useFavorites } from '../../context/FavoritesContext';
+import { useCart } from '../../context/CartContext';
 import DataService from '../../api/DataService';
 
 const CustomerProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const { currentUser, logout, updateUser } = useAuth();
   const { showToast } = useToast();
+  const { favorites, toggleFavorite } = useFavorites();
+  const { updateQty } = useCart();
 
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
@@ -262,6 +267,8 @@ const CustomerProfileScreen = () => {
         />
 
 
+
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
     </View>
@@ -417,6 +424,98 @@ const styles = StyleSheet.create({
   logoutBtn: {
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
+  },
+
+  /* Favorites Section */
+  favHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  favCountBadge: {
+    backgroundColor: colors.dangerLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  favCountText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.danger,
+  },
+  favEmptyBox: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+  },
+  favEmptyText: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    color: colors.textDark,
+    marginTop: spacing.xs,
+  },
+  favEmptySub: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: colors.textGray,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  favList: {
+    marginTop: spacing.xs,
+  },
+  favItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  favItemImg: {
+    width: 44,
+    height: 44,
+    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.border,
+  },
+  favItemInfo: {
+    flex: 1,
+    marginLeft: spacing.sm + 2,
+    marginRight: spacing.xs,
+  },
+  favItemName: {
+    fontFamily: fonts.headingSemiBold,
+    fontSize: 13,
+    color: colors.textDark,
+  },
+  favItemPrice: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.primary,
+    marginTop: 1,
+  },
+  favItemProvider: {
+    fontFamily: fonts.regular,
+    fontSize: 10,
+    color: colors.textGray,
+  },
+  favActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  favAddToCartBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  favAddToCartText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.white,
+  },
+  favDeleteBtn: {
+    padding: 6,
   },
 });
 

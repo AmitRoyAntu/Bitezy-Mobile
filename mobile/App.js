@@ -27,6 +27,7 @@ import {
 import { ToastProvider } from './src/context/ToastContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
+import { FavoritesProvider } from './src/context/FavoritesContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { colors } from './src/theme/colors';
 
@@ -57,12 +58,15 @@ export default function App() {
       <StatusBar style="dark" />
       <ToastProvider>
         <AuthProvider>
-          <CartProvider>
-            <RootNavigator />
-          </CartProvider>
+          <FavoritesProvider>
+            <CartProvider>
+              <RootNavigator />
+            </CartProvider>
+          </FavoritesProvider>
         </AuthProvider>
       </ToastProvider>
     </SafeAreaProvider>
   );
 }
+
 

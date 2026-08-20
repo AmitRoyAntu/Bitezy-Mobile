@@ -63,8 +63,16 @@ const CartScreen = ({ navigation }) => {
       if (currentProviderName) {
         try {
           const providers = await DataService.getProviders();
+          const targetStr = String(
+            typeof currentProviderName === 'object'
+              ? currentProviderName.name || currentProviderName._id
+              : currentProviderName
+          ).toLowerCase();
           const match = providers.find(
-            (p) => p.name.toLowerCase() === currentProviderName.toLowerCase()
+            (p) =>
+              (p.name && p.name.toLowerCase() === targetStr) ||
+              String(p._id).toLowerCase() === targetStr ||
+              String(p.id).toLowerCase() === targetStr
           );
           setProviderInfo(match || null);
         } catch (e) {
@@ -78,35 +86,37 @@ const CartScreen = ({ navigation }) => {
   }, [currentProviderName]);
 
   const handlePlaceOrder = async () => {
-    if (cart.length === 0) {
+    if (!cart || cart.length === 0) {
       showToast('Your cart is empty', 'warning');
       return;
     }
 
     if (orderType === 'Delivery' && !deliveryAddress.trim()) {
-      showToast('Please specify delivery address/hall room', 'warning');
+      showToast('Please enter your delivery room/hall address', 'warning');
       return;
     }
 
     setLoading(true);
-
-    const orderPayload = {
-      providerName: currentProviderName,
-      type: orderType.toLowerCase(),
-      items: cart.map((item) => ({
-        name: item.name,
-        price: item.price,
-        qty: item.qty,
-        desc: item.desc || '',
-      })),
-      total,
-      deliveryAddress: orderType === 'Delivery' ? deliveryAddress.trim() : null,
-      note: orderNote.trim() || undefined,
-    };
-
     try {
+      const orderPayload = {
+        provider: providerInfo?._id || providerInfo?.id || (typeof cart[0].provider === 'object' ? cart[0].provider._id : cart[0].provider) || 'canteen-default',
+        providerName: providerInfo?.name || (typeof currentProviderName === 'object' ? currentProviderName.name : currentProviderName) || 'Campus Canteen',
+        items: cart.map((item) => ({
+          name: item.name,
+          price: item.price,
+          qty: item.qty,
+          img: item.img,
+        })),
+        orderType: orderType.toLowerCase(),
+        deliveryAddress: orderType === 'Delivery' ? deliveryAddress.trim() : 'Pickup at counter',
+        notes: orderNote.trim(),
+        subtotal,
+        deliveryFee,
+        total,
+      };
+
       await DataService.createOrder(orderPayload);
-      showToast('Order placed successfully!');
+      showToast('Order placed successfully! 🎉', 'success');
       clearCart();
       navigation.navigate('Orders');
     } catch (err) {
@@ -135,6 +145,11 @@ const CartScreen = ({ navigation }) => {
     );
   }
 
+  const displayedProviderName =
+    providerInfo?.name ||
+    (typeof currentProviderName === 'object' ? currentProviderName?.name : currentProviderName) ||
+    'Campus Dining';
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -152,7 +167,7 @@ const CartScreen = ({ navigation }) => {
         {/* Provider Header */}
         <View style={styles.card}>
           <Text style={styles.providerLabel}>Ordering From:</Text>
-          <Text style={styles.providerName}>{currentProviderName}</Text>
+          <Text style={styles.providerName}>{displayedProviderName}</Text>
           {providerInfo?.location ? (
             <View style={styles.providerLocationRow}>
               <Ionicons name="location-outline" size={13} color={colors.textGray} style={{ marginRight: 4 }} />

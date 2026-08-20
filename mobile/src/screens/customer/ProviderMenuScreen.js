@@ -22,6 +22,7 @@ import { colors, spacing, fonts } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
+import { useFavorites } from '../../context/FavoritesContext';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -44,6 +45,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
   const [submitLoading, setSubmitLoading] = useState(false);
 
   const { cart, updateQty, totalItems, subtotal, total } = useCart();
+  const { isFavorite } = useFavorites();
   const { showToast } = useToast();
 
   const loadData = async () => {
@@ -67,13 +69,16 @@ const ProviderMenuScreen = ({ route, navigation }) => {
 
   const categories = useMemo(() => {
     const cats = new Set(menuItems.map((m) => m.category).filter(Boolean));
-    return ['All', ...Array.from(cats)];
-  }, [menuItems]);
+    const hasFavs = menuItems.some((m) => isFavorite(m));
+    return ['All', ...(hasFavs ? ['Saved Items'] : []), ...Array.from(cats)];
+  }, [menuItems, isFavorite]);
 
   const displayedMenuItems = useMemo(() => {
     if (selectedCategory === 'All') return menuItems;
+    if (selectedCategory === 'Saved Items') return menuItems.filter((m) => isFavorite(m));
     return menuItems.filter((m) => m.category === selectedCategory);
-  }, [menuItems, selectedCategory]);
+  }, [menuItems, selectedCategory, isFavorite]);
+
 
   const handleTabChange = (tab) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -291,10 +296,12 @@ const ProviderMenuScreen = ({ route, navigation }) => {
             <View style={styles.itemWrapper}>
               <FoodItemCard
                 item={item}
+                providerName={provider.name}
                 quantity={getItemQty(item.name)}
                 onUpdateQty={handleUpdateQty}
               />
             </View>
+
           )}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={

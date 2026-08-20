@@ -12,12 +12,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fonts } from '../theme/colors';
+import { useFavorites } from '../context/FavoritesContext';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
+const FoodItemCard = ({ item, providerName, quantity = 0, onUpdateQty }) => {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorited = isFavorite(item);
   const qtyScaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -44,14 +47,39 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
     onUpdateQty(item, change);
   };
 
+  const handleToggleFav = () => {
+    const itemWithProvider = {
+      ...item,
+      provider: providerName || item.provider || 'Campus Canteen',
+    };
+    toggleFavorite(itemWithProvider);
+  };
+
   return (
     <View style={styles.card}>
-      <Image
-        source={{ uri: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&auto=format&fit=crop&q=80' }}
-        style={styles.image}
-        resizeMode="cover"
-      />
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&auto=format&fit=crop&q=80' }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+        <TouchableOpacity
+          style={[styles.favBtn, favorited && styles.favBtnActive]}
+          onPress={handleToggleFav}
+          activeOpacity={0.8}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons
+            name={favorited ? 'bookmark' : 'bookmark-outline'}
+            size={13}
+            color={favorited ? colors.primary : colors.textDark}
+          />
+        </TouchableOpacity>
+
+      </View>
+
       <View style={styles.info}>
+
         <View>
           <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
           <Text style={styles.desc} numberOfLines={2}>
@@ -127,12 +155,44 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  imageContainer: {
+    position: 'relative',
+  },
   image: {
     width: 84,
     height: 84,
     borderRadius: spacing.borderRadiusMd - 2,
     backgroundColor: colors.border,
   },
+  favBtn: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.12)',
+      },
+    }),
+  },
+  favBtnActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  },
+
   info: {
     flex: 1,
     marginLeft: spacing.md,

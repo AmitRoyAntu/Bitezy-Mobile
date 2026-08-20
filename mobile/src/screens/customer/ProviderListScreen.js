@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,32 +11,137 @@ import {
   RefreshControl,
   ScrollView,
   Platform,
+  Animated,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import ProviderCard from '../../components/ProviderCard';
 import Logo from '../../components/Logo';
 import { colors, spacing, fonts } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useToast } from '../../context/ToastContext';
+import { useFavorites } from '../../context/FavoritesContext';
+import { useCart } from '../../context/CartContext';
 
 const CATEGORIES = [
-  { name: 'All', icon: 'layers-outline', desc: 'All campus food providers' },
-  { name: 'Canteen', icon: 'restaurant-outline', desc: 'Residential hall canteens' },
-  { name: 'Cafeteria', icon: 'cafe-outline', desc: 'Central cafeteria & dining' },
-  { name: 'Cart', icon: 'fast-food-outline', desc: 'Food carts & evening snacks' },
+  { name: 'All', icon: 'apps-outline' },
+  { name: 'Canteen', icon: 'restaurant-outline' },
+  { name: 'Cafeteria', icon: 'cafe-outline' },
+  { name: 'Cart', icon: 'fast-food-outline' },
+];
+
+const HERO_BANNERS = [
+  {
+    id: 'welcome-50',
+    badge: '50% DISCOUNT',
+    badgeIcon: 'pricetag',
+    provider: 'Central Cafeteria',
+    title: 'Get 50% Off First Meal',
+    subtitle: 'Valid on student lunch & breakfast combo packages',
+    code: 'CUET50',
+    bgColor: '#181216',
+    borderColor: 'rgba(255, 75, 38, 0.35)',
+    accentColor: colors.primary,
+    badgeBg: 'rgba(255, 75, 38, 0.15)',
+    bgIcon: 'restaurant',
+  },
+  {
+    id: 'biryani-deal',
+    badge: 'SPECIAL PROMO',
+    badgeIcon: 'sparkles',
+    provider: 'Zia Hall Canteen',
+    title: 'Friday Biryani ৳30 Off',
+    subtitle: 'Special mutton & chicken kacchi parcels every weekend',
+    code: 'BIRYANI30',
+    bgColor: '#0C1816',
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    accentColor: '#10B981',
+    badgeBg: 'rgba(16, 185, 129, 0.15)',
+    bgIcon: 'flame',
+  },
+  {
+    id: 'night-snack',
+    badge: 'MIDNIGHT SPECIAL',
+    badgeIcon: 'moon',
+    provider: 'Tareq Huda Cart',
+    title: 'Free Hall Room Delivery',
+    subtitle: 'Late night study chai, paratha & snack orders over ৳100',
+    code: 'NIGHTBITE',
+    bgColor: '#151120',
+    borderColor: 'rgba(167, 139, 250, 0.35)',
+    accentColor: '#A78BFA',
+    badgeBg: 'rgba(167, 139, 250, 0.15)',
+    bgIcon: 'cafe',
+  },
 ];
 
 const ProviderListScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const [providers, setProviders] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showSavedModal, setShowSavedModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
+  const { favorites, toggleFavorite } = useFavorites();
+  const { updateQty } = useCart();
   const { showToast } = useToast();
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const translateXAnim = useRef(new Animated.Value(0)).current;
+
+
+  const switchBanner = (nextIndex) => {
+    // Slide out to left
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateXAnim, {
+        toValue: -32,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setCurrentBannerIndex(nextIndex);
+      translateXAnim.setValue(32);
+      // Slide in from right to center
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateXAnim, {
+          toValue: 0,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  };
+
+  // Auto-cycle through promotional banners only when screen is actively focused
+  useEffect(() => {
+    if (!isFocused || activeCategory !== 'All' || searchQuery) return;
+    const bannerTimer = setInterval(() => {
+      setCurrentBannerIndex((prev) => {
+        const next = (prev + 1) % HERO_BANNERS.length;
+        switchBanner(next);
+        return prev; // handled inside switchBanner
+      });
+    }, 3200);
+    return () => clearInterval(bannerTimer);
+  }, [isFocused, activeCategory, searchQuery]);
+
 
   const loadProviders = async () => {
     try {
@@ -78,10 +183,22 @@ const ProviderListScreen = ({ navigation }) => {
       <View style={[styles.header, { paddingTop: Math.max(insets.top + spacing.sm, 44) }]}>
         <View style={styles.brandRow}>
           <Logo size="small" showTagline={false} align="left" />
-          <View style={styles.campusBadge}>
-            <Ionicons name="location-sharp" size={13} color={colors.primary} style={{ marginRight: 3 }} />
-            <Text style={styles.campusBadgeText}>CUET Campus</Text>
-          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.watchlistIconButton,
+              favorites.length > 0 && styles.watchlistIconButtonActive,
+            ]}
+            onPress={() => setShowSavedModal(true)}
+            activeOpacity={0.75}
+          >
+            <Ionicons
+              name={favorites.length > 0 ? 'bookmark' : 'bookmark-outline'}
+              size={18}
+              color={favorites.length > 0 ? colors.primary : colors.textDark}
+            />
+            {favorites.length > 0 && <View style={styles.watchlistDot} />}
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.greeting}>Hungry on campus?</Text>
@@ -146,6 +263,144 @@ const ProviderListScreen = ({ navigation }) => {
         <FlatList
           data={filteredProviders}
           keyExtractor={(item) => item._id || item.id || item.name}
+          ListHeaderComponent={
+            <View style={styles.listHeaderWrapper}>
+              {/* Dynamic Auto-Cycling Themed Promo Hero Banner */}
+              {activeCategory === 'All' && !searchQuery && (
+                (() => {
+                  const activeBanner = HERO_BANNERS[currentBannerIndex];
+                  return (
+                    <View
+                      style={[
+                        styles.heroBannerCard,
+                        {
+                          backgroundColor: activeBanner.bgColor,
+                          borderColor: activeBanner.borderColor,
+                        },
+                      ]}
+                    >
+                      <Animated.View
+                        style={[
+                          styles.heroContent,
+                          {
+                            opacity: fadeAnim,
+                            transform: [{ translateX: translateXAnim }],
+                          },
+                        ]}
+                      >
+                        {/* Top Row: Discount Badge & Offering Provider Tag */}
+                        <View style={styles.heroTopRow}>
+                          <View
+                            style={[
+                              styles.heroBadge,
+                              {
+                                backgroundColor: activeBanner.badgeBg,
+                                borderColor: activeBanner.borderColor,
+                              },
+                            ]}
+                          >
+                            <Ionicons
+                              name={activeBanner.badgeIcon}
+                              size={12}
+                              color={activeBanner.accentColor}
+                              style={{ marginRight: 4 }}
+                            />
+                            <Text
+                              style={[
+                                styles.heroBadgeText,
+                                { color: activeBanner.accentColor },
+                              ]}
+                            >
+                              {activeBanner.badge}
+                            </Text>
+                          </View>
+
+                          <View style={styles.providerOfferPill}>
+                            <Ionicons
+                              name="storefront-outline"
+                              size={12}
+                              color="rgba(255, 255, 255, 0.75)"
+                              style={{ marginRight: 4 }}
+                            />
+                            <Text style={styles.providerOfferText} numberOfLines={1}>
+                              {activeBanner.provider}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <Text style={styles.heroTitle}>{activeBanner.title}</Text>
+                        <Text style={styles.heroSubtitle}>
+                          {activeBanner.subtitle}
+                        </Text>
+
+                        <View style={styles.heroActionsRow}>
+                          <View
+                            style={[
+                              styles.promoCodeBox,
+                              { borderColor: activeBanner.borderColor },
+                            ]}
+                          >
+                            <Ionicons
+                              name="pricetag-outline"
+                              size={13}
+                              color={activeBanner.accentColor}
+                              style={{ marginRight: 5 }}
+                            />
+                            <Text style={styles.promoCodeLabel}>USE CODE:</Text>
+                            <Text
+                              style={[
+                                styles.promoCodeText,
+                                { color: activeBanner.accentColor },
+                              ]}
+                            >
+                              {activeBanner.code}
+                            </Text>
+                          </View>
+
+                          {/* Dots Pagination Indicator */}
+                          <View style={styles.bannerDotsContainer}>
+                            {HERO_BANNERS.map((banner, dotIndex) => (
+                              <TouchableOpacity
+                                key={banner.id}
+                                onPress={() => switchBanner(dotIndex)}
+                                activeOpacity={0.7}
+                                style={[
+                                  styles.bannerDot,
+                                  currentBannerIndex === dotIndex && [
+                                    styles.bannerDotActive,
+                                    { backgroundColor: activeBanner.accentColor },
+                                  ],
+                                ]}
+                              />
+                            ))}
+                          </View>
+                        </View>
+                      </Animated.View>
+
+                      <View style={styles.heroIconDecoration}>
+                        <Ionicons
+                          name={activeBanner.bgIcon}
+                          size={76}
+                          color="rgba(255, 255, 255, 0.05)"
+                        />
+                      </View>
+                    </View>
+                  );
+                })()
+              )}
+
+              {/* Section Header with Count */}
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>
+                  {activeCategory === 'All' ? 'Campus Canteens & Halls' : `${activeCategory} Spots`}
+                </Text>
+                <View style={styles.countPill}>
+                  <Text style={styles.countText}>{filteredProviders.length} places</Text>
+                </View>
+              </View>
+            </View>
+          }
+
           renderItem={({ item }) => (
             <ProviderCard
               provider={item}
@@ -161,6 +416,7 @@ const ProviderListScreen = ({ navigation }) => {
               colors={[colors.primary]}
             />
           }
+
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIconBox}>
@@ -282,6 +538,102 @@ const ProviderListScreen = ({ navigation }) => {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* Saved Watchlist Bottom Sheet Modal */}
+      <Modal
+        visible={showSavedModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSavedModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSavedModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.savedBottomSheet}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.sheetDragHandle} />
+            <View style={styles.sheetHeader}>
+              <View style={styles.savedModalTitleRow}>
+                <Ionicons name="bookmark" size={18} color={colors.primary} style={{ marginRight: 6 }} />
+                <Text style={styles.sheetTitle}>Saved Watchlist</Text>
+                {favorites.length > 0 && (
+                  <View style={styles.savedModalBadge}>
+                    <Text style={styles.savedModalBadgeText}>{favorites.length}</Text>
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowSavedModal(false)}
+                style={styles.sheetCloseBtn}
+              >
+                <Ionicons name="close" size={22} color={colors.textDark} />
+              </TouchableOpacity>
+            </View>
+
+            {favorites.length === 0 ? (
+              <View style={styles.savedEmptyBox}>
+                <Ionicons name="bookmark-outline" size={42} color={colors.textLight} />
+                <Text style={styles.savedEmptyTitle}>No saved items yet</Text>
+                <Text style={styles.savedEmptySub}>
+                  Bookmark your favorite meals from any canteen to quickly reorder them here!
+                </Text>
+              </View>
+            ) : (
+              <ScrollView style={styles.savedModalScroll} showsVerticalScrollIndicator={false}>
+                {favorites.map((item, index) => (
+                  <View key={item._id || item.id || item.name + index} style={styles.savedModalItemRow}>
+                    <Image
+                      source={{ uri: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120' }}
+                      style={styles.savedModalItemImg}
+                    />
+                    <View style={styles.savedModalItemInfo}>
+                      <Text style={styles.savedModalItemName} numberOfLines={1}>{item.name}</Text>
+                      <Text style={styles.savedModalItemPrice}>৳ {item.price}</Text>
+                      <Text style={styles.savedModalItemProvider} numberOfLines={1}>
+                        {typeof item.provider === 'object' ? item.provider.name : item.provider || 'Campus Canteen'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.savedModalActions}>
+                      <TouchableOpacity
+                        style={styles.savedModalAddToCartBtn}
+                        onPress={() => {
+                          updateQty(
+                            item.name,
+                            item.price,
+                            1,
+                            item.img,
+                            typeof item.provider === 'object' ? item.provider.name : item.provider || 'Campus Canteen',
+                            item.desc
+                          );
+                          showToast(`Added "${item.name}" to cart!`);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="cart-outline" size={13} color={colors.white} style={{ marginRight: 3 }} />
+                        <Text style={styles.savedModalAddToCartText}>Add</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.savedModalDeleteBtn}
+                        onPress={() => toggleFavorite(item)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="trash-outline" size={15} color={colors.danger} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -301,21 +653,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xs,
   },
-  campusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: spacing.borderRadiusFull,
+  watchlistIconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: 'rgba(255, 75, 38, 0.15)',
+    borderColor: colors.borderDark,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(18, 18, 23, 0.06)',
+      },
+    }),
   },
-  campusBadgeText: {
-    fontFamily: fonts.bold,
-    fontSize: 11,
-    color: colors.primary,
-    letterSpacing: 0.2,
+  watchlistIconButtonActive: {
+    backgroundColor: colors.primaryLight,
+    borderColor: 'rgba(255, 75, 38, 0.25)',
+  },
+  watchlistDot: {
+    position: 'absolute',
+    top: 7,
+    right: 7,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: colors.primary,
+    borderWidth: 1.2,
+    borderColor: colors.card,
   },
   greeting: {
     fontFamily: fonts.headingBold,
@@ -411,14 +787,182 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: 90,
   },
+  listHeaderWrapper: {
+    marginBottom: spacing.xs,
+  },
+
+  /* Hero Campus Specials Banner */
+  heroBannerCard: {
+    backgroundColor: colors.secondary,
+    borderRadius: spacing.borderRadiusMd,
+    padding: spacing.md + 2,
+    height: 156,
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0 6px 20px rgba(18, 18, 23, 0.18)',
+      },
+    }),
+  },
+  heroContent: {
+    zIndex: 2,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'space-between',
+  },
+  heroTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  heroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+  },
+  heroBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  providerOfferPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
+    maxWidth: '55%',
+  },
+  providerOfferText: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+  heroTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 17,
+    color: colors.white,
+    letterSpacing: -0.3,
+    marginTop: 2,
+    marginBottom: 1,
+  },
+  heroSubtitle: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 16,
+    height: 32,
+  },
+  heroActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+
+  promoCodeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 75, 38, 0.45)',
+    borderStyle: 'dashed',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  promoCodeLabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.65)',
+    letterSpacing: 0.5,
+    marginRight: 4,
+  },
+  promoCodeText: {
+    fontFamily: fonts.headingBold,
+    fontSize: 12,
+    color: colors.primary,
+    letterSpacing: 1,
+  },
+  bannerDotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  bannerDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.28)',
+  },
+  bannerDotActive: {
+    width: 16,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+  },
+  heroIconDecoration: {
+    position: 'absolute',
+    right: -10,
+    bottom: -10,
+    zIndex: 1,
+  },
 
 
+  /* Section Header */
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+    paddingHorizontal: 2,
+  },
+  sectionTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 16,
+    color: colors.textDark,
+    letterSpacing: -0.3,
+  },
+  countPill: {
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  countText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 11,
+    color: colors.textGray,
+  },
 
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   emptyContainer: {
     padding: spacing.xl,
     alignItems: 'center',
@@ -582,7 +1126,122 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontSize: 14,
   },
+
+  /* Saved Watchlist Bottom Sheet */
+  savedBottomSheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: spacing.borderRadiusLg,
+    borderTopRightRadius: spacing.borderRadiusLg,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl + 10,
+    maxHeight: '75%',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
+  },
+  savedModalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  savedModalBadge: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadiusFull,
+    marginLeft: 8,
+  },
+  savedModalBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.primary,
+  },
+  savedEmptyBox: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  savedEmptyTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 16,
+    color: colors.textDark,
+    marginTop: spacing.sm,
+  },
+  savedEmptySub: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textGray,
+    textAlign: 'center',
+    marginTop: 4,
+    paddingHorizontal: spacing.md,
+  },
+  savedModalScroll: {
+    maxHeight: 380,
+    marginTop: spacing.xs,
+  },
+  savedModalItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  savedModalItemImg: {
+    width: 48,
+    height: 48,
+    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.border,
+  },
+  savedModalItemInfo: {
+    flex: 1,
+    marginLeft: spacing.sm + 2,
+    marginRight: spacing.xs,
+  },
+  savedModalItemName: {
+    fontFamily: fonts.headingSemiBold,
+    fontSize: 14,
+    color: colors.textDark,
+  },
+  savedModalItemPrice: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.primary,
+    marginTop: 1,
+  },
+  savedModalItemProvider: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textGray,
+  },
+  savedModalActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  savedModalAddToCartBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  savedModalAddToCartText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.white,
+  },
+  savedModalDeleteBtn: {
+    padding: 6,
+  },
 });
+
 
 export default ProviderListScreen;
 
