@@ -26,6 +26,7 @@ const CartScreen = ({ navigation }) => {
     deliveryFee,
     total,
     currentProviderName,
+    updateQty,
     removeItem,
     clearCart,
   } = useCart();
@@ -217,18 +218,33 @@ const CartScreen = ({ navigation }) => {
                     {item.desc}
                   </Text>
                 ) : null}
-                <Text style={styles.itemPrice}>
-                  ৳{item.price} x {item.qty}
-                </Text>
+                <Text style={styles.itemPrice}>৳ {item.price}</Text>
               </View>
+
+              {/* Quantity Stepper (+ / -) */}
+              <View style={styles.stepperContainer}>
+                <TouchableOpacity
+                  style={[styles.stepperBtn, item.qty === 1 && styles.stepperBtnDanger]}
+                  onPress={() => updateQty(item.name, item.price, -1, item.img, item.provider, item.desc)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={item.qty === 1 ? 'trash-outline' : 'remove'}
+                    size={14}
+                    color={item.qty === 1 ? colors.danger : colors.primary}
+                  />
+                </TouchableOpacity>
+                <Text style={styles.stepperQtyText}>{item.qty}</Text>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => updateQty(item.name, item.price, 1, item.img, item.provider, item.desc)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add" size={14} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+
               <Text style={styles.itemTotal}>৳ {item.price * item.qty}</Text>
-              <TouchableOpacity
-                style={styles.deleteBtn}
-                onPress={() => removeItem(index)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={20} color={colors.danger} />
-              </TouchableOpacity>
             </View>
           ))}
         </View>
@@ -327,13 +343,37 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   itemImg: { width: 44, height: 44, borderRadius: spacing.borderRadiusSm },
-  itemMeta: { flex: 1, marginLeft: spacing.sm },
+  itemMeta: { flex: 1, marginLeft: spacing.sm, marginRight: spacing.xs },
   itemName: { fontSize: 14, fontWeight: '600', color: colors.textDark },
   itemDesc: { fontSize: 11, color: colors.textGray, marginTop: 1, marginBottom: 2 },
-  itemPrice: { fontSize: 12, color: colors.textGray },
-  itemTotal: { fontSize: 14, fontWeight: '700', color: colors.textDark, marginRight: spacing.sm },
-  deleteBtn: { padding: spacing.xs },
-  deleteText: { color: colors.danger, fontWeight: '700', fontSize: 14 },
+  itemPrice: { fontSize: 12, color: colors.primary, fontWeight: '600' },
+  stepperContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: spacing.borderRadiusSm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: spacing.sm,
+  },
+  stepperBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stepperBtnDanger: {
+    backgroundColor: colors.dangerLight,
+  },
+  stepperQtyText: {
+    paddingHorizontal: 6,
+    fontWeight: '700',
+    color: colors.textDark,
+    fontSize: 12,
+    minWidth: 18,
+    textAlign: 'center',
+  },
+  itemTotal: { fontSize: 14, fontWeight: '700', color: colors.textDark, minWidth: 48, textAlign: 'right' },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '../theme/colors';
+import { colors, spacing, fonts } from '../theme/colors';
 
 const Logo = ({ size = 'medium', showTagline = true, light = false, align = 'center' }) => {
   const isLarge = size === 'large';
@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brandName: {
+    fontFamily: fonts.headingExtraBold,
     fontSize: 24,
-    fontWeight: '900',
     color: colors.textDark,
     letterSpacing: -0.6,
     includeFontPadding: false,
@@ -116,8 +116,8 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   tagline: {
+    fontFamily: fonts.medium,
     fontSize: 11,
-    fontWeight: '600',
     color: colors.textGray,
     marginTop: 5,
     letterSpacing: 0.3,
@@ -125,7 +125,6 @@ const styles = StyleSheet.create({
   taglineLarge: {
     fontSize: 13,
     marginTop: 6,
-    fontWeight: '600',
   },
 });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '../theme/colors';
+import { colors, spacing, fonts } from '../theme/colors';
 
 const ProviderCard = ({ provider, onPress }) => {
   return (
@@ -16,6 +16,10 @@ const ProviderCard = ({ provider, onPress }) => {
           style={styles.image}
           resizeMode="cover"
         />
+        <View style={[styles.statusTag, provider.isOpen === false ? styles.closedTag : styles.openTag]}>
+          <View style={[styles.statusDot, provider.isOpen === false ? styles.closedDot : styles.openDot]} />
+          <Text style={styles.statusTagText}>{provider.isOpen === false ? 'Closed' : 'Open'}</Text>
+        </View>
         <View style={styles.tag}>
           <Text style={styles.tagText}>{provider.type}</Text>
         </View>
@@ -76,16 +80,49 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadiusSm,
   },
   tagText: {
+    fontFamily: fonts.semiBold,
     color: colors.white,
     fontSize: 11,
-    fontWeight: '600',
+  },
+  statusTag: {
+    position: 'absolute',
+    top: spacing.sm,
+    left: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: spacing.borderRadiusSm,
+  },
+  openTag: {
+    backgroundColor: 'rgba(46, 204, 113, 0.9)',
+  },
+  closedTag: {
+    backgroundColor: 'rgba(231, 76, 60, 0.9)',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 4,
+  },
+  openDot: {
+    backgroundColor: colors.white,
+  },
+  closedDot: {
+    backgroundColor: colors.white,
+  },
+  statusTagText: {
+    fontFamily: fonts.bold,
+    color: colors.white,
+    fontSize: 11,
   },
   info: {
     padding: spacing.md,
   },
   name: {
+    fontFamily: fonts.headingBold,
     fontSize: 16,
-    fontWeight: '700',
     color: colors.textDark,
     marginBottom: 2,
   },
@@ -95,6 +132,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   locationText: {
+    fontFamily: fonts.regular,
     fontSize: 12,
     color: colors.textGray,
     flex: 1,
@@ -108,8 +146,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ratingText: {
+    fontFamily: fonts.bold,
     fontSize: 13,
-    fontWeight: '700',
     color: colors.textDark,
   },
   dot: {
@@ -121,9 +159,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
+    fontFamily: fonts.medium,
     fontSize: 13,
     color: colors.textGray,
-    fontWeight: '500',
   },
 });
 

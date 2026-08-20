@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, TextInput } from 'react-native';
-import { colors, spacing } from '../theme/colors';
+import { colors, spacing, fonts } from '../theme/colors';
 
 const CustomInput = ({
   label,
@@ -44,12 +44,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   label: {
+    fontFamily: fonts.semiBold,
     fontSize: 13,
-    fontWeight: '600',
     color: colors.textDark,
     marginBottom: spacing.xs,
   },
   input: {
+    fontFamily: fonts.regular,
     height: 48,
     backgroundColor: colors.card,
     borderWidth: 1,
@@ -68,6 +69,7 @@ const styles = StyleSheet.create({
     borderColor: colors.danger,
   },
   errorText: {
+    fontFamily: fonts.medium,
     color: colors.danger,
     fontSize: 12,
     marginTop: spacing.xs,

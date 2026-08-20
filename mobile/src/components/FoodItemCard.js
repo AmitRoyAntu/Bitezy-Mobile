@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '../theme/colors';
+import { colors, spacing, fonts } from '../theme/colors';
 
 const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
   return (
@@ -78,11 +78,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   name: {
+    fontFamily: fonts.headingSemiBold,
     fontSize: 15,
-    fontWeight: '700',
     color: colors.textDark,
   },
   desc: {
+    fontFamily: fonts.regular,
     fontSize: 12,
     color: colors.textGray,
     marginVertical: spacing.xs,
@@ -94,8 +95,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   price: {
+    fontFamily: fonts.bold,
     fontSize: 15,
-    fontWeight: '700',
     color: colors.primary,
   },
   addBtn: {
@@ -107,8 +108,8 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadiusSm,
   },
   addBtnText: {
+    fontFamily: fonts.bold,
     color: colors.primary,
-    fontWeight: '700',
     fontSize: 13,
   },
   counter: {
@@ -124,8 +125,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs + 2,
   },
   qtyText: {
+    fontFamily: fonts.bold,
     paddingHorizontal: spacing.sm,
-    fontWeight: '700',
     color: colors.textDark,
     fontSize: 13,
   },

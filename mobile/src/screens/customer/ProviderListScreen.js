@@ -11,7 +11,7 @@ import {
 import CustomInput from '../../components/CustomInput';
 import ProviderCard from '../../components/ProviderCard';
 import Logo from '../../components/Logo';
-import { colors, spacing } from '../../theme/colors';
+import { colors, spacing, fonts } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useToast } from '../../context/ToastContext';
 
@@ -146,8 +146,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   greetingTag: {
+    fontFamily: fonts.bold,
     fontSize: 12,
-    fontWeight: '700',
     color: colors.primary,
     backgroundColor: colors.primaryLight,
     paddingHorizontal: spacing.md,
@@ -155,11 +155,11 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadiusFull,
   },
   greeting: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontFamily: fonts.headingBold,
+    fontSize: 18,
     color: colors.textDark,
     marginBottom: spacing.md,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   searchInput: {
     marginBottom: spacing.md,
@@ -183,8 +183,8 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   categoryText: {
+    fontFamily: fonts.semiBold,
     fontSize: 13,
-    fontWeight: '600',
     color: colors.textGray,
   },
   categoryTextActive: {
@@ -203,6 +203,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
+    fontFamily: fonts.regular,
     color: colors.textGray,
     fontSize: 14,
   },

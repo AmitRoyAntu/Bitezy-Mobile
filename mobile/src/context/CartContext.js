@@ -72,6 +72,18 @@ export const CartProvider = ({ children }) => {
     saveCart([]);
   };
 
+  const reorderOrder = (orderItems, providerName) => {
+    const newCart = (orderItems || []).map((item) => ({
+      name: item.name,
+      price: item.price,
+      qty: item.qty || 1,
+      img: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100',
+      provider: providerName,
+      desc: item.desc || '',
+    }));
+    saveCart(newCart);
+  };
+
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const deliveryFee = cart.length > 0 && orderType === 'Delivery' ? 30 : 0;
@@ -92,6 +104,7 @@ export const CartProvider = ({ children }) => {
         updateQty,
         removeItem,
         clearCart,
+        reorderOrder,
         loading,
       }}
     >

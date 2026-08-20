@@ -1,4 +1,6 @@
 export { spacing } from './spacing';
+export { fonts } from './fonts';
+import { fonts } from './fonts';
 
 export const colors = {
   primary: '#FF5A5F',
@@ -29,25 +31,27 @@ export const colors = {
 
 export const typography = {
   header: {
+    fontFamily: fonts.headingBold,
     fontSize: 24,
-    fontWeight: 'bold',
     color: colors.textDark,
   },
   subHeader: {
+    fontFamily: fonts.headingSemiBold,
     fontSize: 18,
-    fontWeight: '600',
     color: colors.textDark,
   },
   title: {
+    fontFamily: fonts.semiBold,
     fontSize: 16,
-    fontWeight: '600',
     color: colors.textDark,
   },
   body: {
+    fontFamily: fonts.regular,
     fontSize: 14,
     color: colors.textDark,
   },
   caption: {
+    fontFamily: fonts.medium,
     fontSize: 12,
     color: colors.textGray,
   },

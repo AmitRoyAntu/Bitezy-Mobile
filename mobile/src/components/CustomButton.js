@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { colors, spacing } from '../theme/colors';
+import { colors, spacing, fonts } from '../theme/colors';
 
 const CustomButton = ({
   title,
@@ -72,8 +72,8 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   text: {
+    fontFamily: fonts.headingSemiBold,
     fontSize: 15,
-    fontWeight: '600',
   },
 });
 

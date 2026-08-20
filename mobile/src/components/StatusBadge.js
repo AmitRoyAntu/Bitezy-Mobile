@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '../theme/colors';
+import { colors, spacing, fonts } from '../theme/colors';
 
 const StatusBadge = ({ status }) => {
   const getBadgeStyle = () => {
@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   text: {
+    fontFamily: fonts.bold,
     fontSize: 11,
-    fontWeight: '700',
     textTransform: 'uppercase',
   },
 });
