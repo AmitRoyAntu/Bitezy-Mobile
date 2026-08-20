@@ -303,7 +303,10 @@ const ProviderMenuScreen = ({ route, navigation }) => {
             </View>
 
           )}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: totalItems > 0 ? 115 : 30 },
+          ]}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No items found in this category.</Text>
@@ -380,12 +383,24 @@ const ProviderMenuScreen = ({ route, navigation }) => {
         />
       ) : (
         /* Tab 3: About */
-        <ScrollView contentContainerStyle={styles.aboutScrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.aboutScrollContent,
+            { paddingBottom: totalItems > 0 ? 120 : 40 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
           {renderHeader()}
 
           {/* About & Story Card */}
           <View style={styles.aboutSectionCard}>
-            <Text style={styles.aboutSectionTitle}>About the Canteen</Text>
+            <View style={styles.aboutCardHeaderRow}>
+              <Text style={styles.aboutSectionTitle}>About the Canteen</Text>
+              <View style={styles.verifiedBadge}>
+                <Ionicons name="checkmark-seal" size={13} color={colors.primary} style={{ marginRight: 3 }} />
+                <Text style={styles.verifiedBadgeText}>Verified</Text>
+              </View>
+            </View>
             <Text style={styles.aboutDescription}>
               {provider.description || `${provider.name} is one of CUET's dedicated residential food providers, serving freshly prepared Bengali meals, snacks, and refreshments for students and teachers.`}
             </Text>
@@ -395,61 +410,66 @@ const ProviderMenuScreen = ({ route, navigation }) => {
           <View style={styles.infoGridCard}>
             <View style={styles.infoGridRow}>
               <View style={styles.infoGridIconBox}>
-                <Ionicons name="location" size={18} color={colors.primary} />
+                <Ionicons name="location-outline" size={18} color={colors.primary} />
               </View>
               <View style={styles.infoGridTextCol}>
-                <Text style={styles.infoGridLabel}>Location</Text>
+                <Text style={styles.infoGridLabel}>Hall Location</Text>
                 <Text style={styles.infoGridVal}>{provider.location || 'CUET Campus, Raozan'}</Text>
               </View>
             </View>
 
             <View style={styles.infoGridRow}>
               <View style={styles.infoGridIconBox}>
-                <Ionicons name="time" size={18} color={colors.primary} />
+                <Ionicons name="time-outline" size={18} color={colors.primary} />
               </View>
               <View style={styles.infoGridTextCol}>
                 <Text style={styles.infoGridLabel}>Operating Hours</Text>
-                <Text style={styles.infoGridVal}>
-                  {provider.openTime && provider.closeTime
-                    ? `${provider.openTime} - ${provider.closeTime}`
-                    : '06:00 AM - 10:00 PM (Daily)'}
-                </Text>
+                <View style={styles.operatingHoursRow}>
+                  <Text style={styles.infoGridVal}>
+                    {provider.openTime && provider.closeTime
+                      ? `${provider.openTime} - ${provider.closeTime}`
+                      : '06:00 AM - 10:00 PM (Daily)'}
+                  </Text>
+                  <View style={styles.liveOpenPill}>
+                    <View style={styles.liveOpenDot} />
+                    <Text style={styles.liveOpenText}>Open Now</Text>
+                  </View>
+                </View>
               </View>
             </View>
 
             <View style={[styles.infoGridRow, { borderBottomWidth: 0 }]}>
               <View style={styles.infoGridIconBox}>
-                <Ionicons name="bicycle" size={18} color={colors.primary} />
+                <Ionicons name="bicycle-outline" size={18} color={colors.primary} />
               </View>
               <View style={styles.infoGridTextCol}>
                 <Text style={styles.infoGridLabel}>Delivery Time</Text>
-                <Text style={styles.infoGridVal}>{provider.deliveryTime || '15-20 min'}</Text>
+                <Text style={styles.infoGridVal}>{provider.deliveryTime || '15-25 min'}</Text>
               </View>
             </View>
           </View>
 
-          {/* Google Maps Card */}
+          {/* Campus Landmark & Navigation Card */}
           <View style={styles.aboutMapCard}>
             <View style={styles.mapVisualHeader}>
               <View style={styles.mapBadge}>
-                <Ionicons name="map" size={13} color={colors.primary} style={{ marginRight: 4 }} />
-                <Text style={styles.mapBadgeText}>Google Maps Location</Text>
+                <Ionicons name="compass-outline" size={13} color={colors.primary} style={{ marginRight: 4 }} />
+                <Text style={styles.mapBadgeText}>Campus Landmark</Text>
               </View>
-              <Text style={styles.coordText}>22.46° N, 91.97° E</Text>
+              <Text style={styles.coordText}>
+                {`${(provider.lat || 22.46332).toFixed(5)}° N, ${(provider.lng || 91.97085).toFixed(5)}° E`}
+              </Text>
             </View>
 
-            <View style={styles.mapGraphic}>
-              <View style={styles.mapRoadH} />
-              <View style={styles.mapRoadV} />
-              <View style={styles.mapPinPulse}>
-                <View style={styles.mapPin}>
-                  <Ionicons name="restaurant" size={14} color={colors.white} />
-                </View>
+            {/* Landmark Details Showcase */}
+            <View style={styles.landmarkBody}>
+              <View style={styles.landmarkIconBox}>
+                <Ionicons name="storefront" size={22} color={colors.primary} />
               </View>
-              <View style={styles.mapPinLabel}>
-                <Text style={styles.mapPinTitle} numberOfLines={1}>{provider.name}</Text>
-                <Text style={styles.mapPinSubtitle} numberOfLines={1}>
-                  {provider.location || 'CUET Campus'}
+              <View style={styles.landmarkTextCol}>
+                <Text style={styles.landmarkTitle}>{provider.name}</Text>
+                <Text style={styles.landmarkSubtitle}>
+                  {provider.location || 'CUET Campus, Raozan, Chittagong'}
                 </Text>
               </View>
             </View>
@@ -460,7 +480,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                 onPress={handleGetDirections}
                 activeOpacity={0.85}
               >
-                <Ionicons name="navigate-circle" size={18} color={colors.white} style={{ marginRight: 6 }} />
+                <Ionicons name="navigate" size={15} color={colors.white} style={{ marginRight: 6 }} />
                 <Text style={styles.directionsBtnText}>Get Directions</Text>
               </TouchableOpacity>
 
@@ -469,8 +489,8 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                 onPress={handleOpenGoogleMaps}
                 activeOpacity={0.85}
               >
-                <Ionicons name="open-outline" size={16} color={colors.primary} style={{ marginRight: 6 }} />
-                <Text style={styles.openMapBtnText}>Open in Maps</Text>
+                <Ionicons name="open-outline" size={15} color={colors.primary} style={{ marginRight: 5 }} />
+                <Text style={styles.openMapBtnText}>Open in Google Maps</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -478,14 +498,16 @@ const ProviderMenuScreen = ({ route, navigation }) => {
           {/* Contact Actions Card */}
           <View style={styles.contactCard}>
             <Text style={styles.aboutSectionTitle}>Direct Contact</Text>
-            <Text style={styles.contactSubtitle}>Need to ask about today's special menu or catering?</Text>
+            <Text style={styles.contactSubtitle}>
+              Connect directly with the canteen for today's specials or hall delivery inquiries.
+            </Text>
             <View style={styles.contactBtnsRow}>
               <TouchableOpacity
                 style={styles.whatsAppBtn}
                 onPress={handleWhatsAppContact}
                 activeOpacity={0.85}
               >
-                <Ionicons name="logo-whatsapp" size={18} color={colors.white} style={{ marginRight: 6 }} />
+                <Ionicons name="logo-whatsapp" size={17} color={colors.white} style={{ marginRight: 6 }} />
                 <Text style={styles.whatsAppBtnText}>WhatsApp</Text>
               </TouchableOpacity>
 
@@ -494,7 +516,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                 onPress={handlePhoneCall}
                 activeOpacity={0.85}
               >
-                <Ionicons name="call" size={17} color={colors.primary} style={{ marginRight: 6 }} />
+                <Ionicons name="call" size={16} color={colors.primary} style={{ marginRight: 6 }} />
                 <Text style={styles.callBtnText}>Call Canteen</Text>
               </TouchableOpacity>
             </View>
@@ -846,31 +868,58 @@ const styles = StyleSheet.create({
 
   /* About Tab */
   aboutScrollContent: {
-    paddingBottom: spacing.xxl,
+    paddingBottom: 120,
   },
   aboutSectionCard: {
     backgroundColor: colors.card,
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
-    padding: spacing.md,
+    padding: spacing.md + 2,
     borderRadius: spacing.borderRadiusMd,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  aboutCardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  verifiedBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 0.3,
   },
   aboutSectionTitle: {
     fontFamily: fonts.headingBold,
     fontSize: 16,
     color: colors.textDark,
-    marginBottom: spacing.xs,
   },
   aboutDescription: {
     fontFamily: fonts.regular,
     fontSize: 13,
     color: colors.textGray,
-    lineHeight: 19,
+    lineHeight: 20,
   },
   infoGridCard: {
     backgroundColor: colors.card,
@@ -878,23 +927,31 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     padding: spacing.md,
     borderRadius: spacing.borderRadiusMd,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   infoGridRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 9,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   infoGridIconBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -908,6 +965,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textGray,
     textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   infoGridVal: {
     fontFamily: fonts.bold,
@@ -915,16 +973,53 @@ const styles = StyleSheet.create({
     color: colors.textDark,
     marginTop: 1,
   },
+  operatingHoursRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 1,
+  },
+  liveOpenPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  liveOpenDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+    marginRight: 4,
+  },
+  liveOpenText: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: '#10B981',
+  },
 
   /* About Map Card */
   aboutMapCard: {
-    backgroundColor: '#F1F8F5',
+    backgroundColor: colors.card,
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
     borderRadius: spacing.borderRadiusMd,
     borderWidth: 1,
-    borderColor: '#D4EADF',
+    borderColor: colors.border,
     overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   mapVisualHeader: {
     flexDirection: 'row',
@@ -933,17 +1028,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.xs,
-    backgroundColor: '#E8F5EE',
   },
   mapBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: spacing.borderRadiusFull,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   mapBadgeText: {
     fontFamily: fonts.bold,
@@ -955,112 +1047,87 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textGray,
   },
-  mapGraphic: {
-    height: 90,
-    backgroundColor: '#DCF0E5',
+  landmarkBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    backgroundColor: colors.surfaceSubtle,
     margin: spacing.sm,
     borderRadius: spacing.borderRadiusSm,
     borderWidth: 1,
-    borderColor: '#C3E4D2',
-    position: 'relative',
+    borderColor: colors.borderDark,
+  },
+  landmarkIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.card,
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
-  },
-  mapRoadH: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 14,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.8,
-    top: 38,
-  },
-  mapRoadV: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 14,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.8,
-    left: '48%',
-  },
-  mapPinPulse: {
-    position: 'absolute',
-    top: 14,
-    alignItems: 'center',
-    zIndex: 2,
-  },
-  mapPin: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.white,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  mapPinLabel: {
-    position: 'absolute',
-    bottom: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: spacing.borderRadiusSm,
-    maxWidth: '90%',
-    alignItems: 'center',
+    marginRight: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    zIndex: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 1,
+      },
+      web: {
+        boxShadow: '0 1px 3px rgba(18, 18, 23, 0.04)',
+      },
+    }),
   },
-  mapPinTitle: {
-    fontFamily: fonts.bold,
-    fontSize: 11,
+  landmarkTextCol: {
+    flex: 1,
+  },
+  landmarkTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 14,
     color: colors.textDark,
   },
-  mapPinSubtitle: {
+  landmarkSubtitle: {
     fontFamily: fonts.regular,
-    fontSize: 10,
+    fontSize: 12,
     color: colors.textGray,
+    marginTop: 2,
   },
   mapActions: {
     flexDirection: 'row',
     padding: spacing.sm,
-    gap: spacing.xs,
+    gap: spacing.sm,
     backgroundColor: colors.card,
     borderTopWidth: 1,
-    borderTopColor: '#D4EADF',
+    borderTopColor: colors.border,
   },
   directionsBtn: {
-    flex: 1.2,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primary,
-    paddingVertical: 9,
-    borderRadius: spacing.borderRadiusSm,
+    paddingVertical: 10,
+    borderRadius: spacing.borderRadiusFull,
   },
   directionsBtnText: {
     fontFamily: fonts.bold,
-    fontSize: 13,
+    fontSize: 12,
     color: colors.white,
   },
   openMapBtn: {
-    flex: 1.1,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primaryLight,
-    paddingVertical: 9,
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.primaryLight,
+    borderColor: colors.borderDark,
+    paddingVertical: 10,
+    borderRadius: spacing.borderRadiusFull,
   },
   openMapBtnText: {
     fontFamily: fonts.semiBold,
@@ -1073,13 +1140,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
-    padding: spacing.md,
+    padding: spacing.md + 2,
     borderRadius: spacing.borderRadiusMd,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   contactSubtitle: {
     fontFamily: fonts.regular,
