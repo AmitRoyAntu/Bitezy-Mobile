@@ -263,7 +263,7 @@ const SellerOrdersScreen = () => {
                       ) : (
                         <>
                           <Ionicons name="checkmark-circle" size={16} color={colors.white} style={{ marginRight: 4 }} />
-                          <Text style={styles.actionBtnText}>Accept & Cook</Text>
+                          <Text style={styles.actionBtnText}>Accept</Text>
                         </>
                       )}
                     </TouchableOpacity>
@@ -445,14 +445,16 @@ const styles = StyleSheet.create({
   /* Order Card */
   orderCard: {
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: spacing.borderRadiusLg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
   cardTopRow: {
     flexDirection: 'row',
@@ -607,7 +609,7 @@ const styles = StyleSheet.create({
   },
   acceptBtn: {
     backgroundColor: colors.success,
-    flex: 1.5,
+    flex: 1,
   },
   rejectBtn: {
     backgroundColor: '#FFEBEE',

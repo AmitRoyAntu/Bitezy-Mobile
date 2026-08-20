@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Logo from '../../components/Logo';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -156,11 +157,19 @@ const SellerDashboardScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Top Brand Navbar */}
+      <View style={[styles.topNavbar, { paddingTop: Math.max(insets.top + spacing.md, 48) }]}>
+        <Logo size="small" showTagline={false} />
+        <View style={styles.navBusinessBadge}>
+          <Ionicons name="storefront" size={14} color={colors.primary} style={{ marginRight: 5 }} />
+          <Text style={styles.navBusinessText} numberOfLines={1}>
+            {provider?.name || `${currentUser?.name}'s Canteen`}
+          </Text>
+        </View>
+      </View>
+
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: Math.max(insets.top + spacing.sm, 36) },
-        ]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
@@ -400,7 +409,31 @@ const SellerDashboardScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  topNavbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  navBusinessBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: 5,
+    borderRadius: spacing.borderRadiusFull,
+    maxWidth: '55%',
+  },
+  navBusinessText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.primary,
+  },
+  scrollContent: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xxl },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   headerHero: {

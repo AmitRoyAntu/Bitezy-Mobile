@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -115,16 +116,64 @@ const OrderHistoryScreen = ({ navigation }) => {
     };
 
     if (cart.length > 0 && currentProviderName && currentProviderName.toLowerCase() !== providerName.toLowerCase()) {
-      Alert.alert(
-        'Replace Current Cart?',
-        `Your cart already has items from "${currentProviderName}". Reordering from "${providerName}" will replace them.`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Replace & Reorder', style: 'destructive', onPress: proceedReorder },
-        ]
-      );
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const replace = window.confirm(
+          `Your cart already has items from "${currentProviderName}". Reordering from "${providerName}" will replace them.`
+        );
+        if (replace) proceedReorder();
+      } else {
+        Alert.alert(
+          'Replace Current Cart?',
+          `Your cart already has items from "${currentProviderName}". Reordering from "${providerName}" will replace them.`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Replace & Reorder', style: 'destructive', onPress: proceedReorder },
+          ]
+        );
+      }
     } else {
       proceedReorder();
+    }
+  };
+
+  const handleCancelOrder = (order) => {
+    const orderId = order._id || order.id;
+    const orderIdShort = order._id ? `#${order._id.slice(-6)}` : '#N/A';
+
+    const executeCancel = async () => {
+      try {
+        await DataService.updateOrderStatus(orderId, 'CANCELLED');
+        showToast(`Order ${orderIdShort} has been cancelled`);
+        setOrders((prev) =>
+          prev.map((o) =>
+            String(o._id || o.id) === String(orderId) ? { ...o, status: 'CANCELLED' } : o
+          )
+        );
+      } catch (err) {
+        showToast(err.message || 'Failed to cancel order', 'error');
+      }
+    };
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        `Are you sure you want to cancel order ${orderIdShort}? The canteen has not accepted or prepared it yet.`
+      );
+      if (confirmed) {
+        executeCancel();
+      }
+    } else {
+      Alert.alert(
+        'Cancel Order',
+        `Are you sure you want to cancel order ${orderIdShort}? The canteen has not accepted or prepared it yet.`,
+        [
+          { text: 'Keep Order', style: 'cancel' },
+          {
+            text: 'Cancel Order',
+            style: 'destructive',
+            onPress: executeCancel,
+          },
+        ]
+      );
     }
   };
 
@@ -272,15 +321,29 @@ const OrderHistoryScreen = ({ navigation }) => {
                     <Text style={styles.totalVal}>৳ {item.total}</Text>
                   </View>
 
-                  {/* Quick Reorder Button */}
-                  <TouchableOpacity
-                    style={styles.reorderBtn}
-                    onPress={() => handleReorder(item)}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="refresh-outline" size={14} color={colors.primary} style={{ marginRight: 4 }} />
-                    <Text style={styles.reorderBtnText}>Reorder</Text>
-                  </TouchableOpacity>
+                  <View style={styles.footerActionsRow}>
+                    {/* Cancel Option before seller accepts */}
+                    {item.status === 'PENDING' && (
+                      <TouchableOpacity
+                        style={styles.cancelOrderBtn}
+                        onPress={() => handleCancelOrder(item)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="close-circle-outline" size={14} color={colors.danger} style={{ marginRight: 4 }} />
+                        <Text style={styles.cancelOrderBtnText}>Cancel Order</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Quick Reorder Button */}
+                    <TouchableOpacity
+                      style={styles.reorderBtn}
+                      onPress={() => handleReorder(item)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="refresh-outline" size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                      <Text style={styles.reorderBtnText}>Reorder</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             );
@@ -307,8 +370,9 @@ const OrderHistoryScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: '#F6F8FA' },
   headerTitle: {
+    fontFamily: fonts.headingExtraBold,
     fontSize: 22,
     fontWeight: '800',
     color: colors.textDark,
@@ -317,17 +381,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  listContent: { padding: spacing.lg },
+  listContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
   orderCard: {
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    borderRadius: spacing.borderRadiusLg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
   rowBetween: {
     flexDirection: 'row',
@@ -487,6 +556,26 @@ const styles = StyleSheet.create({
   },
   dateText: { fontFamily: fonts.regular, fontSize: 11, color: colors.textLight, marginBottom: 2 },
   totalVal: { fontFamily: fonts.headingBold, fontSize: 16, color: colors.textDark },
+  footerActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cancelOrderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: spacing.borderRadiusSm,
+  },
+  cancelOrderBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.danger,
+  },
   reorderBtn: {
     flexDirection: 'row',
     alignItems: 'center',

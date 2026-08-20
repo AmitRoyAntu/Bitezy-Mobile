@@ -193,17 +193,12 @@ const SellerMenuScreen = () => {
       {/* Header */}
       <View style={[styles.header, { paddingTop: Math.max(insets.top + spacing.sm, 44) }]}>
         <View style={styles.headerTopRow}>
-          <View>
-            <Text style={styles.headerTitle}>Menu Management</Text>
-            <Text style={styles.headerSubtitle}>
-              {menuItems.length} Food Items in {provider?.name || 'Canteen'}
+          <View style={styles.headerTitleBox}>
+            <Text style={styles.headerTitle} numberOfLines={1}>Menu Management</Text>
+            <Text style={styles.headerSubtitle} numberOfLines={1}>
+              {menuItems.length} Food Items • {provider?.name || 'Canteen'}
             </Text>
           </View>
-
-          <TouchableOpacity style={styles.addBtn} onPress={handleOpenAddModal} activeOpacity={0.85}>
-            <Ionicons name="add" size={18} color={colors.white} style={{ marginRight: 3 }} />
-            <Text style={styles.addBtnText}>Add Item</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
@@ -338,6 +333,16 @@ const SellerMenuScreen = () => {
         />
       )}
 
+      {/* Floating Add Item Button */}
+      <TouchableOpacity
+        style={[styles.floatingAddBtn, { bottom: Math.max(insets.bottom + 16, 20) }]}
+        onPress={handleOpenAddModal}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="add" size={22} color={colors.white} style={{ marginRight: 6 }} />
+        <Text style={styles.floatingAddBtnText}>Add Item</Text>
+      </TouchableOpacity>
+
       {/* Add / Edit Food Item Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -425,6 +430,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  headerTitleBox: {
+    flex: 1,
+    marginRight: spacing.xs,
   },
   headerTitle: {
     fontFamily: fonts.headingExtraBold,
@@ -437,17 +447,25 @@ const styles = StyleSheet.create({
     color: colors.textGray,
     marginTop: 2,
   },
-  addBtn: {
+  floatingAddBtn: {
+    position: 'absolute',
+    right: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    borderRadius: spacing.borderRadiusSm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 13,
+    borderRadius: spacing.borderRadiusFull,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+    zIndex: 99,
   },
-  addBtnText: {
+  floatingAddBtnText: {
     fontFamily: fonts.bold,
-    fontSize: 13,
+    fontSize: 14,
     color: colors.white,
   },
 
@@ -500,7 +518,7 @@ const styles = StyleSheet.create({
 
   listContent: {
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 96,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
