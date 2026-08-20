@@ -46,17 +46,18 @@ const TabIcon = ({ name, nameFocused, focused, badge }) => {
 
   useEffect(() => {
     if (badge > 0) {
+      const isNative = Platform.OS !== 'web';
       Animated.sequence([
         Animated.timing(scaleAnim, {
           toValue: 1.35,
           duration: 120,
-          useNativeDriver: true,
+          useNativeDriver: isNative,
         }),
         Animated.spring(scaleAnim, {
           toValue: 1,
           friction: 4,
           tension: 100,
-          useNativeDriver: true,
+          useNativeDriver: isNative,
         }),
       ]).start();
     }

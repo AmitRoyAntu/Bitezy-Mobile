@@ -22,17 +22,18 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
 
   useEffect(() => {
     if (quantity > 0) {
+      const isNative = Platform.OS !== 'web';
       Animated.sequence([
         Animated.timing(qtyScaleAnim, {
           toValue: 1.3,
           duration: 90,
-          useNativeDriver: true,
+          useNativeDriver: isNative,
         }),
         Animated.spring(qtyScaleAnim, {
           toValue: 1,
           friction: 4,
           tension: 120,
-          useNativeDriver: true,
+          useNativeDriver: isNative,
         }),
       ]).start();
     }

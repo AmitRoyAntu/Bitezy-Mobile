@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../../components/CustomInput';
 import CustomSelect from '../../components/CustomSelect';
 import CustomButton from '../../components/CustomButton';
-import { colors, spacing } from '../../theme/colors';
+import { colors, spacing, fonts } from '../../theme/colors';
 import { CUET_HALLS, CUET_DEPARTMENTS } from '../../data/cuetOptions';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -248,23 +248,6 @@ const CustomerProfileScreen = () => {
           )}
         </View>
 
-        {/* App Info Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>App Information</Text>
-          <View style={styles.appInfoRow}>
-            <Text style={styles.appInfoLabel}>Platform</Text>
-            <Text style={styles.appInfoVal}>Bitezy Mobile (CUET)</Text>
-          </View>
-          <View style={styles.appInfoRow}>
-            <Text style={styles.appInfoLabel}>Version</Text>
-            <Text style={styles.appInfoVal}>v1.0.0 (React Native)</Text>
-          </View>
-          <View style={[styles.appInfoRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.appInfoLabel}>Campus Network</Text>
-            <Text style={[styles.appInfoVal, { color: colors.success, fontWeight: '700' }]}>Active Online</Text>
-          </View>
-        </View>
-
         {/* Logout Button */}
         <CustomButton
           title="Log Out of Bitezy"
@@ -409,35 +392,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoLabel: {
+    fontFamily: fonts.semiBold,
     fontSize: 11,
-    fontWeight: '600',
     color: colors.textGray,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   infoValue: {
+    fontFamily: fonts.bold,
     fontSize: 14,
-    fontWeight: '700',
     color: colors.textDark,
     marginTop: 2,
-  },
-  appInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  appInfoLabel: {
-    fontSize: 13,
-    color: colors.textGray,
-    fontWeight: '500',
-  },
-  appInfoVal: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textDark,
   },
   logoutBtn: {
     marginTop: spacing.xs,

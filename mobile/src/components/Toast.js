@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, Animated } from 'react-native';
+import { StyleSheet, Text, View, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../theme/colors';
 
@@ -8,16 +8,17 @@ const Toast = ({ visible, message, type = 'success', onHide }) => {
 
   useEffect(() => {
     if (visible) {
+      const isNative = Platform.OS !== 'web';
       Animated.spring(translateY, {
         toValue: 50,
-        useNativeDriver: true,
+        useNativeDriver: isNative,
       }).start();
 
       const timer = setTimeout(() => {
         Animated.timing(translateY, {
           toValue: -100,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: isNative,
         }).start(() => {
           if (onHide) onHide();
         });

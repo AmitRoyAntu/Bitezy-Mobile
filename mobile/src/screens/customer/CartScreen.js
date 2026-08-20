@@ -140,11 +140,6 @@ const CartScreen = ({ navigation }) => {
         <View style={styles.card}>
           <Text style={styles.providerLabel}>Ordering From:</Text>
           <Text style={styles.providerName}>{currentProviderName}</Text>
-          {providerInfo?.description ? (
-            <Text style={styles.providerDesc} numberOfLines={2}>
-              {providerInfo.description}
-            </Text>
-          ) : null}
           {providerInfo?.location ? (
             <View style={styles.providerLocationRow}>
               <Ionicons name="location-outline" size={13} color={colors.textGray} style={{ marginRight: 4 }} />
@@ -318,20 +313,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  providerLabel: { fontSize: 12, color: colors.textGray },
-  providerName: { fontSize: 18, fontWeight: '800', color: colors.primary },
-  providerDesc: {
-    fontSize: 12,
-    color: colors.textGray,
-    marginTop: 3,
-    lineHeight: 16,
-  },
+  providerLabel: { fontFamily: fonts.medium, fontSize: 12, color: colors.textGray },
+  providerName: { fontFamily: fonts.headingBold, fontSize: 18, color: colors.primary, marginTop: 1 },
   providerLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
   },
   providerLocationText: {
+    fontFamily: fonts.regular,
     fontSize: 12,
     color: colors.textGray,
     flex: 1,

@@ -1,7 +1,13 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'props.pointerEvents is deprecated',
+  'Animated: `useNativeDriver`',
+]);
+
 import {
   useFonts,
   Outfit_400Regular,
