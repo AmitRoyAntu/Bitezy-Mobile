@@ -3,6 +3,7 @@ import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthNavigator from './AuthNavigator';
 import CustomerNavigator from './CustomerNavigator';
+import SellerNavigator from './SellerNavigator';
 import Logo from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 import { colors, spacing } from '../theme/colors';
@@ -27,8 +28,8 @@ const RootNavigator = () => {
     switch (role) {
       // case 'admin':
       //   return <AdminNavigator />;
-      // case 'seller':
-      //   return <SellerNavigator />;
+      case 'seller':
+        return <SellerNavigator />;
       case 'buyer':
       case 'customer':
       default:

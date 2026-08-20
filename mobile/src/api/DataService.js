@@ -291,6 +291,19 @@ class LocalDataService {
     return provider || this.providers[0];
   }
 
+  async updateProvider(providerId, updateData) {
+    await this.initStorage();
+    const index = this.providers.findIndex(
+      (p) => String(p._id || p.id) === String(providerId)
+    );
+    if (index !== -1) {
+      this.providers[index] = { ...this.providers[index], ...updateData };
+      await this.persist('bitezy_mock_providers', this.providers);
+      return this.providers[index];
+    }
+    throw new Error('Provider not found');
+  }
+
   async getMenu(vendorId = null, availableOnly = false) {
     await this.initStorage();
     let list = [...this.menu];
