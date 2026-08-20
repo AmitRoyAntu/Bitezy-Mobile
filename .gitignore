@@ -48,5 +48,14 @@ Thumbs.db
 *.swo
 *~
 
+# Puku
+.puku/
+
 credentials
 frontend/
+
+# Local History & Editor Backups
+.history/
+.history
+.gitignore_*
+*.history

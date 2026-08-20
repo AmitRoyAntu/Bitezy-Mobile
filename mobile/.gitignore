@@ -10,3 +10,8 @@ yarn-error.log*
 .DS_Store
 .env*.local
 .env
+.history/
+.history
+.gitignore_*
+*.history
+
