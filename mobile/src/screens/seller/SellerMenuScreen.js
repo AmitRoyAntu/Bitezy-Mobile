@@ -194,16 +194,20 @@ const SellerMenuScreen = () => {
       <View style={[styles.header, { paddingTop: Math.max(insets.top + spacing.sm, 44) }]}>
         <View style={styles.headerTopRow}>
           <View style={styles.headerTitleBox}>
+            <Text style={styles.headerEyebrow} numberOfLines={1}>Your Kitchen</Text>
             <Text style={styles.headerTitle} numberOfLines={1}>Menu Management</Text>
             <Text style={styles.headerSubtitle} numberOfLines={1}>
               {menuItems.length} Food Items • {provider?.name || 'Canteen'}
             </Text>
           </View>
+          <View style={styles.headerIconWrap}>
+            <Ionicons name="restaurant" size={18} color={colors.primary} />
+          </View>
         </View>
 
         {/* Search Bar */}
         <View style={styles.searchBox}>
-          <Ionicons name="search" size={17} color={colors.textLight} style={{ marginRight: 8 }} />
+          <Ionicons name="search" size={17} color={colors.textGray} style={{ marginRight: 8 }} />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -259,7 +263,7 @@ const SellerMenuScreen = () => {
           data={filteredItems}
           keyExtractor={(item) => item._id || item.id || item.name}
           renderItem={({ item }) => (
-            <View style={styles.itemCard}>
+            <View style={[styles.itemCard, !item.available && styles.itemCardDisabled]}>
               <Image
                 source={{
                   uri: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&auto=format&fit=crop&q=80',
@@ -272,12 +276,15 @@ const SellerMenuScreen = () => {
                   <Text style={styles.itemName} numberOfLines={1}>
                     {item.name}
                   </Text>
-                  <View style={styles.itemCategoryBadge}>
-                    <Text style={styles.itemCategoryText}>{item.category || 'General'}</Text>
+                  <View style={styles.itemPricePill}>
+                    <Text style={styles.itemPriceText}>৳ {item.price}</Text>
                   </View>
                 </View>
 
-                <Text style={styles.itemPrice}>৳ {item.price}</Text>
+                <View style={styles.itemCategoryBadge}>
+                  <Ionicons name="pricetag" size={10} color={colors.primary} style={{ marginRight: 4 }} />
+                  <Text style={styles.itemCategoryText}>{item.category || 'General'}</Text>
+                </View>
 
                 {item.desc || item.description ? (
                   <Text style={styles.itemDesc} numberOfLines={2}>
@@ -288,15 +295,16 @@ const SellerMenuScreen = () => {
                 {/* Bottom Row: Availability Switch & Actions */}
                 <View style={styles.cardBottomRow}>
                   <View style={styles.availabilityRow}>
+                    <View style={[styles.stockDot, { backgroundColor: item.available ? colors.success : colors.textLight }]} />
                     <Text style={styles.availabilityLabel}>
                       {item.available ? 'In Stock' : 'Out of Stock'}
                     </Text>
                     <Switch
                       value={Boolean(item.available)}
                       onValueChange={() => handleToggleAvailability(item)}
-                      trackColor={{ false: '#BDC3C7', true: colors.success }}
+                      trackColor={{ false: '#CBD5E1', true: colors.success }}
                       thumbColor={colors.white}
-                      style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+                      style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }], marginLeft: 4 }}
                     />
                   </View>
 
@@ -322,12 +330,14 @@ const SellerMenuScreen = () => {
             </View>
           )}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="restaurant-outline" size={48} color={colors.textLight} style={{ marginBottom: 8 }} />
-              <Text style={styles.emptyTitle}>No menu items found</Text>
-              <Text style={styles.emptySubtitle}>Tap "+ Add Item" to add delicious dishes to your canteen!</Text>
+              <View style={styles.emptyIconWrap}>
+                <Ionicons name="restaurant-outline" size={42} color={colors.primary} />
+              </View>
+              <Text style={styles.emptyTitle}>No menu items yet</Text>
+              <Text style={styles.emptySubtitle}>Tap “Add Item” to craft delicious dishes for your canteen!</Text>
             </View>
           }
         />
@@ -339,7 +349,7 @@ const SellerMenuScreen = () => {
         onPress={handleOpenAddModal}
         activeOpacity={0.85}
       >
-        <Ionicons name="add" size={22} color={colors.white} style={{ marginRight: 6 }} />
+        <Ionicons name="add" size={20} color={colors.white} style={{ marginRight: 6 }} />
         <Text style={styles.floatingAddBtnText}>Add Item</Text>
       </TouchableOpacity>
 
@@ -417,29 +427,48 @@ const SellerMenuScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+
+  /* Header */
   header: {
     backgroundColor: colors.card,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingBottom: spacing.md,
+    borderBottomLeftRadius: spacing.borderRadiusLg,
+    borderBottomRightRadius: spacing.borderRadiusLg,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 3,
   },
   headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
     gap: spacing.sm,
   },
   headerTitleBox: {
     flex: 1,
     marginRight: spacing.xs,
   },
+  headerEyebrow: {
+    fontFamily: fonts.semiBold,
+    fontSize: 11,
+    color: colors.primary,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
   headerTitle: {
     fontFamily: fonts.headingExtraBold,
-    fontSize: 20,
+    fontSize: 22,
     color: colors.textDark,
+    letterSpacing: -0.4,
   },
   headerSubtitle: {
     fontFamily: fonts.regular,
@@ -447,42 +476,27 @@ const styles = StyleSheet.create({
     color: colors.textGray,
     marginTop: 2,
   },
-  floatingAddBtn: {
-    position: 'absolute',
-    right: spacing.lg,
-    flexDirection: 'row',
+  headerIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primaryLight,
     alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 13,
-    borderRadius: spacing.borderRadiusFull,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
-    zIndex: 99,
-  },
-  floatingAddBtnText: {
-    fontFamily: fonts.bold,
-    fontSize: 14,
-    color: colors.white,
+    justifyContent: 'center',
   },
 
   /* Search */
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: spacing.borderRadiusFull,
     paddingHorizontal: spacing.md,
-    paddingVertical: 7,
+    paddingVertical: 9,
     marginVertical: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   searchInput: {
-    fontFamily: fonts.regular,
+    fontFamily: fonts.medium,
     fontSize: 13,
     color: colors.textDark,
     flex: 1,
@@ -491,21 +505,24 @@ const styles = StyleSheet.create({
 
   /* Category Scroll */
   categoryScroll: {
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     gap: spacing.xs,
+    paddingHorizontal: 2,
   },
   categoryChip: {
     paddingHorizontal: spacing.md,
-    paddingVertical: 5,
+    paddingVertical: 7,
     borderRadius: spacing.borderRadiusFull,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.surfaceSubtle,
     marginRight: spacing.xs,
   },
   categoryChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.secondary,
+    shadowColor: colors.secondary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
   categoryChipText: {
     fontFamily: fonts.semiBold,
@@ -516,9 +533,34 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
+  /* Floating Add Button */
+  floatingAddBtn: {
+    position: 'absolute',
+    right: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 14,
+    borderRadius: spacing.borderRadiusFull,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 10,
+    zIndex: 99,
+  },
+  floatingAddBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    color: colors.white,
+    letterSpacing: 0.2,
+  },
+
   listContent: {
-    padding: spacing.lg,
-    paddingBottom: 96,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: 110,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
@@ -526,20 +568,23 @@ const styles = StyleSheet.create({
   itemCard: {
     flexDirection: 'row',
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  itemCardDisabled: {
+    opacity: 0.78,
   },
   itemThumb: {
-    width: 80,
-    height: 80,
-    borderRadius: spacing.borderRadiusSm,
-    backgroundColor: colors.background,
+    width: 84,
+    height: 84,
+    borderRadius: spacing.borderRadiusMd,
+    backgroundColor: colors.surfaceSubtle,
     marginRight: spacing.md,
   },
   itemInfo: {
@@ -553,42 +598,53 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontFamily: fonts.headingBold,
-    fontSize: 14,
+    fontSize: 15,
     color: colors.textDark,
     flex: 1,
+    marginRight: 8,
+  },
+  itemPricePill: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  itemPriceText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.white,
+    letterSpacing: 0.2,
   },
   itemCategoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
     backgroundColor: colors.primaryLight,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: spacing.borderRadiusSm,
-    marginLeft: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
+    marginTop: 6,
   },
   itemCategoryText: {
     fontFamily: fonts.semiBold,
     fontSize: 10,
     color: colors.primary,
-  },
-  itemPrice: {
-    fontFamily: fonts.bold,
-    fontSize: 14,
-    color: colors.primary,
-    marginTop: 2,
+    letterSpacing: 0.2,
   },
   itemDesc: {
     fontFamily: fonts.regular,
-    fontSize: 11,
+    fontSize: 11.5,
     color: colors.textGray,
-    marginVertical: 3,
-    lineHeight: 15,
+    marginTop: 6,
+    lineHeight: 16,
   },
 
   cardBottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
-    paddingTop: 4,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
@@ -596,9 +652,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  stockDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 6,
+  },
   availabilityLabel: {
     fontFamily: fonts.medium,
-    fontSize: 11,
+    fontSize: 11.5,
     color: colors.textGray,
     marginRight: 4,
   },
@@ -608,18 +670,28 @@ const styles = StyleSheet.create({
   },
   editBtn: {
     backgroundColor: colors.primaryLight,
-    padding: 6,
-    borderRadius: spacing.borderRadiusSm,
+    padding: 7,
+    borderRadius: spacing.borderRadiusFull,
   },
   deleteBtn: {
-    backgroundColor: '#FFEBEE',
-    padding: 6,
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.dangerLight,
+    padding: 7,
+    borderRadius: spacing.borderRadiusFull,
   },
 
+  /* Empty State */
   emptyContainer: {
     padding: spacing.xxl,
     alignItems: 'center',
+  },
+  emptyIconWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
   },
   emptyTitle: {
     fontFamily: fonts.headingBold,
@@ -628,25 +700,32 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     fontFamily: fonts.regular,
-    fontSize: 12,
+    fontSize: 12.5,
     color: colors.textGray,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 6,
     maxWidth: 260,
+    lineHeight: 18,
   },
 
   /* Modal */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: spacing.lg,
+    backgroundColor: colors.overlay,
+    justifyContent: 'flex-end',
   },
   modalCard: {
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusLg,
+    borderTopLeftRadius: spacing.borderRadiusXl,
+    borderTopRightRadius: spacing.borderRadiusXl,
     padding: spacing.lg,
-    maxHeight: '85%',
+    paddingBottom: spacing.xl,
+    maxHeight: '88%',
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 10,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -658,14 +737,17 @@ const styles = StyleSheet.create({
     fontFamily: fonts.headingBold,
     fontSize: 18,
     color: colors.textDark,
+    letterSpacing: -0.2,
   },
   modalCancelBtn: {
     alignItems: 'center',
     marginTop: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: spacing.borderRadiusMd,
+    backgroundColor: colors.surfaceSubtle,
   },
   modalCancelText: {
-    fontFamily: fonts.medium,
+    fontFamily: fonts.semiBold,
     color: colors.textGray,
     fontSize: 13,
   },
