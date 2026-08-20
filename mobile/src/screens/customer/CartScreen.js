@@ -1,0 +1,311 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  FlatList,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
+import CustomButton from '../../components/CustomButton';
+import CustomInput from '../../components/CustomInput';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing } from '../../theme/colors';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import DataService from '../../api/DataService';
+
+const CartScreen = ({ navigation }) => {
+  const {
+    cart,
+    orderType,
+    setOrderType,
+    subtotal,
+    deliveryFee,
+    total,
+    currentProviderName,
+    removeItem,
+    clearCart,
+  } = useCart();
+
+  const { currentUser } = useAuth();
+  const { showToast } = useToast();
+
+  const [deliveryAddress, setDeliveryAddress] = useState(currentUser?.residence || '');
+  const [loading, setLoading] = useState(false);
+
+  const handlePlaceOrder = async () => {
+    if (cart.length === 0) {
+      showToast('Your cart is empty', 'warning');
+      return;
+    }
+
+    if (orderType === 'Delivery' && !deliveryAddress.trim()) {
+      showToast('Please specify delivery address/hall room', 'warning');
+      return;
+    }
+
+    setLoading(true);
+
+    const orderPayload = {
+      providerName: currentProviderName,
+      type: orderType.toLowerCase(),
+      items: cart.map((item) => ({
+        name: item.name,
+        price: item.price,
+        qty: item.qty,
+      })),
+      total,
+      deliveryAddress: orderType === 'Delivery' ? deliveryAddress.trim() : null,
+    };
+
+    try {
+      await DataService.createOrder(orderPayload);
+      showToast('Order placed successfully!');
+      clearCart();
+      navigation.navigate('Orders');
+    } catch (err) {
+      showToast(err.message || 'Failed to place order', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (cart.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconCircle}>
+          <Ionicons name="cart-outline" size={48} color={colors.primary} />
+        </View>
+        <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
+        <Text style={styles.emptySubtitle}>
+          Browse our food halls & canteens to add delicious meals
+        </Text>
+        <CustomButton
+          title="Browse Food Halls"
+          onPress={() => navigation.navigate('ExploreStack')}
+          style={styles.emptyBtn}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Provider Header */}
+        <View style={styles.card}>
+          <Text style={styles.providerLabel}>Ordering From:</Text>
+          <Text style={styles.providerName}>{currentProviderName}</Text>
+        </View>
+
+        {/* Order Type Toggle */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Order Method</Text>
+          <View style={styles.toggleRow}>
+            <TouchableOpacity
+              style={[
+                styles.toggleOption,
+                orderType === 'Delivery' && styles.toggleOptionActive,
+              ]}
+              onPress={() => setOrderType('Delivery')}
+            >
+              <Ionicons
+                name="bicycle"
+                size={18}
+                color={orderType === 'Delivery' ? colors.white : colors.textDark}
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                style={[
+                  styles.toggleText,
+                  orderType === 'Delivery' && styles.toggleTextActive,
+                ]}
+              >
+                Delivery (+৳30)
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.toggleOption,
+                orderType === 'Pickup' && styles.toggleOptionActive,
+              ]}
+              onPress={() => setOrderType('Pickup')}
+            >
+              <Ionicons
+                name="bag-handle"
+                size={18}
+                color={orderType === 'Pickup' ? colors.white : colors.textDark}
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                style={[
+                  styles.toggleText,
+                  orderType === 'Pickup' && styles.toggleTextActive,
+                ]}
+              >
+                Pickup (Free)
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Delivery Address Input */}
+        {orderType === 'Delivery' && (
+          <View style={styles.card}>
+            <CustomInput
+              label="Delivery Address / Hall Room"
+              value={deliveryAddress}
+              onChangeText={setDeliveryAddress}
+              placeholder="e.g. QK Hall, Room 302"
+            />
+          </View>
+        )}
+
+        {/* Cart Items List */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Items Selected</Text>
+          {cart.map((item, index) => (
+            <View key={index} style={styles.cartItem}>
+              <Image
+                source={{ uri: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100' }}
+                style={styles.itemImg}
+              />
+              <View style={styles.itemMeta}>
+                <Text style={styles.itemName}>{item.name}</Text>
+                <Text style={styles.itemPrice}>
+                  ৳{item.price} x {item.qty}
+                </Text>
+              </View>
+              <Text style={styles.itemTotal}>৳ {item.price * item.qty}</Text>
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => removeItem(index)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="trash-outline" size={20} color={colors.danger} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+
+        {/* Billing Summary */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Payment Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal</Text>
+            <Text style={styles.summaryVal}>৳ {subtotal}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Delivery Fee</Text>
+            <Text style={styles.summaryVal}>৳ {deliveryFee}</Text>
+          </View>
+          <View style={[styles.summaryRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>Total Payable</Text>
+            <Text style={styles.totalVal}>৳ {total}</Text>
+          </View>
+        </View>
+
+        <CustomButton
+          title={`Place Order (৳ ${total})`}
+          onPress={handlePlaceOrder}
+          loading={loading}
+          style={styles.placeOrderBtn}
+        />
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { padding: spacing.lg },
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: spacing.borderRadiusMd,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  providerLabel: { fontSize: 12, color: colors.textGray },
+  providerName: { fontSize: 18, fontWeight: '800', color: colors.primary },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: colors.textDark, marginBottom: spacing.sm },
+  toggleRow: { flexDirection: 'row', gap: spacing.sm },
+  toggleOption: {
+    flex: 1,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: spacing.borderRadiusSm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  toggleOptionActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  toggleText: { fontSize: 13, fontWeight: '600', color: colors.textGray },
+  toggleTextActive: { color: colors.white },
+  cartItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  itemImg: { width: 44, height: 44, borderRadius: spacing.borderRadiusSm },
+  itemMeta: { flex: 1, marginLeft: spacing.sm },
+  itemName: { fontSize: 14, fontWeight: '600', color: colors.textDark },
+  itemPrice: { fontSize: 12, color: colors.textGray },
+  itemTotal: { fontSize: 14, fontWeight: '700', color: colors.textDark, marginRight: spacing.sm },
+  deleteBtn: { padding: spacing.xs },
+  deleteText: { color: colors.danger, fontWeight: '700', fontSize: 14 },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.xs,
+  },
+  summaryLabel: { color: colors.textGray, fontSize: 13 },
+  summaryVal: { color: colors.textDark, fontSize: 13, fontWeight: '600' },
+  totalRow: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+  },
+  totalLabel: { fontSize: 16, fontWeight: '800', color: colors.textDark },
+  totalVal: { fontSize: 18, fontWeight: '800', color: colors.primary },
+  placeOrderBtn: { marginTop: spacing.xs },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+    backgroundColor: colors.background,
+  },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: colors.textDark },
+  emptySubtitle: {
+    fontSize: 14,
+    color: colors.textGray,
+    textAlign: 'center',
+    marginVertical: spacing.sm,
+  },
+  emptyBtn: { marginTop: spacing.md, width: '100%' },
+});
+
+export default CartScreen;
