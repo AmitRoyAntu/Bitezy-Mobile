@@ -47,11 +47,19 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('bitezy_token');
+      await AsyncStorage.clear();
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.clear();
+      }
+      if (DataService.logout) {
+        await DataService.logout();
+      }
       setToken(null);
       setCurrentUser(null);
     } catch (e) {
-      console.error('Failed to remove auth token:', e);
+      console.error('Failed to clear storage on logout:', e);
+      setToken(null);
+      setCurrentUser(null);
     }
   };
 

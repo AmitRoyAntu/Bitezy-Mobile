@@ -77,6 +77,15 @@ class LocalDataService {
     return user || null;
   }
 
+  async logout() {
+    try {
+      await AsyncStorage.removeItem('bitezy_token');
+      await AsyncStorage.removeItem('bitezy_cart');
+    } catch (e) {
+      console.error('DataService logout error:', e);
+    }
+  }
+
   // Generic request method for compatibility
   async request(endpoint, method = 'GET', body = null) {
     await this.initStorage();
