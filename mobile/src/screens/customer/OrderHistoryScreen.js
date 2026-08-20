@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,6 +10,8 @@ import {
   Alert,
   Linking,
   Platform,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,12 +21,18 @@ import DataService from '../../api/DataService';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const TIMELINE_STEPS = [
-  { key: 'PLACED', label: 'Placed', icon: 'receipt-outline', desc: 'Order received by canteen' },
-  { key: 'PREPARING', label: 'Kitchen', icon: 'restaurant-outline', desc: 'Preparing your fresh meal' },
-  { key: 'READY', label: 'On Way', icon: 'bicycle-outline', desc: 'Dispatched / Ready for pickup' },
-  { key: 'COMPLETED', label: 'Delivered', icon: 'checkmark-circle-outline', desc: 'Delivered to your hall' },
+  { key: 'PLACED', label: 'Placed', icon: 'receipt-outline' },
+  { key: 'PREPARING', label: 'Kitchen', icon: 'restaurant-outline' },
+  { key: 'READY', label: 'On Way', icon: 'bicycle-outline' },
+  { key: 'COMPLETED', label: 'Delivered', icon: 'checkmark-circle-outline' },
 ];
+
+const FILTER_TABS = ['All', 'Active', 'Completed', 'Cancelled'];
 
 const getStepIndex = (status) => {
   switch (status) {
@@ -49,7 +57,7 @@ const getStatusMessage = (status, orderType) => {
     case 'PENDING':
       return 'Waiting for canteen confirmation...';
     case 'PREPARING':
-      return '👨‍🍳 Chef is currently preparing your meal';
+      return '👨‍🍳 Kitchen is preparing your fresh meal';
     case 'READY':
       return isDelivery ? '🚴 Order is ready & on the way!' : '🛍️ Your order is ready for pickup!';
     case 'ON_THE_WAY':
@@ -60,7 +68,7 @@ const getStatusMessage = (status, orderType) => {
     case 'CANCELLED':
       return '❌ This order was cancelled.';
     default:
-      return 'Processing order...';
+      return 'Processing your order...';
   }
 };
 
@@ -69,6 +77,8 @@ const OrderHistoryScreen = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('All');
+  const [expandedOrders, setExpandedOrders] = useState({});
 
   const { reorderOrder, cart, currentProviderName } = useCart();
   const { showToast } = useToast();
@@ -93,6 +103,31 @@ const OrderHistoryScreen = ({ navigation }) => {
     setRefreshing(true);
     loadOrders();
   };
+
+  const toggleExpand = (orderId) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedOrders((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId],
+    }));
+  };
+
+  const activeOrdersCount = useMemo(() => {
+    return orders.filter((o) => ['PENDING', 'PREPARING', 'READY', 'ON_THE_WAY'].includes(o.status)).length;
+  }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    if (selectedTab === 'Active') {
+      return orders.filter((o) => ['PENDING', 'PREPARING', 'READY', 'ON_THE_WAY'].includes(o.status));
+    }
+    if (selectedTab === 'Completed') {
+      return orders.filter((o) => ['DELIVERED', 'PICKED_UP'].includes(o.status));
+    }
+    if (selectedTab === 'Cancelled') {
+      return orders.filter((o) => o.status === 'CANCELLED');
+    }
+    return orders;
+  }, [orders, selectedTab]);
 
   const handleCall = (phoneNumber) => {
     const phone = phoneNumber || '01811112222';
@@ -202,7 +237,7 @@ const OrderHistoryScreen = ({ navigation }) => {
     if (status === 'CANCELLED') {
       return (
         <View style={styles.cancelledBanner}>
-          <Ionicons name="close-circle" size={16} color={colors.danger} />
+          <Ionicons name="close-circle" size={15} color={colors.danger} style={{ marginRight: 6 }} />
           <Text style={styles.cancelledText}>This order was cancelled.</Text>
         </View>
       );
@@ -233,14 +268,8 @@ const OrderHistoryScreen = ({ navigation }) => {
                   >
                     <Ionicons
                       name={isCompleted ? 'checkmark' : step.icon}
-                      size={isCompleted ? 14 : 13}
-                      color={
-                        isCompleted
-                          ? colors.white
-                          : isCurrent
-                          ? colors.white
-                          : colors.textLight
-                      }
+                      size={13}
+                      color={isCompleted || isCurrent ? colors.white : colors.textLight}
                     />
                   </View>
                   <Text
@@ -269,7 +298,12 @@ const OrderHistoryScreen = ({ navigation }) => {
 
         {/* Live Status Hint */}
         <View style={styles.liveStatusRow}>
-          <View style={[styles.liveStatusDot, currentStep === 3 ? styles.liveStatusDotDone : styles.liveStatusDotActive]} />
+          <View
+            style={[
+              styles.liveStatusDot,
+              currentStep === 3 ? styles.liveStatusDotDone : styles.liveStatusDotActive,
+            ]}
+          />
           <Text style={styles.liveStatusText} numberOfLines={1}>
             {statusMsg}
           </Text>
@@ -278,10 +312,45 @@ const OrderHistoryScreen = ({ navigation }) => {
     );
   };
 
-
   return (
     <View style={styles.container}>
-      <Text style={[styles.headerTitle, { paddingTop: Math.max(insets.top + spacing.md, 48) }]}>My Orders</Text>
+      {/* Screen Header */}
+      <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top + spacing.sm, 40) }]}>
+        <View style={styles.headerTopRow}>
+          <Text style={styles.headerTitle}>My Orders</Text>
+          {activeOrdersCount > 0 && (
+            <View style={styles.activeOrdersPill}>
+              <View style={styles.livePulseDot} />
+              <Text style={styles.activeOrdersPillText}>
+                {activeOrdersCount} Active {activeOrdersCount === 1 ? 'Order' : 'Orders'}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Filter Tabs */}
+        <View style={styles.filterTabsRow}>
+          {FILTER_TABS.map((tab) => {
+            const isActive = selectedTab === tab;
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.filterTabBtn, isActive && styles.filterTabBtnActive]}
+                onPress={() => {
+                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                  setSelectedTab(tab);
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.filterTabText, isActive && styles.filterTabTextActive]}>
+                  {tab}
+                  {tab === 'Active' && activeOrdersCount > 0 ? ` (${activeOrdersCount})` : ''}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
 
       {loading ? (
         <View style={styles.center}>
@@ -289,109 +358,10 @@ const OrderHistoryScreen = ({ navigation }) => {
         </View>
       ) : (
         <FlatList
-          data={orders}
+          data={filteredOrders}
           keyExtractor={(item) => item._id || item.id || Math.random().toString()}
-          renderItem={({ item }) => {
-            const itemsSummary = item.items
-              ? item.items.map((i) => `${i.qty}x ${i.name}`).join(', ')
-              : '';
-            const orderIdShort = item._id ? `#${item._id.slice(-6)}` : '#N/A';
-            const providerName = item.provider ? item.provider.name : item.providerName || 'Canteen';
-            const providerPhone = item.provider?.phone || '01811112222';
-            const isActive = ['PENDING', 'PREPARING', 'READY', 'ON_THE_WAY'].includes(item.status);
-            const isDeliveryActive = item.type === 'delivery' && ['READY', 'ON_THE_WAY'].includes(item.status);
-
-            return (
-              <View style={styles.orderCard}>
-                <View style={styles.rowBetween}>
-                  <View style={styles.idRow}>
-                    <Ionicons name="receipt-outline" size={15} color={colors.textDark} style={{ marginRight: 4 }} />
-                    <Text style={styles.orderId}>{orderIdShort}</Text>
-                  </View>
-                  <StatusBadge status={item.status} />
-                </View>
-
-                <Text style={styles.providerName}>{providerName}</Text>
-                <Text style={styles.itemsSummary}>{itemsSummary}</Text>
-
-                {/* Visual Order Progress Timeline */}
-                {renderTimeline(item.status, item.type)}
-
-                {/* Quick Contact Bar for Active Orders */}
-                {isActive && (
-                  <View style={styles.contactContainer}>
-                    <Text style={styles.contactHeader}>
-                      {isDeliveryActive ? '🚴 Delivery on the way • Contact Rider / Canteen:' : '📞 Need assistance with this order?'}
-                    </Text>
-                    <View style={styles.contactButtonsRow}>
-                      <TouchableOpacity
-                        style={styles.contactActionBtn}
-                        onPress={() => handleCall(providerPhone)}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="call-outline" size={14} color={colors.primary} style={{ marginRight: 4 }} />
-                        <Text style={styles.contactBtnText}>Call</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={[styles.contactActionBtn, styles.whatsappActionBtn]}
-                        onPress={() => handleWhatsApp(providerPhone, item._id || item.id, providerName)}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="logo-whatsapp" size={15} color={colors.whatsApp} style={{ marginRight: 4 }} />
-                        <Text style={styles.whatsappBtnText}>WhatsApp</Text>
-                      </TouchableOpacity>
-
-                      {isDeliveryActive && (
-                        <TouchableOpacity
-                          style={[styles.contactActionBtn, styles.riderActionBtn]}
-                          onPress={() => handleCall('01822334455')}
-                          activeOpacity={0.8}
-                        >
-                          <Ionicons name="bicycle" size={14} color={colors.white} style={{ marginRight: 4 }} />
-                          <Text style={styles.riderBtnText}>Call Rider</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                )}
-
-                <View style={styles.rowBetweenFooter}>
-                  <View>
-                    <Text style={styles.dateText}>
-                      {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}
-                    </Text>
-                    <Text style={styles.totalVal}>৳ {item.total}</Text>
-                  </View>
-
-                  <View style={styles.footerActionsRow}>
-                    {/* Cancel Option before seller accepts */}
-                    {item.status === 'PENDING' && (
-                      <TouchableOpacity
-                        style={styles.cancelOrderBtn}
-                        onPress={() => handleCancelOrder(item)}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="close-circle-outline" size={14} color={colors.danger} style={{ marginRight: 4 }} />
-                        <Text style={styles.cancelOrderBtnText}>Cancel</Text>
-                      </TouchableOpacity>
-                    )}
-
-                    {/* Quick 1-Tap Reorder Button */}
-                    <TouchableOpacity
-                      style={styles.reorderBtn}
-                      onPress={() => handleReorder(item)}
-                      activeOpacity={0.82}
-                    >
-                      <Ionicons name="repeat" size={14} color={colors.white} style={{ marginRight: 4 }} />
-                      <Text style={styles.reorderBtnText}>Reorder</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            );
-          }}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: 110 }]}
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -400,15 +370,204 @@ const OrderHistoryScreen = ({ navigation }) => {
               colors={[colors.primary]}
             />
           }
+          renderItem={({ item }) => {
+            const orderIdShort = item._id ? `#${item._id.slice(-6)}` : '#N/A';
+            const providerName = item.provider ? item.provider.name : item.providerName || 'CUET Canteen';
+            const providerPhone = item.provider?.phone || '01811112222';
+            const isActive = ['PENDING', 'PREPARING', 'READY', 'ON_THE_WAY'].includes(item.status);
+            const isDeliveryActive = item.type === 'delivery' && ['READY', 'ON_THE_WAY'].includes(item.status);
+            const isExpanded = !!expandedOrders[item._id || item.id];
+            const itemCount = item.items ? item.items.reduce((acc, curr) => acc + (curr.qty || 1), 0) : 1;
+
+            const formattedDate = item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              : 'Recently placed';
+
+            return (
+              <View style={styles.orderCard}>
+                {/* Card Top: Order ID & Status */}
+                <View style={styles.orderCardTopRow}>
+                  <View style={styles.orderIdBadge}>
+                    <Ionicons name="receipt-outline" size={13} color={colors.primary} style={{ marginRight: 4 }} />
+                    <Text style={styles.orderIdText}>{orderIdShort}</Text>
+                  </View>
+
+                  <View style={styles.orderTypePill}>
+                    <Ionicons
+                      name={item.type === 'delivery' ? 'bicycle-outline' : 'bag-handle-outline'}
+                      size={11}
+                      color={colors.textDark}
+                      style={{ marginRight: 3 }}
+                    />
+                    <Text style={styles.orderTypeText}>
+                      {item.type === 'delivery' ? 'Delivery' : 'Pickup'}
+                    </Text>
+                  </View>
+
+                  <StatusBadge status={item.status} />
+                </View>
+
+                {/* Canteen Information Banner */}
+                <View style={styles.providerRow}>
+                  <View style={styles.providerIconBox}>
+                    <Ionicons name="storefront" size={16} color={colors.primary} />
+                  </View>
+                  <View style={styles.providerInfoCol}>
+                    <Text style={styles.providerNameText} numberOfLines={1}>
+                      {providerName}
+                    </Text>
+                    <Text style={styles.orderDateText}>{formattedDate}</Text>
+                  </View>
+                </View>
+
+                {/* Visual Order Progress Tracker */}
+                {renderTimeline(item.status, item.type)}
+
+                {/* Expandable Receipt / Items Section */}
+                <TouchableOpacity
+                  style={styles.detailsToggleBtn}
+                  onPress={() => toggleExpand(item._id || item.id)}
+                  activeOpacity={0.75}
+                >
+                  <View style={styles.detailsToggleLeft}>
+                    <Ionicons
+                      name={isExpanded ? 'chevron-up-circle' : 'chevron-down-circle'}
+                      size={16}
+                      color={colors.primary}
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text style={styles.detailsToggleText}>
+                      {isExpanded ? 'Hide Details' : `View Details & Receipt (${itemCount} ${itemCount === 1 ? 'item' : 'items'})`}
+                    </Text>
+                  </View>
+                  <Text style={styles.detailsTogglePrice}>৳ {item.total}</Text>
+                </TouchableOpacity>
+
+                {/* Expanded Breakdown Box */}
+                {isExpanded && (
+                  <View style={styles.expandedReceiptCard}>
+                    <Text style={styles.receiptSectionHeading}>Itemized Breakdown</Text>
+                    {item.items &&
+                      item.items.map((foodItem, idx) => (
+                        <View key={idx} style={styles.receiptItemRow}>
+                          <Text style={styles.receiptItemQty}>{foodItem.qty}x</Text>
+                          <Text style={styles.receiptItemName} numberOfLines={1}>
+                            {foodItem.name}
+                          </Text>
+                          <Text style={styles.receiptItemPrice}>৳ {(foodItem.price || 0) * (foodItem.qty || 1)}</Text>
+                        </View>
+                      ))}
+
+                    {/* Delivery Address & Cooking Notes */}
+                    {item.deliveryAddress ? (
+                      <View style={styles.receiptMetaBox}>
+                        <Ionicons name="location-outline" size={13} color={colors.textGray} style={{ marginRight: 4 }} />
+                        <Text style={styles.receiptMetaText} numberOfLines={1}>
+                          {item.deliveryAddress}
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    {item.notes ? (
+                      <View style={[styles.receiptMetaBox, { marginTop: 4 }]}>
+                        <Ionicons name="chatbox-outline" size={13} color={colors.textGray} style={{ marginRight: 4 }} />
+                        <Text style={styles.receiptMetaText} numberOfLines={1}>
+                          Note: "{item.notes}"
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                )}
+
+                {/* Contact Bar for Active Orders */}
+                {isActive && (
+                  <View style={styles.activeContactBar}>
+                    <TouchableOpacity
+                      style={styles.contactBtnWhatsApp}
+                      onPress={() => handleWhatsApp(providerPhone, item._id || item.id, providerName)}
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name="logo-whatsapp" size={14} color={colors.white} style={{ marginRight: 4 }} />
+                      <Text style={styles.contactBtnWhatsAppText}>WhatsApp</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.contactBtnCall}
+                      onPress={() => handleCall(providerPhone)}
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name="call-outline" size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                      <Text style={styles.contactBtnCallText}>Call Canteen</Text>
+                    </TouchableOpacity>
+
+                    {isDeliveryActive && (
+                      <TouchableOpacity
+                        style={styles.contactBtnRider}
+                        onPress={() => handleCall('01822334455')}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name="bicycle" size={14} color={colors.white} style={{ marginRight: 4 }} />
+                        <Text style={styles.contactBtnRiderText}>Rider</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+
+                {/* Card Footer: Amount & Reorder */}
+                <View style={styles.orderCardFooter}>
+                  <View style={styles.footerPriceCol}>
+                    <Text style={styles.footerPriceLabel}>Total Amount</Text>
+                    <Text style={styles.footerPriceVal}>৳ {item.total}</Text>
+                  </View>
+
+                  <View style={styles.footerActionsRow}>
+                    {item.status === 'PENDING' && (
+                      <TouchableOpacity
+                        style={styles.cancelBtn}
+                        onPress={() => handleCancelOrder(item)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="close-circle-outline" size={13} color={colors.danger} style={{ marginRight: 3 }} />
+                        <Text style={styles.cancelBtnText}>Cancel</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity
+                      style={styles.reorderPillBtn}
+                      onPress={() => handleReorder(item)}
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name="repeat" size={14} color={colors.white} style={{ marginRight: 4 }} />
+                      <Text style={styles.reorderPillBtnText}>Reorder</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIconCircle}>
-                <Ionicons name="receipt-outline" size={38} color={colors.primary} />
+                <Ionicons name="receipt-outline" size={40} color={colors.primary} />
               </View>
-              <Text style={styles.emptyTitle}>No orders placed yet</Text>
+              <Text style={styles.emptyTitle}>No Orders Found</Text>
               <Text style={styles.emptySubtitle}>
-                Your orders will show here with real-time live tracking
+                {selectedTab === 'All'
+                  ? 'Your orders will show here with real-time live tracking'
+                  : `You have no ${selectedTab.toLowerCase()} orders right now.`}
               </Text>
+              <TouchableOpacity
+                style={styles.emptyExploreBtn}
+                onPress={() => navigation.navigate('ExploreStack')}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="restaurant" size={15} color={colors.white} style={{ marginRight: 6 }} />
+                <Text style={styles.emptyExploreBtnText}>Browse Campus Canteens</Text>
+              </TouchableOpacity>
             </View>
           }
         />
@@ -418,21 +577,82 @@ const OrderHistoryScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+
+  /* Header Container */
+  headerContainer: {
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm + 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
   headerTitle: {
     fontFamily: fonts.headingBold,
     fontSize: 22,
     color: colors.textDark,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm + 2,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     letterSpacing: -0.4,
   },
+  activeOrdersPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  livePulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+    marginRight: 5,
+  },
+  activeOrdersPillText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: '#065F46',
+  },
+
+  /* Filter Tabs */
+  filterTabsRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  filterTabBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: spacing.borderRadiusFull,
+    backgroundColor: colors.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  filterTabBtnActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterTabText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12,
+    color: colors.textGray,
+  },
+  filterTabTextActive: {
+    fontFamily: fonts.bold,
+    color: colors.white,
+  },
+
+  /* Content */
   listContent: {
     padding: spacing.md,
-    paddingBottom: 130,
   },
   orderCard: {
     backgroundColor: colors.card,
@@ -444,57 +664,92 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: colors.secondary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 3,
+        elevation: 2,
       },
       web: {
-        boxShadow: '0 4px 14px rgba(18, 18, 23, 0.06)',
+        boxShadow: '0 2px 10px rgba(18, 18, 23, 0.04)',
       },
     }),
   },
-  rowBetween: {
+
+  /* Card Header */
+  orderCardTopRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xs + 2,
   },
-  idRow: {
+  orderIdBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
   },
-  orderId: {
+  orderIdText: {
     fontFamily: fonts.bold,
-    fontSize: 14,
+    fontSize: 11,
+    color: colors.primary,
+  },
+  orderTypePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  orderTypeText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 11,
     color: colors.textDark,
   },
-  providerName: {
+
+  /* Provider Info */
+  providerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.xs,
+  },
+  providerIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  providerInfoCol: {
+    flex: 1,
+  },
+  providerNameText: {
     fontFamily: fonts.headingBold,
-    fontSize: 16,
-    color: colors.primary,
-    marginTop: 2,
-    marginBottom: 2,
+    fontSize: 15,
+    color: colors.textDark,
     letterSpacing: -0.2,
   },
-  itemsSummary: {
+  orderDateText: {
     fontFamily: fonts.regular,
-    fontSize: 13,
+    fontSize: 11,
     color: colors.textGray,
-    marginBottom: spacing.sm,
-    lineHeight: 18,
+    marginTop: 1,
   },
-  
-  /* Live Tracker Card */
+
+  /* Tracker Stepper */
   trackerCard: {
-    backgroundColor: '#F8F9FC',
-    borderRadius: spacing.borderRadiusMd - 2,
-    padding: spacing.sm + 4,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: spacing.borderRadiusSm,
+    padding: spacing.sm + 2,
     borderWidth: 1,
     borderColor: colors.borderDark,
-    marginBottom: spacing.sm + 2,
+    marginVertical: spacing.xs + 2,
   },
   timelineRow: {
     flexDirection: 'row',
@@ -508,32 +763,32 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   stepNode: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.surfaceSubtle,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: colors.borderDark,
   },
   stepNodeCompleted: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
   },
   stepNodeCurrent: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   stepNodeUpcoming: {
-    backgroundColor: '#EEF0F4',
+    backgroundColor: colors.surfaceSubtle,
     borderColor: colors.borderDark,
   },
   stepNodeLabel: {
     fontFamily: fonts.semiBold,
-    fontSize: 10,
+    fontSize: 9,
     color: colors.textLight,
-    marginTop: 4,
+    marginTop: 3,
     textAlign: 'center',
   },
   stepNodeLabelCompleted: {
@@ -546,37 +801,37 @@ const styles = StyleSheet.create({
   },
   stepLine: {
     flex: 1,
-    height: 2.5,
+    height: 2,
     backgroundColor: colors.borderDark,
-    marginBottom: 16,
+    marginBottom: 14,
     marginHorizontal: -4,
     zIndex: 1,
   },
   stepLineCompleted: {
-    backgroundColor: colors.success,
+    backgroundColor: '#10B981',
   },
   liveStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: spacing.borderRadiusFull,
+    backgroundColor: colors.card,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: spacing.borderRadiusSm,
     borderWidth: 1,
     borderColor: colors.border,
     marginTop: 2,
   },
   liveStatusDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     marginRight: 6,
   },
   liveStatusDotActive: {
     backgroundColor: colors.primary,
   },
   liveStatusDotDone: {
-    backgroundColor: colors.success,
+    backgroundColor: '#10B981',
   },
   liveStatusText: {
     fontFamily: fonts.medium,
@@ -590,8 +845,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dangerLight,
     padding: spacing.sm,
     borderRadius: spacing.borderRadiusSm,
-    marginBottom: spacing.md,
-    gap: spacing.xs,
+    marginVertical: spacing.xs,
   },
   cancelledText: {
     fontFamily: fonts.bold,
@@ -599,78 +853,156 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
 
-  /* Contact Bar for Active Orders */
-  contactContainer: {
-    backgroundColor: '#F8F9FC',
-    borderRadius: spacing.borderRadiusSm + 2,
-    padding: spacing.sm + 2,
-    marginBottom: spacing.sm + 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  contactHeader: {
-    fontFamily: fonts.semiBold,
-    fontSize: 11,
-    color: colors.textDark,
-    marginBottom: spacing.xs + 2,
-  },
-  contactButtonsRow: {
+  /* Expandable Details */
+  detailsToggleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs + 2,
-  },
-  contactActionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.borderDark,
-    paddingVertical: 7,
-    borderRadius: spacing.borderRadiusSm,
+    paddingVertical: 6,
+    marginTop: 2,
   },
-  contactBtnText: {
+  detailsToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailsToggleText: {
     fontFamily: fonts.semiBold,
     fontSize: 12,
     color: colors.primary,
   },
-  whatsappActionBtn: {
-    borderColor: colors.successBorder,
-    backgroundColor: colors.successLight,
-  },
-  whatsappBtnText: {
-    fontFamily: fonts.semiBold,
-    fontSize: 12,
-    color: '#0D9488',
-  },
-  riderActionBtn: {
-    backgroundColor: colors.purple,
-    borderColor: colors.purple,
-  },
-  riderBtnText: {
+  detailsTogglePrice: {
     fontFamily: fonts.bold,
     fontSize: 12,
+    color: colors.textDark,
+  },
+  expandedReceiptCard: {
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: spacing.borderRadiusSm,
+    padding: spacing.sm + 2,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  receiptSectionHeading: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.textDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginBottom: 4,
+  },
+  receiptItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 3,
+  },
+  receiptItemQty: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.primary,
+    width: 22,
+  },
+  receiptItemName: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: colors.textDark,
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  receiptItemPrice: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.textDark,
+  },
+  receiptMetaBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  receiptMetaText: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textGray,
+    flex: 1,
+  },
+
+  /* Active Contact Bar */
+  activeContactBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.sm,
+  },
+  contactBtnWhatsApp: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.whatsApp,
+    paddingVertical: 7,
+    borderRadius: spacing.borderRadiusSm,
+  },
+  contactBtnWhatsAppText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.white,
+  },
+  contactBtnCall: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 75, 38, 0.2)',
+    paddingVertical: 7,
+    borderRadius: spacing.borderRadiusSm,
+  },
+  contactBtnCallText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.primary,
+  },
+  contactBtnRider: {
+    flex: 0.8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.purple,
+    paddingVertical: 7,
+    borderRadius: spacing.borderRadiusSm,
+  },
+  contactBtnRiderText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
     color: colors.white,
   },
 
-  rowBetweenFooter: {
+  /* Card Footer */
+  orderCardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingTop: spacing.sm,
+    marginTop: spacing.xs + 2,
   },
-  dateText: {
+  footerPriceCol: {
+    justifyContent: 'center',
+  },
+  footerPriceLabel: {
     fontFamily: fonts.regular,
-    fontSize: 11,
-    color: colors.textLight,
-    marginBottom: 2,
+    fontSize: 10,
+    color: colors.textGray,
   },
-  totalVal: {
+  footerPriceVal: {
     fontFamily: fonts.headingBold,
-    fontSize: 17,
+    fontSize: 16,
     color: colors.textDark,
   },
   footerActionsRow: {
@@ -678,63 +1010,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  cancelOrderBtn: {
+  cancelBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.dangerLight,
-    borderWidth: 1,
-    borderColor: colors.dangerBorder,
-    paddingHorizontal: spacing.sm + 2,
+    paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: spacing.borderRadiusFull,
   },
-  cancelOrderBtnText: {
+  cancelBtnText: {
     fontFamily: fonts.bold,
-    fontSize: 12,
+    fontSize: 11,
     color: colors.danger,
   },
-  reorderBtn: {
+  reorderPillBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: spacing.borderRadiusFull,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-      web: {
-        boxShadow: '0 2px 8px rgba(255, 75, 38, 0.22)',
-      },
-    }),
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  reorderBtnText: {
+  reorderPillBtnText: {
     fontFamily: fonts.bold,
     fontSize: 12,
     color: colors.white,
-    letterSpacing: 0.1,
   },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyContainer: { padding: spacing.xl, alignItems: 'center', marginTop: 40 },
+
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    padding: spacing.xl,
+    alignItems: 'center',
+    marginTop: 30,
+  },
   emptyIconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   emptyTitle: {
     fontFamily: fonts.headingBold,
-    fontSize: 17,
+    fontSize: 18,
     color: colors.textDark,
   },
   emptySubtitle: {
@@ -743,8 +1072,24 @@ const styles = StyleSheet.create({
     color: colors.textGray,
     marginTop: spacing.xs,
     textAlign: 'center',
+    lineHeight: 19,
+    marginBottom: spacing.md,
+  },
+  emptyExploreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 10,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  emptyExploreBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.white,
   },
 });
 
 export default OrderHistoryScreen;
+
 
