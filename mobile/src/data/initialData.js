@@ -275,7 +275,7 @@ export const initialProviders = [
     _id: "7",
     id: 7,
     name: "Tareq Mama's Food Cart",
-    type: "Snacks",
+    type: "Cart",
     img: "https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=600&auto=format&fit=crop&q=80",
     seller: "107",
     location: "Near Shah Hall, Open Area",

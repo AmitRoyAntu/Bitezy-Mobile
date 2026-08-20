@@ -15,7 +15,7 @@ import { colors, spacing } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useToast } from '../../context/ToastContext';
 
-const CATEGORIES = ['All', 'Dining', 'Cafeteria', 'Snacks'];
+const CATEGORIES = ['All', 'Canteen', 'Cafeteria', 'Cart'];
 
 const ProviderListScreen = ({ navigation }) => {
   const [providers, setProviders] = useState([]);
@@ -48,7 +48,15 @@ const ProviderListScreen = ({ navigation }) => {
   };
 
   const filteredProviders = providers.filter((p) => {
-    const matchesCategory = activeCategory === 'All' || p.type === activeCategory;
+    const providerType = (p.type || '').toLowerCase();
+    const targetCategory = activeCategory.toLowerCase();
+    
+    const matchesCategory =
+      activeCategory === 'All' ||
+      providerType === targetCategory ||
+      (activeCategory === 'Canteen' && providerType === 'dining') ||
+      (activeCategory === 'Cart' && providerType === 'snacks');
+      
     const matchesQuery = p.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesQuery;
   });
