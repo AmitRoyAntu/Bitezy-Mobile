@@ -43,7 +43,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
   const [comment, setComment] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
 
-  const { cart, updateQty } = useCart();
+  const { cart, updateQty, totalItems, subtotal, total } = useCart();
   const { showToast } = useToast();
 
   const loadData = async () => {
@@ -188,9 +188,10 @@ const ProviderMenuScreen = ({ route, navigation }) => {
               <Text style={styles.typeBadgeText}>{provider.type}</Text>
             </View>
             <View style={styles.starBadge}>
-              <Ionicons name="star" size={13} color="#FF9F43" style={{ marginRight: 3 }} />
-              <Text style={styles.starBadgeText}>★ {avgRating}</Text>
+              <Ionicons name="star" size={13} color={colors.rating} style={{ marginRight: 4 }} />
+              <Text style={styles.starBadgeText}>{avgRating}</Text>
             </View>
+
             <View style={[styles.statusPill, provider.isOpen === false ? styles.closedPill : styles.openPill]}>
               <Text style={styles.statusPillText}>{provider.isOpen === false ? 'Closed' : 'Open'}</Text>
             </View>
@@ -317,7 +318,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                         key={s}
                         name={s <= Math.round(Number(avgRating)) ? 'star' : 'star-outline'}
                         size={14}
-                        color="#FF9F43"
+                        color={colors.rating}
                       />
                     ))}
                   </View>
@@ -354,7 +355,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                   </Text>
                 </View>
                 <View style={styles.reviewStarBadge}>
-                  <Ionicons name="star" size={12} color="#FF9F43" style={{ marginRight: 3 }} />
+                  <Ionicons name="star" size={12} color={colors.rating} style={{ marginRight: 3 }} />
                   <Text style={styles.reviewStarScore}>{item.rating}</Text>
                 </View>
               </View>
@@ -507,7 +508,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                   <Ionicons
                     name={star <= rating ? 'star' : 'star-outline'}
                     size={34}
-                    color="#FF9F43"
+                    color={colors.rating}
                   />
                 </TouchableOpacity>
               ))}
@@ -538,9 +539,33 @@ const ProviderMenuScreen = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
+
+      {/* Floating Sticky "View your cart" Pill */}
+      {totalItems > 0 && (
+        <View style={styles.floatingCartContainer} pointerEvents="box-none">
+          <TouchableOpacity
+            style={styles.floatingCartBar}
+            onPress={() => navigation.navigate('Cart')}
+            activeOpacity={0.88}
+          >
+            <View style={styles.floatingCartLeft}>
+              <Text style={styles.floatingCartTitle}>View your cart</Text>
+              <View style={styles.floatingCartCountPill}>
+                <Text style={styles.floatingCartCountText}>{totalItems}x</Text>
+              </View>
+            </View>
+
+            <View style={styles.floatingCartRight}>
+              <Text style={styles.floatingCartPrice}>৳ {total || subtotal}</Text>
+              <Ionicons name="arrow-forward" size={18} color={colors.white} style={{ marginLeft: 6 }} />
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
@@ -695,7 +720,7 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
-    paddingBottom: spacing.xxl,
+    paddingBottom: 90,
   },
   itemWrapper: {
     paddingHorizontal: spacing.lg,
@@ -1064,7 +1089,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#25D366',
+    backgroundColor: colors.whatsApp,
     paddingVertical: 10,
     borderRadius: spacing.borderRadiusSm,
   },
@@ -1150,6 +1175,72 @@ const styles = StyleSheet.create({
     color: colors.textGray,
     fontSize: 13,
   },
+
+  /* Floating Sticky Cart Bar */
+  floatingCartContainer: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 24 : 16,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+  },
+  floatingCartBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 14,
+    borderRadius: spacing.borderRadiusFull,
+    width: '100%',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.35,
+        shadowRadius: 14,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: '0 6px 20px rgba(255, 75, 38, 0.35)',
+      },
+    }),
+  },
+  floatingCartLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  floatingCartTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 15,
+    color: colors.white,
+    marginRight: 8,
+    letterSpacing: -0.2,
+  },
+  floatingCartCountPill: {
+    backgroundColor: 'rgba(0, 0, 0, 0.22)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  floatingCartCountText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.white,
+  },
+  floatingCartRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  floatingCartPrice: {
+    fontFamily: fonts.headingBold,
+    fontSize: 16,
+    color: colors.white,
+    letterSpacing: -0.3,
+  },
 });
 
 export default ProviderMenuScreen;
+

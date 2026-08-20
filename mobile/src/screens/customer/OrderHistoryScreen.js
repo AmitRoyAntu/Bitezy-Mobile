@@ -383,8 +383,10 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 130,
   },
+
+
   orderCard: {
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,

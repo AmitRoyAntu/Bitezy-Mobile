@@ -9,6 +9,8 @@ import {
   Modal,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +21,7 @@ import DataService from '../../api/DataService';
 import { useToast } from '../../context/ToastContext';
 
 const CATEGORIES = [
-  { name: 'All', icon: 'grid-outline', desc: 'All campus food providers' },
+  { name: 'All', icon: 'layers-outline', desc: 'All campus food providers' },
   { name: 'Canteen', icon: 'restaurant-outline', desc: 'Residential hall canteens' },
   { name: 'Cafeteria', icon: 'cafe-outline', desc: 'Central cafeteria & dining' },
   { name: 'Cart', icon: 'fast-food-outline', desc: 'Food carts & evening snacks' },
@@ -73,26 +75,31 @@ const ProviderListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: Math.max(insets.top + spacing.md, 48) }]}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top + spacing.sm, 44) }]}>
         <View style={styles.brandRow}>
-          <Logo size="small" showTagline={false} />
-          <Text style={styles.greetingTag}>CUET Campus</Text>
+          <Logo size="small" showTagline={false} align="left" />
+          <View style={styles.campusBadge}>
+            <Ionicons name="location-sharp" size={13} color={colors.primary} style={{ marginRight: 3 }} />
+            <Text style={styles.campusBadgeText}>CUET Campus</Text>
+          </View>
         </View>
-        <Text style={styles.greeting}>Find Food Halls & Canteens</Text>
 
-        {/* Integrated Search Bar with Filter Icon */}
+        <Text style={styles.greeting}>Hungry on campus?</Text>
+        <Text style={styles.subGreeting}>Order from your favourite hall canteens & carts</Text>
+
+        {/* Integrated Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={19} color={colors.textLight} style={styles.searchIcon} />
+          <Ionicons name="search" size={18} color={colors.textLight} style={styles.searchIcon} />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search for canteen, cafeteria, cart..."
+            placeholder="Search canteens, cafeterias, carts..."
             placeholderTextColor={colors.textLight}
             style={styles.searchInput}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearBtn}>
-              <Ionicons name="close-circle" size={16} color={colors.textLight} />
+              <Ionicons name="close-circle" size={17} color={colors.textLight} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -129,6 +136,8 @@ const ProviderListScreen = ({ navigation }) => {
         )}
       </View>
 
+
+
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -145,12 +154,31 @@ const ProviderListScreen = ({ navigation }) => {
           )}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="search-outline" size={42} color={colors.border} style={{ marginBottom: spacing.xs }} />
-              <Text style={styles.emptyText}>No food halls or canteens found.</Text>
+              <View style={styles.emptyIconBox}>
+                <Ionicons name="search-outline" size={36} color={colors.textLight} />
+              </View>
+              <Text style={styles.emptyTitle}>No matching food places</Text>
+              <Text style={styles.emptyText}>Try searching for something else or reset your filter</Text>
+              {activeCategory !== 'All' && (
+                <TouchableOpacity
+                  style={styles.emptyResetBtn}
+                  onPress={() => {
+                    setActiveCategory('All');
+                    setSearchQuery('');
+                  }}
+                >
+                  <Text style={styles.emptyResetBtnText}>Show All Providers</Text>
+                </TouchableOpacity>
+              )}
             </View>
           }
         />
@@ -180,7 +208,7 @@ const ProviderListScreen = ({ navigation }) => {
                 onPress={() => setShowFilterModal(false)}
                 style={styles.sheetCloseBtn}
               >
-                <Ionicons name="close" size={20} color={colors.textDark} />
+                <Ionicons name="close" size={22} color={colors.textDark} />
               </TouchableOpacity>
             </View>
 
@@ -263,8 +291,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: colors.card,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -272,33 +299,47 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
   },
-  greetingTag: {
-    fontFamily: fonts.bold,
-    fontSize: 12,
-    color: colors.primary,
+  campusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 75, 38, 0.15)',
+  },
+  campusBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.primary,
+    letterSpacing: 0.2,
   },
   greeting: {
     fontFamily: fonts.headingBold,
-    fontSize: 18,
+    fontSize: 22,
     color: colors.textDark,
+    letterSpacing: -0.5,
+    marginTop: 2,
+  },
+  subGreeting: {
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textGray,
+    marginTop: 2,
     marginBottom: spacing.md,
-    letterSpacing: -0.3,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: '#F4F5F8',
     borderRadius: spacing.borderRadiusMd,
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: spacing.md,
     height: 48,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -315,12 +356,12 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   filterBtn: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
     borderRadius: spacing.borderRadiusSm,
     backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderDark,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: spacing.xs,
@@ -353,6 +394,8 @@ const styles = StyleSheet.create({
     paddingRight: spacing.sm,
     paddingVertical: 4,
     borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 75, 38, 0.2)',
   },
   activeFilterText: {
     fontFamily: fonts.bold,
@@ -365,8 +408,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: spacing.lg,
+    padding: spacing.md,
+    paddingBottom: 90,
   },
+
+
+
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -375,17 +422,46 @@ const styles = StyleSheet.create({
   emptyContainer: {
     padding: spacing.xl,
     alignItems: 'center',
+    marginTop: spacing.lg,
+  },
+  emptyIconBox: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: colors.surfaceSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 16,
+    color: colors.textDark,
+    marginBottom: 4,
   },
   emptyText: {
     fontFamily: fonts.regular,
     color: colors.textGray,
-    fontSize: 14,
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyResetBtn: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 8,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  emptyResetBtnText: {
+    fontFamily: fonts.bold,
+    color: colors.primary,
+    fontSize: 13,
   },
 
   /* Bottom Sheet Modal Styles */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(18, 18, 23, 0.45)',
     justifyContent: 'flex-end',
   },
   bottomSheet: {
@@ -394,17 +470,23 @@ const styles = StyleSheet.create({
     borderTopRightRadius: spacing.borderRadiusLg,
     padding: spacing.lg,
     paddingBottom: spacing.xl + 10,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
   },
   sheetDragHandle: {
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.border,
+    backgroundColor: colors.borderDark,
     alignSelf: 'center',
     marginBottom: spacing.md,
   },
@@ -432,10 +514,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     borderRadius: spacing.borderRadiusMd,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.background,
+    backgroundColor: '#FAFAFC',
   },
   sheetOptionItemSelected: {
     borderColor: colors.primary,
@@ -446,9 +528,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -458,12 +540,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   optionName: {
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.headingSemiBold,
     fontSize: 15,
     color: colors.textDark,
   },
   optionNameSelected: {
-    fontFamily: fonts.bold,
     color: colors.primary,
   },
   optionSub: {
@@ -477,7 +558,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.textLight,
+    borderColor: colors.borderDark,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -504,3 +585,4 @@ const styles = StyleSheet.create({
 });
 
 export default ProviderListScreen;
+

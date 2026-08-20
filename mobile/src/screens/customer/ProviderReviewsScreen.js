@@ -95,7 +95,7 @@ const ProviderReviewsScreen = ({ route }) => {
                   {item.user ? item.user.name : 'Anonymous'}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Ionicons name="star" size={14} color="#FF9F43" style={{ marginRight: 3 }} />
+                  <Ionicons name="star" size={14} color={colors.rating} style={{ marginRight: 3 }} />
                   <Text style={styles.stars}>{item.rating}</Text>
                 </View>
               </View>
@@ -127,8 +127,9 @@ const ProviderReviewsScreen = ({ route }) => {
                   <Ionicons
                     name={star <= rating ? 'star' : 'star-outline'}
                     size={32}
-                    color="#FF9F43"
+                    color={colors.rating}
                   />
+
                 </TouchableOpacity>
               ))}
             </View>

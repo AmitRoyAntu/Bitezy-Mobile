@@ -1,34 +1,71 @@
-export { spacing } from './spacing';
-export { fonts } from './fonts';
-import { fonts } from './fonts';
+export { spacing } from './spacing.js';
+export { fonts } from './fonts.js';
+import { fonts } from './fonts.js';
+
 
 export const colors = {
-  primary: '#FF5A5F',
-  primaryDark: '#E0484C',
-  primaryLight: '#FFEAEB',
-  secondary: '#2D3436',
-  accent: '#FF9F43',
-  success: '#2ECC71',
-  successLight: '#E8F8F0',
-  danger: '#D63031',
-  dangerDark: '#B71C1C',
-  dangerLight: '#FFECEC',
-  warning: '#F1C40F',
-  warningLight: '#FEF9E7',
-  info: '#0984E3',
-  infoLight: '#EBF5FB',
-  purple: '#6C5CE7',
-  purpleLight: '#F0EEFD',
-  background: '#F8F9FA',
+  // Brand / Gourmet Flame
+  primary: '#FF4B26',
+  primaryDark: '#E03714',
+  primaryLight: '#FFF0ED',
+  primaryGlow: 'rgba(255, 75, 38, 0.15)',
+  
+  // Base & Dark Accents
+  secondary: '#181A20',
+  secondaryLight: '#35383F',
+  accent: '#FF9800',
+  accentLight: '#FFF8E1',
+
+  // Status & Feedback
+  success: '#00B761',
+  successLight: '#E6F9F0',
+  successBorder: '#A7F3D0',
+  danger: '#FA3E3E',
+  dangerDark: '#D92525',
+  dangerLight: '#FEECEC',
+  dangerBorder: '#FECACA',
+  warning: '#FFAB00',
+  warningLight: '#FFF9E6',
+  warningBorder: '#FEF08A',
+  info: '#246BFD',
+  infoLight: '#EEF4FF',
+  infoBorder: '#BFDBFE',
+  purple: '#7952FC',
+  purpleLight: '#F3EFFF',
+  purpleBorder: '#DDD6FE',
+
+  // Ratings & Social
+  rating: '#F59E0B',
+  ratingBg: '#FFF8E6',
+  ratingBorder: '#FEF08A',
+  ratingText: '#B45309',
+  whatsApp: '#25D366',
+
+  // Surfaces & Backgrounds
+  background: '#F8F9FB',
+  surface: '#FFFFFF',
   card: '#FFFFFF',
-  textDark: '#2D3436',
-  textGray: '#6C757D',
-  textLight: '#A0A0A0',
-  border: '#EAEAEA',
+  surfaceSubtle: '#F1F3F7',
+  inputBg: '#FAFAFC',
+
+  // Typography Colors
+  textDark: '#121217',
+  textGray: '#64748B',
+  textLight: '#94A3B8',
+
+  // Borders & Dividers
+  border: '#F0F1F5',
+  borderDark: '#E2E8F0',
+
+  // Neutrals & Glass
   white: '#FFFFFF',
   black: '#000000',
-  shadow: 'rgba(0, 0, 0, 0.08)',
+  glassDark: 'rgba(18, 18, 23, 0.72)',
+  overlay: 'rgba(18, 18, 23, 0.45)',
+  shadow: 'rgba(18, 18, 23, 0.07)',
+  shadowStrong: 'rgba(18, 18, 23, 0.14)',
 };
+
 
 export const typography = {
   header: {
@@ -57,3 +94,4 @@ export const typography = {
     color: colors.textGray,
   },
 };
+

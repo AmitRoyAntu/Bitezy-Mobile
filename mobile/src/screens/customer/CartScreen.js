@@ -137,7 +137,18 @@ const CartScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + spacing.md, 36) }]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: Math.max(insets.top + spacing.md, 36),
+            paddingBottom: 90,
+          },
+        ]}
+        showsVerticalScrollIndicator={true}
+      >
+
+
         {/* Provider Header */}
         <View style={styles.card}>
           <Text style={styles.providerLabel}>Ordering From:</Text>
@@ -301,22 +312,52 @@ const CartScreen = ({ navigation }) => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  scrollContent: { padding: spacing.lg },
+  scrollContent: {
+    paddingHorizontal: spacing.md,
+  },
+  bottomSpacer: {
+    height: 140,
+  },
+
   card: {
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusMd,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 10px rgba(18, 18, 23, 0.04)',
+      },
+    }),
   },
-  providerLabel: { fontFamily: fonts.medium, fontSize: 12, color: colors.textGray },
-  providerName: { fontFamily: fonts.headingBold, fontSize: 18, color: colors.primary, marginTop: 1 },
+  providerLabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: 11,
+    color: colors.textGray,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  providerName: {
+    fontFamily: fonts.headingBold,
+    fontSize: 19,
+    color: colors.primary,
+    marginTop: 2,
+    letterSpacing: -0.3,
+  },
   providerLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -328,41 +369,84 @@ const styles = StyleSheet.create({
     color: colors.textGray,
     flex: 1,
   },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: colors.textDark, marginBottom: spacing.sm },
-  toggleRow: { flexDirection: 'row', gap: spacing.sm },
+  cardTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 15,
+    color: colors.textDark,
+    marginBottom: spacing.sm,
+    letterSpacing: -0.2,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
   toggleOption: {
     flex: 1,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: spacing.borderRadiusSm,
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderDark,
+    backgroundColor: '#F4F5F8',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   toggleOptionActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  toggleText: { fontSize: 13, fontWeight: '600', color: colors.textGray },
-  toggleTextActive: { color: colors.white },
+  toggleText: {
+    fontFamily: fonts.semiBold,
+    fontSize: 13,
+    color: colors.textDark,
+  },
+  toggleTextActive: {
+    fontFamily: fonts.bold,
+    color: colors.white,
+  },
   cartItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  itemImg: { width: 44, height: 44, borderRadius: spacing.borderRadiusSm },
-  itemMeta: { flex: 1, marginLeft: spacing.sm, marginRight: spacing.xs },
-  itemName: { fontSize: 14, fontWeight: '600', color: colors.textDark },
-  itemDesc: { fontSize: 11, color: colors.textGray, marginTop: 1, marginBottom: 2 },
-  itemPrice: { fontSize: 12, color: colors.primary, fontWeight: '600' },
+  itemImg: {
+    width: 52,
+    height: 52,
+    borderRadius: spacing.borderRadiusSm + 4,
+    backgroundColor: colors.border,
+  },
+  itemMeta: {
+    flex: 1,
+    marginLeft: spacing.sm + 2,
+    marginRight: spacing.xs,
+  },
+  itemName: {
+    fontFamily: fonts.headingSemiBold,
+    fontSize: 14,
+    color: colors.textDark,
+    letterSpacing: -0.2,
+  },
+  itemDesc: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textGray,
+    marginTop: 1,
+    marginBottom: 2,
+  },
+  itemPrice: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.primary,
+  },
   stepperContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.primaryLight,
+    borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255, 75, 38, 0.2)',
     marginRight: spacing.sm,
   },
   stepperBtn: {
@@ -373,32 +457,57 @@ const styles = StyleSheet.create({
   },
   stepperBtnDanger: {
     backgroundColor: colors.dangerLight,
+    borderRadius: spacing.borderRadiusFull,
   },
   stepperQtyText: {
     paddingHorizontal: 6,
-    fontWeight: '700',
-    color: colors.textDark,
+    fontFamily: fonts.bold,
+    color: colors.primaryDark,
     fontSize: 12,
     minWidth: 18,
     textAlign: 'center',
   },
-  itemTotal: { fontSize: 14, fontWeight: '700', color: colors.textDark, minWidth: 48, textAlign: 'right' },
+  itemTotal: {
+    fontFamily: fonts.headingBold,
+    fontSize: 14,
+    color: colors.textDark,
+    minWidth: 48,
+    textAlign: 'right',
+  },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.xs + 2,
   },
-  summaryLabel: { color: colors.textGray, fontSize: 13 },
-  summaryVal: { color: colors.textDark, fontSize: 13, fontWeight: '600' },
+  summaryLabel: {
+    fontFamily: fonts.regular,
+    color: colors.textGray,
+    fontSize: 13,
+  },
+  summaryVal: {
+    fontFamily: fonts.bold,
+    color: colors.textDark,
+    fontSize: 13,
+  },
   totalRow: {
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    marginTop: spacing.xs,
+    marginTop: spacing.xs + 2,
     paddingTop: spacing.sm,
   },
-  totalLabel: { fontSize: 16, fontWeight: '800', color: colors.textDark },
-  totalVal: { fontSize: 18, fontWeight: '800', color: colors.primary },
-  placeOrderBtn: { marginTop: spacing.xs },
+  totalLabel: {
+    fontFamily: fonts.headingBold,
+    fontSize: 16,
+    color: colors.textDark,
+  },
+  totalVal: {
+    fontFamily: fonts.headingBold,
+    fontSize: 19,
+    color: colors.primary,
+  },
+  placeOrderBtn: {
+    marginTop: spacing.xs,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -415,14 +524,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  emptyTitle: { fontSize: 20, fontWeight: '800', color: colors.textDark },
+  emptyTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 20,
+    color: colors.textDark,
+  },
   emptySubtitle: {
+    fontFamily: fonts.regular,
     fontSize: 14,
     color: colors.textGray,
     textAlign: 'center',
     marginVertical: spacing.sm,
   },
-  emptyBtn: { marginTop: spacing.md, width: '100%' },
+  emptyBtn: {
+    marginTop: spacing.md,
+    width: '100%',
+  },
 });
+
 
 export default CartScreen;

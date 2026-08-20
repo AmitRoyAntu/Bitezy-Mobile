@@ -260,6 +260,8 @@ const CustomerProfileScreen = () => {
           variant="danger"
           style={styles.logoutBtn}
         />
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </View>
   );
@@ -267,8 +269,10 @@ const CustomerProfileScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  scrollContent: { padding: spacing.lg, paddingBottom: 140 },
+  bottomSpacer: { height: 60 },
   headerCard: {
+
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
     padding: spacing.xl,

@@ -25,14 +25,14 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
       const isNative = Platform.OS !== 'web';
       Animated.sequence([
         Animated.timing(qtyScaleAnim, {
-          toValue: 1.3,
-          duration: 90,
+          toValue: 1.25,
+          duration: 80,
           useNativeDriver: isNative,
         }),
         Animated.spring(qtyScaleAnim, {
           toValue: 1,
           friction: 4,
-          tension: 120,
+          tension: 140,
           useNativeDriver: isNative,
         }),
       ]).start();
@@ -52,10 +52,13 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
         resizeMode="cover"
       />
       <View style={styles.info}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.desc} numberOfLines={2}>
-          {item.desc || item.description}
-        </Text>
+        <View>
+          <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.desc} numberOfLines={2}>
+            {item.desc || item.description || 'Fresh campus delicacy prepared daily'}
+          </Text>
+        </View>
+
         <View style={styles.bottomRow}>
           <Text style={styles.price}>৳ {item.price}</Text>
 
@@ -66,7 +69,7 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
                 onPress={() => handleUpdate(-1)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="remove" size={16} color={colors.primary} />
+                <Ionicons name="remove" size={15} color={colors.primary} />
               </TouchableOpacity>
               <Animated.Text
                 style={[
@@ -81,7 +84,7 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
                 onPress={() => handleUpdate(1)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="add" size={16} color={colors.primary} />
+                <Ionicons name="add" size={15} color={colors.primary} />
               </TouchableOpacity>
             </View>
           ) : (
@@ -90,7 +93,7 @@ const FoodItemCard = ({ item, quantity = 0, onUpdateQty }) => {
               onPress={() => handleUpdate(1)}
               activeOpacity={0.8}
             >
-              <Ionicons name="add" size={15} color={colors.primary} style={{ marginRight: 2 }} />
+              <Ionicons name="add" size={16} color={colors.primary} style={{ marginRight: 2 }} />
               <Text style={styles.addBtnText}>Add</Text>
             </TouchableOpacity>
           )}
@@ -107,16 +110,27 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadiusMd,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.secondary,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 10px rgba(18, 18, 23, 0.04)',
+      },
+    }),
   },
   image: {
-    width: 80,
-    height: 80,
-    borderRadius: spacing.borderRadiusMd,
+    width: 84,
+    height: 84,
+    borderRadius: spacing.borderRadiusMd - 2,
     backgroundColor: colors.border,
   },
   info: {
@@ -128,12 +142,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.headingSemiBold,
     fontSize: 15,
     color: colors.textDark,
+    letterSpacing: -0.2,
   },
   desc: {
     fontFamily: fonts.regular,
     fontSize: 12,
     color: colors.textGray,
-    marginVertical: spacing.xs,
+    marginTop: 2,
+    lineHeight: 16,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -142,8 +158,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   price: {
-    fontFamily: fonts.bold,
-    fontSize: 15,
+    fontFamily: fonts.headingBold,
+    fontSize: 16,
     color: colors.primary,
   },
   addBtn: {
@@ -151,8 +167,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.primaryLight,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: spacing.borderRadiusSm,
+    paddingVertical: 6,
+    borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 75, 38, 0.2)',
   },
   addBtnText: {
     fontFamily: fonts.bold,
@@ -162,21 +180,26 @@ const styles = StyleSheet.create({
   counter: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.primaryLight,
+    borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255, 75, 38, 0.2)',
   },
   counterBtn: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   qtyText: {
     fontFamily: fonts.bold,
-    paddingHorizontal: spacing.sm,
-    color: colors.textDark,
+    paddingHorizontal: 6,
+    color: colors.primaryDark,
     fontSize: 13,
+    minWidth: 20,
+    textAlign: 'center',
   },
 });
 
 export default FoodItemCard;
+
