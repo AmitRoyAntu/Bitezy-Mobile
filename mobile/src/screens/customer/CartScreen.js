@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -34,7 +34,28 @@ const CartScreen = ({ navigation }) => {
   const { showToast } = useToast();
 
   const [deliveryAddress, setDeliveryAddress] = useState(currentUser?.residence || '');
+  const [orderNote, setOrderNote] = useState('');
+  const [providerInfo, setProviderInfo] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchProvider = async () => {
+      if (currentProviderName) {
+        try {
+          const providers = await DataService.getProviders();
+          const match = providers.find(
+            (p) => p.name.toLowerCase() === currentProviderName.toLowerCase()
+          );
+          setProviderInfo(match || null);
+        } catch (e) {
+          // ignore
+        }
+      } else {
+        setProviderInfo(null);
+      }
+    };
+    fetchProvider();
+  }, [currentProviderName]);
 
   const handlePlaceOrder = async () => {
     if (cart.length === 0) {
@@ -56,9 +77,11 @@ const CartScreen = ({ navigation }) => {
         name: item.name,
         price: item.price,
         qty: item.qty,
+        desc: item.desc || '',
       })),
       total,
       deliveryAddress: orderType === 'Delivery' ? deliveryAddress.trim() : null,
+      note: orderNote.trim() || undefined,
     };
 
     try {
@@ -99,6 +122,19 @@ const CartScreen = ({ navigation }) => {
         <View style={styles.card}>
           <Text style={styles.providerLabel}>Ordering From:</Text>
           <Text style={styles.providerName}>{currentProviderName}</Text>
+          {providerInfo?.description ? (
+            <Text style={styles.providerDesc} numberOfLines={2}>
+              {providerInfo.description}
+            </Text>
+          ) : null}
+          {providerInfo?.location ? (
+            <View style={styles.providerLocationRow}>
+              <Ionicons name="location-outline" size={13} color={colors.textGray} style={{ marginRight: 4 }} />
+              <Text style={styles.providerLocationText} numberOfLines={1}>
+                {providerInfo.location}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {/* Order Type Toggle */}
@@ -176,6 +212,11 @@ const CartScreen = ({ navigation }) => {
               />
               <View style={styles.itemMeta}>
                 <Text style={styles.itemName}>{item.name}</Text>
+                {item.desc ? (
+                  <Text style={styles.itemDesc} numberOfLines={2}>
+                    {item.desc}
+                  </Text>
+                ) : null}
                 <Text style={styles.itemPrice}>
                   ৳{item.price} x {item.qty}
                 </Text>
@@ -190,6 +231,16 @@ const CartScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
           ))}
+        </View>
+
+        {/* Special Instructions / Note */}
+        <View style={styles.card}>
+          <CustomInput
+            label="Special Instructions / Cooking Note"
+            value={orderNote}
+            onChangeText={setOrderNote}
+            placeholder="e.g. Less spicy, no onions, extra spoon"
+          />
         </View>
 
         {/* Billing Summary */}
@@ -236,6 +287,22 @@ const styles = StyleSheet.create({
   },
   providerLabel: { fontSize: 12, color: colors.textGray },
   providerName: { fontSize: 18, fontWeight: '800', color: colors.primary },
+  providerDesc: {
+    fontSize: 12,
+    color: colors.textGray,
+    marginTop: 3,
+    lineHeight: 16,
+  },
+  providerLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  providerLocationText: {
+    fontSize: 12,
+    color: colors.textGray,
+    flex: 1,
+  },
   cardTitle: { fontSize: 15, fontWeight: '700', color: colors.textDark, marginBottom: spacing.sm },
   toggleRow: { flexDirection: 'row', gap: spacing.sm },
   toggleOption: {
@@ -262,6 +329,7 @@ const styles = StyleSheet.create({
   itemImg: { width: 44, height: 44, borderRadius: spacing.borderRadiusSm },
   itemMeta: { flex: 1, marginLeft: spacing.sm },
   itemName: { fontSize: 14, fontWeight: '600', color: colors.textDark },
+  itemDesc: { fontSize: 11, color: colors.textGray, marginTop: 1, marginBottom: 2 },
   itemPrice: { fontSize: 12, color: colors.textGray },
   itemTotal: { fontSize: 14, fontWeight: '700', color: colors.textDark, marginRight: spacing.sm },
   deleteBtn: { padding: spacing.xs },

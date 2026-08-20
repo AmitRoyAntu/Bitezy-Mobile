@@ -64,7 +64,7 @@ const ProviderListScreen = ({ navigation }) => {
         <CustomInput
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Search for canteen or dining..."
+          placeholder="Search for canteen, cafeteria, cart etc"
           style={styles.searchInput}
         />
 

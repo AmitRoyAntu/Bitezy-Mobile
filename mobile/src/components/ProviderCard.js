@@ -22,6 +22,12 @@ const ProviderCard = ({ provider, onPress }) => {
       </View>
       <View style={styles.info}>
         <Text style={styles.name}>{provider.name}</Text>
+        {provider.location ? (
+          <View style={styles.locationRow}>
+            <Ionicons name="location-outline" size={13} color={colors.textGray} style={{ marginRight: 4 }} />
+            <Text style={styles.locationText} numberOfLines={1}>{provider.location}</Text>
+          </View>
+        ) : null}
         <View style={styles.metaRow}>
           <View style={styles.ratingBadge}>
             <Ionicons name="star" size={13} color="#FF9F43" style={{ marginRight: 3 }} />
@@ -81,7 +87,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.textDark,
+    marginBottom: 2,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: spacing.xs,
+  },
+  locationText: {
+    fontSize: 12,
+    color: colors.textGray,
+    flex: 1,
   },
   metaRow: {
     flexDirection: 'row',

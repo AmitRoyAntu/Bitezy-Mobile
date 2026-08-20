@@ -34,7 +34,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const updateQty = (name, price, change, img, provider) => {
+  const updateQty = (name, price, change, img, provider, desc) => {
     let updatedCart = [...cart];
     
     // Check if cart already has items from another provider
@@ -51,9 +51,12 @@ export const CartProvider = ({ children }) => {
         updatedCart.splice(index, 1);
       } else {
         updatedCart[index].qty = newQty;
+        if (desc && !updatedCart[index].desc) {
+          updatedCart[index].desc = desc;
+        }
       }
     } else if (change > 0) {
-      updatedCart.push({ name, price, qty: change, img, provider });
+      updatedCart.push({ name, price, qty: change, img, provider, desc: desc || '' });
     }
 
     saveCart(updatedCart);
