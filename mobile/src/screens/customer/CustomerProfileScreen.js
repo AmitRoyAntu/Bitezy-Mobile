@@ -20,6 +20,7 @@ import { useToast } from '../../context/ToastContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { useCart } from '../../context/CartContext';
 import DataService from '../../api/DataService';
+import Logo from '../../components/Logo';
 
 const CustomerProfileScreen = () => {
   const insets = useSafeAreaInsets();
@@ -101,6 +102,23 @@ const CustomerProfileScreen = () => {
     }
   };
 
+  const handleAddFavoriteToCart = (item) => {
+    const price = Number(item.price) || 0;
+    const providerName =
+      item.providerName ||
+      (typeof item.provider === 'object' ? item.provider?.name : item.provider) ||
+      'Campus Canteen';
+    updateQty(
+      item.name || 'Favourite dish',
+      price,
+      1,
+      item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&auto=format&fit=crop&q=80',
+      providerName,
+      item.desc || ''
+    );
+    showToast(`Added "${item.name || 'dish'}" to cart!`);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -110,13 +128,18 @@ const CustomerProfileScreen = () => {
         {/* Header Hero Card */}
         <View style={styles.headerCard}>
           <View style={styles.headerGlow} />
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
-            </Text>
+          <View style={styles.headerTopRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.headerEyebrow}>Profile</Text>
+              <Text style={styles.userName}>{currentUser?.name || 'Student Buyer'}</Text>
+              <Text style={styles.userEmail}>{currentUser?.email}</Text>
+            </View>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+              </Text>
+            </View>
           </View>
-          <Text style={styles.userName}>{currentUser?.name || 'Student Buyer'}</Text>
-          <Text style={styles.userEmail}>{currentUser?.email}</Text>
 
           <View style={styles.badgeRow}>
             <View style={styles.roleTag}>
@@ -133,34 +156,43 @@ const CustomerProfileScreen = () => {
         </View>
 
         {/* Stats Grid */}
-        <View style={styles.statsGrid}>
-          <View style={[styles.statCard, styles.statCardBorderRight]}>
-            <View style={styles.statIconBadge}>
-              <Ionicons name="bag-handle-outline" size={14} color={colors.primary} />
-            </View>
-            <Text style={styles.statNumber}>{stats.totalOrders}</Text>
-            <Text style={styles.statLabel}>Orders</Text>
+        <View style={styles.statsCard}>
+          <View style={styles.statsHeader}>
+            <Text style={styles.statsEyebrow}>Snapshot</Text>
+            <Text style={styles.statsTitle}>Your Activity</Text>
           </View>
-          <View style={[styles.statCard, styles.statCardBorderRight]}>
-            <View style={[styles.statIconBadge, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
-              <Ionicons name="wallet-outline" size={14} color="#10B981" />
+          <View style={styles.statsGrid}>
+            <View style={[styles.statCard, styles.statCardBorderRight]}>
+              <View style={[styles.statIconBadge, { backgroundColor: colors.primaryLight }]}>
+                <Ionicons name="bag-handle-outline" size={14} color={colors.primary} />
+              </View>
+              <Text style={styles.statNumber}>{stats.totalOrders}</Text>
+              <Text style={styles.statLabel}>Orders</Text>
             </View>
-            <Text style={styles.statNumber}>৳ {stats.totalSpent}</Text>
-            <Text style={styles.statLabel}>Spent</Text>
-          </View>
-          <View style={styles.statCard}>
-            <View style={[styles.statIconBadge, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
-              <Ionicons name="checkmark-done-circle-outline" size={14} color="#3B82F6" />
+            <View style={[styles.statCard, styles.statCardBorderRight]}>
+              <View style={[styles.statIconBadge, { backgroundColor: colors.successLight }]}>
+                <Ionicons name="wallet-outline" size={14} color={colors.success} />
+              </View>
+              <Text style={styles.statNumber}>৳ {stats.totalSpent}</Text>
+              <Text style={styles.statLabel}>Spent</Text>
             </View>
-            <Text style={styles.statNumber}>{stats.completedOrders}</Text>
-            <Text style={styles.statLabel}>Delivered</Text>
+            <View style={styles.statCard}>
+              <View style={[styles.statIconBadge, { backgroundColor: colors.infoLight }]}>
+                <Ionicons name="checkmark-done-circle-outline" size={14} color={colors.info} />
+              </View>
+              <Text style={styles.statNumber}>{stats.completedOrders}</Text>
+              <Text style={styles.statLabel}>Delivered</Text>
+            </View>
           </View>
         </View>
 
         {/* Campus Information Card */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>Campus & Contact Details</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardEyebrow}>Campus & Contact</Text>
+              <Text style={styles.cardTitle}>Personal Details</Text>
+            </View>
             <TouchableOpacity
               onPress={() => setIsEditing(!isEditing)}
               activeOpacity={0.7}
@@ -180,13 +212,13 @@ const CustomerProfileScreen = () => {
 
           {isEditing ? (
             <View style={styles.formContainer}>
+              <Text style={styles.formSectionEyebrow}>Identity</Text>
               <CustomInput
                 label="Full Name"
                 value={name}
                 onChangeText={setName}
                 placeholder="e.g. Amit Roy"
               />
-
               <CustomInput
                 label="Phone Number"
                 value={phone}
@@ -194,7 +226,8 @@ const CustomerProfileScreen = () => {
                 placeholder="e.g. 01812345678"
                 keyboardType="phone-pad"
               />
-
+              <View style={styles.formDivider} />
+              <Text style={styles.formSectionEyebrow}>Campus Details</Text>
               <CustomSelect
                 label="Campus Hall / Residence"
                 value={residence}
@@ -202,7 +235,6 @@ const CustomerProfileScreen = () => {
                 onSelect={setResidence}
                 placeholder="Select hall..."
               />
-
               <CustomSelect
                 label="Academic Department"
                 value={department}
@@ -210,7 +242,6 @@ const CustomerProfileScreen = () => {
                 onSelect={setDepartment}
                 placeholder="Select department..."
               />
-
               <CustomInput
                 label="Student ID"
                 value={cuetId}
@@ -227,8 +258,8 @@ const CustomerProfileScreen = () => {
             </View>
           ) : (
             <View style={styles.infoList}>
-              <View style={styles.infoRow}>
-                <View style={styles.infoIconBox}>
+              <View style={styles.infoTile}>
+                <View style={[styles.infoIconBox, { backgroundColor: colors.primaryLight }]}>
                   <Ionicons name="id-card-outline" size={18} color={colors.primary} />
                 </View>
                 <View style={styles.infoTextContainer}>
@@ -237,9 +268,9 @@ const CustomerProfileScreen = () => {
                 </View>
               </View>
 
-              <View style={styles.infoRow}>
-                <View style={styles.infoIconBox}>
-                  <Ionicons name="book-outline" size={18} color={colors.primary} />
+              <View style={styles.infoTile}>
+                <View style={[styles.infoIconBox, { backgroundColor: colors.infoLight }]}>
+                  <Ionicons name="book-outline" size={18} color={colors.info} />
                 </View>
                 <View style={styles.infoTextContainer}>
                   <Text style={styles.infoLabel}>Department</Text>
@@ -247,9 +278,9 @@ const CustomerProfileScreen = () => {
                 </View>
               </View>
 
-              <View style={styles.infoRow}>
-                <View style={styles.infoIconBox}>
-                  <Ionicons name="business-outline" size={18} color={colors.primary} />
+              <View style={styles.infoTile}>
+                <View style={[styles.infoIconBox, { backgroundColor: colors.successLight }]}>
+                  <Ionicons name="business-outline" size={18} color={colors.success} />
                 </View>
                 <View style={styles.infoTextContainer}>
                   <Text style={styles.infoLabel}>Hall Residence / Address</Text>
@@ -257,9 +288,9 @@ const CustomerProfileScreen = () => {
                 </View>
               </View>
 
-              <View style={styles.infoRow}>
-                <View style={styles.infoIconBox}>
-                  <Ionicons name="call-outline" size={18} color={colors.primary} />
+              <View style={styles.infoTile}>
+                <View style={[styles.infoIconBox, { backgroundColor: colors.ratingBg }]}>
+                  <Ionicons name="call-outline" size={18} color={colors.rating} />
                 </View>
                 <View style={styles.infoTextContainer}>
                   <Text style={styles.infoLabel}>Contact Number</Text>
@@ -267,9 +298,9 @@ const CustomerProfileScreen = () => {
                 </View>
               </View>
 
-              <View style={[styles.infoRow, styles.infoRowLast]}>
-                <View style={styles.infoIconBox}>
-                  <Ionicons name="location-outline" size={18} color={colors.primary} />
+              <View style={[styles.infoTile, styles.infoTileLast]}>
+                <View style={[styles.infoIconBox, { backgroundColor: colors.surfaceSubtle }]}>
+                  <Ionicons name="location-outline" size={18} color={colors.textDark} />
                 </View>
                 <View style={styles.infoTextContainer}>
                   <Text style={styles.infoLabel}>Institution</Text>
@@ -280,10 +311,78 @@ const CustomerProfileScreen = () => {
           )}
         </View>
 
+        {/* Favorites Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardEyebrow}>Saved for later</Text>
+              <Text style={styles.cardTitle}>Your Favourites</Text>
+            </View>
+            <View style={styles.favCountBadge}>
+              <Text style={styles.favCountText}>{favorites?.length || 0}</Text>
+            </View>
+          </View>
+
+          {!favorites || favorites.length === 0 ? (
+            <View style={styles.favEmptyBox}>
+              <View style={styles.favEmptyIconCircle}>
+                <Ionicons name="heart" size={26} color={colors.primary} />
+              </View>
+              <Text style={styles.favEmptyText}>No favourites yet</Text>
+              <Text style={styles.favEmptySub}>Tap the heart on any dish to save it for later</Text>
+            </View>
+          ) : (
+            <View style={styles.favList}>
+              {favorites.slice(0, 4).map((item, idx) => (
+                <View
+                  key={item.id || `${item.providerId}-${idx}`}
+                  style={[styles.favItemRow, idx === Math.min(favorites.length, 4) - 1 && styles.favItemRowLast]}
+                >
+                  <View style={[styles.favItemImg, { backgroundColor: colors.primaryLight }]}>
+                    <Ionicons name="fast-food-outline" size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.favItemInfo}>
+                    <Text style={styles.favItemName} numberOfLines={1}>{item.name || 'Saved dish'}</Text>
+                    <Text style={styles.favItemPrice}>৳{item.price || '—'}</Text>
+                    {item.providerName ? (
+                      <Text style={styles.favItemProvider} numberOfLines={1}>{item.providerName}</Text>
+                    ) : null}
+                  </View>
+                  <View style={styles.favActions}>
+                    <TouchableOpacity
+                      style={styles.favAddToCartBtn}
+                      onPress={() => handleAddFavoriteToCart(item)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="cart-outline" size={13} color={colors.white} style={{ marginRight: 4 }} />
+                      <Text style={styles.favAddToCartText}>Add</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.favRemoveBtn}
+                      onPress={() => toggleFavorite(item)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="trash-outline" size={16} color={colors.danger} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
         {/* Quick Shortcuts & Support */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Help & Campus Support</Text>
-          
+          <View style={styles.cardHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardEyebrow}>Need a hand?</Text>
+              <Text style={styles.cardTitle}>Help & Campus Support</Text>
+            </View>
+            <View style={[styles.supportIconBox, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name="help-buoy" size={16} color={colors.primary} />
+            </View>
+          </View>
+
           <TouchableOpacity
             style={styles.supportRow}
             onPress={() => {
@@ -293,28 +392,49 @@ const CustomerProfileScreen = () => {
             activeOpacity={0.7}
           >
             <View style={[styles.supportIconBox, { backgroundColor: colors.successLight }]}>
-              <Ionicons name="logo-whatsapp" size={18} color="#059669" />
+              <Ionicons name="logo-whatsapp" size={18} color={colors.success} />
             </View>
             <View style={styles.supportTextCol}>
               <Text style={styles.supportTitle}>Bitezy WhatsApp Helpdesk</Text>
               <Text style={styles.supportSub}>Direct support for delayed orders or payment issues</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
+            <View style={styles.supportChevronBox}>
+              <Ionicons name="chevron-forward" size={14} color={colors.success} />
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.supportRow, { borderBottomWidth: 0 }]}
+            style={styles.supportRow}
             onPress={() => showToast('CUET Canteen Dining Guidelines: Open 7:00 AM - 11:30 PM', 'info')}
             activeOpacity={0.7}
           >
-            <View style={[styles.supportIconBox, { backgroundColor: colors.primaryLight }]}>
-              <Ionicons name="restaurant-outline" size={18} color={colors.primary} />
+            <View style={[styles.supportIconBox, { backgroundColor: colors.infoLight }]}>
+              <Ionicons name="restaurant-outline" size={18} color={colors.info} />
             </View>
             <View style={styles.supportTextCol}>
               <Text style={styles.supportTitle}>CUET Canteen Guidelines</Text>
               <Text style={styles.supportSub}>Operating hours, mess tokens & hall delivery rules</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
+            <View style={styles.supportChevronBox}>
+              <Ionicons name="chevron-forward" size={14} color={colors.info} />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.supportRow, styles.supportRowLast]}
+            onPress={() => showToast('Email us at support@bitezy.app', 'info')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.supportIconBox, { backgroundColor: colors.ratingBg }]}>
+              <Ionicons name="mail-outline" size={18} color={colors.rating} />
+            </View>
+            <View style={styles.supportTextCol}>
+              <Text style={styles.supportTitle}>Email Bitezy Team</Text>
+              <Text style={styles.supportSub}>For refunds, partnerships & general queries</Text>
+            </View>
+            <View style={styles.supportChevronBox}>
+              <Ionicons name="chevron-forward" size={14} color={colors.rating} />
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -324,14 +444,19 @@ const CustomerProfileScreen = () => {
           onPress={logout}
           activeOpacity={0.8}
         >
-          <Ionicons name="log-out-outline" size={18} color={colors.danger} style={{ marginRight: 6 }} />
+          <View style={styles.logoutIconCircle}>
+            <Ionicons name="log-out-outline" size={16} color={colors.danger} />
+          </View>
           <Text style={styles.logoutPillBtnText}>Log Out Account</Text>
         </TouchableOpacity>
 
         {/* Brand Footer */}
         <View style={styles.brandFooter}>
-          <Text style={styles.brandFooterText}>Bitezy Campus Dining • v1.2.0</Text>
-          <Text style={styles.brandFooterSubtext}>Crafted for CUETians 🎓</Text>
+          <View style={styles.brandFooterLogo}>
+            <Logo size={28} />
+          </View>
+          <Text style={styles.brandFooterText}>Bitezy Campus Dining</Text>
+          <Text style={styles.brandFooterSubtext}>Crafted for CUETians · v1.2.0</Text>
         </View>
 
         <View style={styles.bottomSpacer} />
@@ -344,18 +469,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scrollContent: { padding: spacing.lg, paddingBottom: 140 },
   bottomSpacer: { height: 60 },
+
+  /* Hero */
   headerCard: {
     position: 'relative',
     overflow: 'hidden',
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
-    padding: spacing.xl,
-    alignItems: 'center',
+    padding: spacing.lg,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 18,
     elevation: 4,
     borderWidth: 1,
     borderColor: colors.border,
@@ -365,18 +491,29 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 90,
-    backgroundColor: colors.primaryLight,
-    opacity: 0.7,
+    height: 120,
+    backgroundColor: colors.primaryGlow,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  headerEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginLeft: spacing.md,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
@@ -384,13 +521,24 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: colors.white,
   },
-  avatarText: { fontFamily: fonts.extraBold, fontSize: 36, color: colors.primary },
-  userName: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.textDark },
-  userEmail: { fontFamily: fonts.regular, fontSize: 13, color: colors.textGray, marginTop: 2 },
+  avatarText: { fontFamily: fonts.headingExtraBold, fontSize: 28, color: colors.primary },
+  userName: {
+    fontFamily: fonts.headingBold,
+    fontSize: 20,
+    color: colors.textDark,
+    marginTop: 2,
+  },
+  userEmail: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: colors.textGray,
+    marginTop: 2,
+  },
   badgeRow: {
     flexDirection: 'row',
     gap: 8,
     marginTop: spacing.md,
+    flexWrap: 'wrap',
   },
   roleTag: {
     flexDirection: 'row',
@@ -400,9 +548,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: colors.primaryLight,
+    borderColor: colors.primaryGlow,
   },
-  roleTagText: { fontFamily: fonts.bold, fontSize: 12, color: colors.primary },
+  roleTagText: { fontFamily: fonts.bold, fontSize: 11, color: colors.primary },
   verifiedTag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -411,22 +559,45 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: colors.successBorder,
+    borderColor: colors.successLight,
   },
-  verifiedTagText: { fontFamily: fonts.bold, fontSize: 12, color: colors.success },
-  statsGrid: {
-    flexDirection: 'row',
+  verifiedTagText: { fontFamily: fonts.bold, fontSize: 11, color: colors.success },
+
+  /* Stats */
+  statsCard: {
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
-    paddingVertical: spacing.md,
+    padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
     elevation: 2,
+  },
+  statsHeader: {
+    marginBottom: spacing.md,
+  },
+  statsEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  statsTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 14,
+    color: colors.textDark,
+    marginTop: 2,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: spacing.borderRadiusMd,
+    paddingVertical: spacing.md,
   },
   statCard: {
     flex: 1,
@@ -437,19 +608,30 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: colors.border,
   },
+  statIconBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   statNumber: {
     fontFamily: fonts.headingBold,
     fontSize: 18,
-    color: colors.primary,
+    color: colors.textDark,
   },
   statLabel: {
     fontFamily: fonts.medium,
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textGray,
-    marginTop: 4,
+    marginTop: 3,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
+
+  /* Cards */
   card: {
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
@@ -457,10 +639,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
     elevation: 2,
   },
   cardHeaderRow: {
@@ -468,11 +650,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
-  cardTitle: { fontFamily: fonts.headingBold, fontSize: 16, color: colors.textDark },
+  cardEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  cardTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 15,
+    color: colors.textDark,
+    marginTop: 2,
+  },
   editPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -481,90 +672,84 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadiusFull,
     backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: colors.primaryLight,
+    borderColor: colors.primaryGlow,
   },
   editPillActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  editBtnText: { fontFamily: fonts.bold, fontSize: 13, color: colors.primary },
+  editBtnText: { fontFamily: fonts.bold, fontSize: 12, color: colors.primary },
   editBtnTextActive: { color: colors.white },
-  formContainer: {
-    marginTop: spacing.xs,
-  },
-  saveBtn: {
-    marginTop: spacing.sm,
-  },
-  infoList: {
-    marginTop: spacing.xs,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm + 4,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  infoRowLast: {
-    borderBottomWidth: 0,
-  },
-  infoIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.primaryLight,
-  },
-  statIconBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  infoTextContainer: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontFamily: fonts.semiBold,
-    fontSize: 11,
+
+  /* Forms */
+  formContainer: { marginTop: spacing.xs },
+  formSectionEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
     color: colors.textGray,
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
   },
-  infoValue: {
-    fontFamily: fonts.bold,
-    fontSize: 14,
-    color: colors.textDark,
-    marginTop: 3,
+  formDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.md,
   },
+  saveBtn: { marginTop: spacing.md },
 
-  /* Support Section */
-  supportRow: {
+  /* Info tiles */
+  infoList: { marginTop: spacing.xs },
+  infoTile: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.sm + 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  supportIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  infoTileLast: { borderBottomWidth: 0 },
+  infoIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.sm,
+    marginRight: spacing.md,
   },
-  supportTextCol: {
-    flex: 1,
-    marginRight: spacing.xs,
+  infoTextContainer: { flex: 1 },
+  infoLabel: {
+    fontFamily: fonts.semiBold,
+    fontSize: 10,
+    color: colors.textGray,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
+  infoValue: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.textDark,
+    marginTop: 3,
+  },
+
+  /* Support */
+  supportRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm + 4,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  supportRowLast: { borderBottomWidth: 0 },
+  supportIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  supportTextCol: { flex: 1, marginRight: spacing.xs },
   supportTitle: {
     fontFamily: fonts.headingBold,
     fontSize: 13,
@@ -574,20 +759,37 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: 11,
     color: colors.textGray,
-    marginTop: 1,
+    marginTop: 2,
+  },
+  supportChevronBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceSubtle,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  /* Logout Pill */
+  /* Logout */
   logoutPillBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.dangerLight,
-    borderWidth: 1.5,
-    borderColor: 'rgba(239, 68, 68, 0.25)',
+    borderWidth: 1,
+    borderColor: colors.dangerLight,
     paddingVertical: 12,
     borderRadius: spacing.borderRadiusFull,
     marginBottom: spacing.lg,
+    gap: 8,
+  },
+  logoutIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoutPillBtnText: {
     fontFamily: fonts.bold,
@@ -599,11 +801,15 @@ const styles = StyleSheet.create({
   brandFooter: {
     alignItems: 'center',
     marginBottom: spacing.md,
+    paddingTop: spacing.md,
+  },
+  brandFooterLogo: {
+    marginBottom: spacing.sm,
   },
   brandFooterText: {
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.bold,
     fontSize: 12,
-    color: colors.textLight,
+    color: colors.textDark,
   },
   brandFooterSubtext: {
     fontFamily: fonts.regular,
@@ -612,28 +818,35 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  /* Favorites Section */
-  favHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  /* Favorites */
   favCountBadge: {
-    backgroundColor: colors.dangerLight,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    minWidth: 28,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: spacing.borderRadiusFull,
+    backgroundColor: colors.dangerLight,
+    alignItems: 'center',
   },
   favCountText: {
     fontFamily: fonts.bold,
-    fontSize: 11,
+    fontSize: 12,
     color: colors.danger,
   },
   favEmptyBox: {
     alignItems: 'center',
     paddingVertical: spacing.lg,
   },
+  favEmptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
   favEmptyText: {
-    fontFamily: fonts.bold,
+    fontFamily: fonts.headingBold,
     fontSize: 14,
     color: colors.textDark,
     marginTop: spacing.xs,
@@ -643,65 +856,78 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textGray,
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 4,
+    paddingHorizontal: spacing.lg,
   },
-  favList: {
-    marginTop: spacing.xs,
-  },
+  favList: { marginTop: spacing.xs },
   favItemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  favItemRowLast: { borderBottomWidth: 0 },
   favItemImg: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: spacing.borderRadiusSm,
-    backgroundColor: colors.border,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   favItemInfo: {
     flex: 1,
-    marginLeft: spacing.sm + 2,
-    marginRight: spacing.xs,
+    marginLeft: spacing.md,
+    marginRight: spacing.sm,
   },
   favItemName: {
-    fontFamily: fonts.headingSemiBold,
+    fontFamily: fonts.headingBold,
     fontSize: 13,
     color: colors.textDark,
   },
   favItemPrice: {
     fontFamily: fonts.bold,
-    fontSize: 12,
+    fontSize: 13,
     color: colors.primary,
-    marginTop: 1,
+    marginTop: 2,
   },
   favItemProvider: {
     fontFamily: fonts.regular,
     fontSize: 10,
     color: colors.textGray,
+    marginTop: 1,
   },
   favActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   favAddToCartBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: spacing.borderRadiusFull,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 2,
   },
   favAddToCartText: {
     fontFamily: fonts.bold,
     fontSize: 11,
     color: colors.white,
   },
-  favDeleteBtn: {
-    padding: 6,
+  favRemoveBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.dangerLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
