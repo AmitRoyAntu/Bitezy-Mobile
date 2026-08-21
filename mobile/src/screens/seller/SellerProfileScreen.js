@@ -14,6 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomInput from '../../components/CustomInput';
 import CustomSelect from '../../components/CustomSelect';
 import CustomButton from '../../components/CustomButton';
+import ProfileInfoRow from '../../components/ProfileInfoRow';
+import LogoutButton from '../../components/LogoutButton';
+import BrandFooter from '../../components/BrandFooter';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -309,76 +312,58 @@ const SellerProfileScreen = ({ navigation }) => {
             </View>
           ) : (
             <View style={styles.detailsList}>
-              <View style={styles.detailTile}>
-                <View style={styles.detailIconBox}>
-                  <Ionicons name="storefront" size={15} color={colors.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.detailLabel}>Shop Name</Text>
-                  <Text style={styles.detailVal}>{shopName || 'N/A'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.detailTile}>
-                <View style={[styles.detailIconBox, styles.detailIconBoxAlt]}>
-                  <Ionicons name="grid-outline" size={15} color={colors.info} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.detailLabel}>Type</Text>
-                  <Text style={styles.detailVal}>{shopType}</Text>
-                </View>
-              </View>
-
-              <View style={styles.detailTile}>
-                <View style={[styles.detailIconBox, styles.detailIconBoxSuccess]}>
-                  <Ionicons name="location" size={15} color={colors.success} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.detailLabel}>Campus Location</Text>
-                  <Text style={styles.detailVal}>{shopLocation || 'CUET Campus'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.detailTile}>
-                <View style={[styles.detailIconBox, styles.detailIconBoxRating]}>
-                  <Ionicons name="time" size={15} color={colors.rating} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.detailLabel}>Operating Hours</Text>
-                  <Text style={styles.detailVal}>{openTime} - {closeTime}</Text>
-                </View>
-              </View>
-
-              <View style={styles.detailTile}>
-                <View style={[styles.detailIconBox, styles.detailIconBoxPrimary]}>
-                  <Ionicons name="bicycle-outline" size={15} color={colors.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.detailLabel}>Delivery Speed</Text>
-                  <Text style={styles.detailVal}>{deliveryTime}</Text>
-                </View>
-              </View>
-
-              <View style={styles.detailTile}>
-                <View style={[styles.detailIconBox, styles.detailIconBoxInfo]}>
-                  <Ionicons name="call" size={15} color={colors.info} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.detailLabel}>Manager Phone</Text>
-                  <Text style={styles.detailVal}>{ownerPhone}</Text>
-                </View>
-              </View>
-
+              <ProfileInfoRow
+                icon="storefront"
+                label="Shop Name"
+                value={shopName}
+                iconColor={colors.primary}
+                iconBg="rgba(255, 75, 38, 0.08)"
+              />
+              <ProfileInfoRow
+                icon="grid-outline"
+                label="Canteen Type"
+                value={shopType}
+                iconColor={colors.info}
+                iconBg={colors.infoLight}
+              />
+              <ProfileInfoRow
+                icon="location"
+                label="Campus Location"
+                value={shopLocation || 'CUET Campus'}
+                iconColor={colors.success}
+                iconBg={colors.successLight}
+              />
+              <ProfileInfoRow
+                icon="time"
+                label="Operating Hours"
+                value={`${openTime} - ${closeTime}`}
+                iconColor={colors.rating}
+                iconBg={colors.ratingBg}
+              />
+              <ProfileInfoRow
+                icon="bicycle-outline"
+                label="Delivery Speed"
+                value={deliveryTime}
+                iconColor={colors.primary}
+                iconBg="rgba(255, 75, 38, 0.08)"
+              />
+              <ProfileInfoRow
+                icon="call"
+                label="Manager Phone"
+                value={ownerPhone}
+                iconColor={colors.info}
+                iconBg={colors.infoLight}
+                isLast={!shopDescription}
+              />
               {shopDescription ? (
-                <View style={[styles.detailTile, styles.detailTileFull]}>
-                  <View style={[styles.detailIconBox, styles.detailIconBoxDark]}>
-                    <Ionicons name="document-text" size={15} color={colors.textDark} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.detailLabel}>Description & Notice</Text>
-                    <Text style={[styles.detailVal, { marginTop: 3 }]}>{shopDescription}</Text>
-                  </View>
-                </View>
+                <ProfileInfoRow
+                  icon="document-text"
+                  label="Description & Notice"
+                  value={shopDescription}
+                  iconColor={colors.textDark}
+                  iconBg={colors.surfaceSubtle}
+                  isLast
+                />
               ) : null}
             </View>
           )}
@@ -419,23 +404,19 @@ const SellerProfileScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
 
-        {/* Log Out Button */}
-        <TouchableOpacity
-          style={styles.logoutPillBtn}
+        {/* Modular Logout Button */}
+        <LogoutButton
           onPress={logout}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="log-out-outline" size={18} color={colors.danger} style={{ marginRight: 6 }} />
-          <Text style={styles.logoutPillBtnText}>Log Out Canteen Account</Text>
-        </TouchableOpacity>
+          label="Log Out Canteen Account"
+          confirmTitle="Log Out Canteen"
+          confirmMessage="Are you sure you want to log out of your Canteen Manager account?"
+        />
 
-        {/* Brand Footer */}
-        <View style={styles.brandFooter}>
-          <Text style={styles.brandFooterText}>Bitezy Canteen Management • v1.2.0</Text>
-          <Text style={styles.brandFooterSubtext}>CUET Campus Food Network</Text>
-        </View>
-
-        <View style={styles.bottomSpacer} />
+        {/* Modular Brand Footer */}
+        <BrandFooter
+          title="Bitezy Canteen Management • v1.2.0"
+          subtitle="CUET Campus Food Network"
+        />
       </ScrollView>
     </View>
   );
@@ -796,42 +777,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-
-  logoutPillBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FEE2E2',
-    borderWidth: 1.2,
-    borderColor: '#FECACA',
-    paddingVertical: 12,
-    borderRadius: spacing.borderRadiusFull,
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  logoutPillBtnText: {
-    fontFamily: fonts.bold,
-    fontSize: 13,
-    color: colors.danger,
-  },
-  brandFooter: {
-    alignItems: 'center',
-    marginVertical: spacing.md,
-  },
-  brandFooterText: {
-    fontFamily: fonts.bold,
-    fontSize: 11,
-    color: colors.textGray,
-  },
-  brandFooterSubtext: {
-    fontFamily: fonts.regular,
-    fontSize: 10,
-    color: colors.textLight,
-    marginTop: 2,
-  },
-  bottomSpacer: {
-    height: 70,
   },
 });
 
