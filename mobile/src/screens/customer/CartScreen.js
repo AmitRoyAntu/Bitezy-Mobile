@@ -217,9 +217,10 @@ const CartScreen = ({ navigation }) => {
         >
           {/* Visual Empty Illustration */}
           <View style={styles.emptyIllustrationWrapper}>
+            <Text style={styles.emptyEyebrow}>Empty Bag</Text>
             <View style={styles.emptyIconCircleOuter}>
               <View style={styles.emptyIconCircleInner}>
-                <Ionicons name="bag-handle" size={44} color={colors.primary} />
+                <Ionicons name="bag-handle" size={48} color={colors.primary} />
               </View>
             </View>
             <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
@@ -241,8 +242,13 @@ const CartScreen = ({ navigation }) => {
             <View style={styles.savedSectionWrapper}>
               <View style={styles.savedSectionHeader}>
                 <View style={styles.savedHeaderTitleRow}>
-                  <Ionicons name="bookmark" size={15} color={colors.primary} style={{ marginRight: 5 }} />
-                  <Text style={styles.savedSectionTitle}>From Your Saved Watchlist</Text>
+                  <View style={styles.savedHeaderIcon}>
+                    <Ionicons name="bookmark" size={13} color={colors.primary} />
+                  </View>
+                  <View>
+                    <Text style={styles.savedSectionEyebrow}>Quick Picks</Text>
+                    <Text style={styles.savedSectionTitle}>From Your Watchlist</Text>
+                  </View>
                 </View>
                 <Text style={styles.savedItemCountText}>
                   {favorites.length > 3 ? `Recent 3 of ${favorites.length}` : `${favorites.length} items`}
@@ -314,14 +320,17 @@ const CartScreen = ({ navigation }) => {
         {/* Provider Header Card */}
         <View style={styles.card}>
           <View style={styles.providerCardHeaderRow}>
+            <View style={styles.providerIconCircle}>
+              <Ionicons name="storefront" size={18} color={colors.primary} />
+            </View>
             <View style={styles.providerLeftCol}>
-              <Text style={styles.providerLabel}>Ordering From:</Text>
+              <Text style={styles.providerLabel}>Ordering From</Text>
               <Text style={styles.providerName} numberOfLines={1}>
                 {displayedProviderName}
               </Text>
               {providerInfo?.location ? (
                 <View style={styles.providerLocationRow}>
-                  <Ionicons name="location-sharp" size={12} color={colors.primary} style={{ marginRight: 3 }} />
+                  <Ionicons name="location-sharp" size={11} color={colors.primary} style={{ marginRight: 3 }} />
                   <Text style={styles.providerLocationText} numberOfLines={1}>
                     {providerInfo.location}
                   </Text>
@@ -336,7 +345,7 @@ const CartScreen = ({ navigation }) => {
               }}
               activeOpacity={0.7}
             >
-              <Ionicons name="trash-outline" size={14} color={colors.danger} style={{ marginRight: 3 }} />
+              <Ionicons name="trash-outline" size={12} color={colors.danger} style={{ marginRight: 3 }} />
               <Text style={styles.clearCartText}>Clear</Text>
             </TouchableOpacity>
           </View>
@@ -344,7 +353,15 @@ const CartScreen = ({ navigation }) => {
 
         {/* Order Method Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Order Method</Text>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardHeaderTextCol}>
+              <Text style={styles.cardEyebrow}>Service</Text>
+              <Text style={styles.cardTitle}>Order Method</Text>
+            </View>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons name="swap-horizontal" size={15} color={colors.primary} />
+            </View>
+          </View>
           <View style={styles.toggleRow}>
             <TouchableOpacity
               style={[
@@ -399,8 +416,16 @@ const CartScreen = ({ navigation }) => {
         {/* Delivery Address Input */}
         {orderType === 'Delivery' && (
           <View style={styles.card}>
+            <View style={styles.cardHeaderRow}>
+              <View style={styles.cardHeaderTextCol}>
+                <Text style={styles.cardEyebrow}>Drop-off Point</Text>
+                <Text style={styles.cardTitle}>Delivery Address</Text>
+              </View>
+              <View style={styles.cardHeaderIcon}>
+                <Ionicons name="location" size={15} color={colors.primary} />
+              </View>
+            </View>
             <CustomInput
-              label="Delivery Address / Hall Room"
               value={deliveryAddress}
               onChangeText={setDeliveryAddress}
               placeholder="e.g. Muktijoddha Hall, Room 412"
@@ -411,9 +436,18 @@ const CartScreen = ({ navigation }) => {
         {/* Items Selected Card */}
         <View style={styles.card}>
           <View style={styles.itemsHeaderRow}>
-            <Text style={styles.cardTitle}>Selected Meals</Text>
-            <View style={styles.itemsCountBadge}>
-              <Text style={styles.itemsCountBadgeText}>{cart.length} items</Text>
+            <View style={styles.cardHeaderTextCol}>
+              <Text style={styles.cardEyebrow}>Your Tray</Text>
+              <Text style={styles.cardTitle}>Selected Meals</Text>
+            </View>
+            <View style={styles.itemsHeaderRight}>
+              <View style={styles.itemsCountBadge}>
+                <View style={styles.itemsCountDot} />
+                <Text style={styles.itemsCountBadgeText}>{cart.length} items</Text>
+              </View>
+              <View style={styles.cardHeaderIcon}>
+                <Ionicons name="restaurant" size={15} color={colors.primary} />
+              </View>
             </View>
           </View>
 
@@ -463,11 +497,21 @@ const CartScreen = ({ navigation }) => {
 
         {/* Coupon Code Section */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Have a Promo Code?</Text>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardHeaderTextCol}>
+              <Text style={styles.cardEyebrow}>Savings</Text>
+              <Text style={styles.cardTitle}>Have a Promo Code?</Text>
+            </View>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons name="pricetag" size={15} color={colors.primary} />
+            </View>
+          </View>
           {appliedCoupon ? (
             <View style={styles.appliedCouponCard}>
+              <View style={styles.appliedCouponIcon}>
+                <Ionicons name="pricetag" size={18} color={colors.success} />
+              </View>
               <View style={styles.appliedCouponLeft}>
-                <Ionicons name="pricetag" size={18} color="#10B981" style={{ marginRight: 8 }} />
                 <View>
                   <Text style={styles.appliedCouponCode}>{appliedCoupon.code}</Text>
                   <Text style={styles.appliedCouponDesc}>{appliedCoupon.desc}</Text>
@@ -478,7 +522,7 @@ const CartScreen = ({ navigation }) => {
                 onPress={handleRemoveCoupon}
                 activeOpacity={0.7}
               >
-                <Ionicons name="close-circle" size={18} color={colors.danger} />
+                <Ionicons name="close-circle" size={20} color={colors.danger} />
               </TouchableOpacity>
             </View>
           ) : (
@@ -507,7 +551,15 @@ const CartScreen = ({ navigation }) => {
 
         {/* Special Instructions / Quick Cooking Notes */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Special Cooking Instructions</Text>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardHeaderTextCol}>
+              <Text style={styles.cardEyebrow}>For the Cook</Text>
+              <Text style={styles.cardTitle}>Special Cooking Instructions</Text>
+            </View>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons name="chatbox-ellipses" size={15} color={colors.primary} />
+            </View>
+          </View>
           <View style={styles.quickChipsContainer}>
             {QUICK_INSTRUCTION_CHIPS.map((chip, idx) => (
               <TouchableOpacity
@@ -533,31 +585,57 @@ const CartScreen = ({ navigation }) => {
 
         {/* Payment Summary */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Bill Details</Text>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardHeaderTextCol}>
+              <Text style={styles.cardEyebrow}>Breakdown</Text>
+              <Text style={styles.cardTitle}>Bill Details</Text>
+            </View>
+            <View style={styles.cardHeaderIcon}>
+              <Ionicons name="receipt" size={15} color={colors.primary} />
+            </View>
+          </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Item Total</Text>
+            <View style={styles.summaryLabelRow}>
+              <View style={[styles.summaryIconBox, { backgroundColor: colors.surfaceSubtle }]}>
+                <Ionicons name="fast-food" size={13} color={colors.textDark} />
+              </View>
+              <Text style={styles.summaryLabel}>Item Total</Text>
+            </View>
             <Text style={styles.summaryVal}>৳ {subtotal}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Delivery Fee</Text>
+            <View style={styles.summaryLabelRow}>
+              <View style={[styles.summaryIconBox, { backgroundColor: orderType === 'Delivery' ? colors.primaryLight : colors.surfaceSubtle }]}>
+                <Ionicons name="bicycle" size={13} color={orderType === 'Delivery' ? colors.primary : colors.textGray} />
+              </View>
+              <Text style={styles.summaryLabel}>Delivery Fee</Text>
+            </View>
             <Text style={styles.summaryVal}>৳ {deliveryFee}</Text>
           </View>
 
           {discountAmount > 0 ? (
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: '#10B981', fontFamily: fonts.semiBold }]}>
-                Coupon Discount ({appliedCoupon?.code})
-              </Text>
-              <Text style={[styles.summaryVal, { color: '#10B981' }]}>- ৳ {discountAmount}</Text>
+              <View style={styles.summaryLabelRow}>
+                <View style={[styles.summaryIconBox, { backgroundColor: colors.successLight }]}>
+                  <Ionicons name="pricetag" size={13} color={colors.success} />
+                </View>
+                <Text style={[styles.summaryLabel, styles.summaryLabelSuccess]}>
+                  Coupon Discount ({appliedCoupon?.code})
+                </Text>
+              </View>
+              <Text style={[styles.summaryVal, styles.summaryValSuccess]}>- ৳ {discountAmount}</Text>
             </View>
           ) : null}
 
           <View style={[styles.summaryRow, styles.totalRow]}>
-            <View>
+            <View style={styles.totalLabelCol}>
               <Text style={styles.totalLabel}>To Pay</Text>
               <Text style={styles.totalSubtext}>Incl. all campus taxes</Text>
             </View>
-            <Text style={styles.totalVal}>৳ {finalPayableTotal}</Text>
+            <View style={styles.totalBadge}>
+              <Ionicons name="wallet" size={13} color={colors.primary} style={{ marginRight: 4 }} />
+              <Text style={styles.totalVal}>৳ {finalPayableTotal}</Text>
+            </View>
           </View>
         </View>
 
@@ -609,24 +687,34 @@ const styles = StyleSheet.create({
   providerCardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+  },
+  providerIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.primaryGlow,
   },
   providerLeftCol: {
     flex: 1,
     marginRight: spacing.sm,
   },
   providerLabel: {
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.bold,
     fontSize: 10,
-    color: colors.textGray,
+    color: colors.primary,
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
   },
   providerName: {
     fontFamily: fonts.headingBold,
-    fontSize: 17,
-    color: colors.primary,
-    marginTop: 1,
+    fontSize: 16,
+    color: colors.textDark,
+    marginTop: 2,
   },
   providerLocationRow: {
     flexDirection: 'row',
@@ -642,9 +730,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.dangerLight,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.dangerBorder,
   },
   clearCartText: {
     fontFamily: fonts.bold,
@@ -652,29 +742,73 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
 
-  /* Card Header */
+  /* Card Header (shared) */
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  cardHeaderTextCol: {
+    flex: 1,
+  },
+  cardHeaderIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.primaryGlow,
+  },
+  cardEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
   cardTitle: {
     fontFamily: fonts.headingBold,
-    fontSize: 14,
+    fontSize: 15,
     color: colors.textDark,
-    marginBottom: spacing.sm,
+    marginTop: 2,
   },
+
+  /* Items Header */
   itemsHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  itemsHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   itemsCountBadge: {
-    backgroundColor: colors.surfaceSubtle,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.primaryGlow,
+  },
+  itemsCountDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+    marginRight: 5,
   },
   itemsCountBadgeText: {
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.bold,
     fontSize: 11,
-    color: colors.textGray,
+    color: colors.primary,
   },
 
   /* Toggle Method */
@@ -716,9 +850,9 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   itemImg: {
-    width: 48,
-    height: 48,
-    borderRadius: spacing.borderRadiusSm,
+    width: 52,
+    height: 52,
+    borderRadius: spacing.borderRadiusMd,
     backgroundColor: colors.surfaceSubtle,
   },
   itemMeta: {
@@ -749,7 +883,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: 'rgba(255, 75, 38, 0.2)',
+    borderColor: colors.primaryGlow,
     marginRight: spacing.sm,
   },
   stepperBtn: {
@@ -789,7 +923,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surfaceSubtle,
-    borderRadius: spacing.borderRadiusSm,
+    borderRadius: spacing.borderRadiusMd,
     borderWidth: 1,
     borderColor: colors.borderDark,
     paddingHorizontal: spacing.sm,
@@ -808,9 +942,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.md,
     height: 42,
-    borderRadius: spacing.borderRadiusSm,
+    borderRadius: spacing.borderRadiusMd,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
   },
   applyCouponBtnText: {
     fontFamily: fonts.bold,
@@ -820,26 +959,38 @@ const styles = StyleSheet.create({
   appliedCouponCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    backgroundColor: colors.successLight,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: colors.successBorder,
     padding: spacing.sm + 2,
-    borderRadius: spacing.borderRadiusSm,
+    borderRadius: spacing.borderRadiusMd,
+  },
+  appliedCouponIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm + 2,
+    borderWidth: 1,
+    borderColor: colors.successBorder,
   },
   appliedCouponLeft: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
   },
   appliedCouponCode: {
     fontFamily: fonts.bold,
     fontSize: 13,
-    color: '#065F46',
+    color: colors.success,
   },
   appliedCouponDesc: {
     fontFamily: fonts.regular,
     fontSize: 11,
-    color: '#047857',
+    color: colors.textGray,
+    marginTop: 1,
   },
   removeCouponBtn: {
     padding: 4,
@@ -854,11 +1005,11 @@ const styles = StyleSheet.create({
   },
   instructionChip: {
     backgroundColor: colors.surfaceSubtle,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: colors.borderDark,
+    borderColor: colors.border,
   },
   instructionChipText: {
     fontFamily: fonts.medium,
@@ -866,39 +1017,64 @@ const styles = StyleSheet.create({
     color: colors.textDark,
   },
   customNoteInput: {
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.inputBg,
+    borderRadius: spacing.borderRadiusMd,
     borderWidth: 1,
-    borderColor: colors.borderDark,
-    padding: spacing.sm,
+    borderColor: colors.border,
+    padding: spacing.sm + 2,
     fontFamily: fonts.regular,
     fontSize: 12,
     color: colors.textDark,
-    minHeight: 50,
+    minHeight: 60,
+    textAlignVertical: 'top',
   },
 
   /* Payment Summary */
   summaryRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 5,
+    paddingVertical: 7,
+  },
+  summaryLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  summaryIconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
   },
   summaryLabel: {
     fontFamily: fonts.regular,
     color: colors.textGray,
     fontSize: 13,
   },
+  summaryLabelSuccess: {
+    color: colors.success,
+    fontFamily: fonts.semiBold,
+  },
   summaryVal: {
     fontFamily: fonts.bold,
     color: colors.textDark,
     fontSize: 13,
   },
+  summaryValSuccess: {
+    color: colors.success,
+  },
   totalRow: {
     borderTopWidth: 1,
     borderTopColor: colors.border,
     marginTop: spacing.xs + 2,
-    paddingTop: spacing.sm,
+    paddingTop: spacing.md,
     alignItems: 'center',
+  },
+  totalLabelCol: {
+    flex: 1,
   },
   totalLabel: {
     fontFamily: fonts.headingBold,
@@ -909,10 +1085,21 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: 10,
     color: colors.textGray,
+    marginTop: 1,
+  },
+  totalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.primaryGlow,
   },
   totalVal: {
     fontFamily: fonts.headingBold,
-    fontSize: 18,
+    fontSize: 16,
     color: colors.primary,
   },
   placeOrderBtn: {
@@ -933,55 +1120,72 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.card,
     padding: spacing.xl,
+    paddingTop: spacing.lg,
     borderRadius: spacing.borderRadiusLg,
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: spacing.md,
     ...Platform.select({
       ios: {
-        shadowColor: colors.secondary,
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 1,
+        shadowRadius: 14,
       },
       android: {
-        elevation: 2,
+        elevation: 3,
       },
       web: {
-        boxShadow: '0 2px 10px rgba(18, 18, 23, 0.04)',
+        boxShadow: '0 4px 14px rgba(18, 18, 23, 0.06)',
       },
     }),
   },
-  emptyIconCircleOuter: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: 'rgba(255, 75, 38, 0.08)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
+  emptyEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: spacing.sm,
   },
-  emptyIconCircleInner: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
+  emptyIconCircleOuter: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.primaryGlow,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+  },
+  emptyIconCircleInner: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.primaryGlow,
   },
   emptyTitle: {
     fontFamily: fonts.headingBold,
-    fontSize: 18,
+    fontSize: 19,
     color: colors.textDark,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   emptySubtitle: {
     fontFamily: fonts.regular,
     fontSize: 13,
     color: colors.textGray,
     textAlign: 'center',
-    lineHeight: 19,
-    marginBottom: spacing.md,
+    lineHeight: 20,
+    marginBottom: spacing.lg,
   },
   browseHallsBtn: {
     flexDirection: 'row',
@@ -989,14 +1193,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.lg,
-    paddingVertical: 12,
+    paddingVertical: 13,
     borderRadius: spacing.borderRadiusFull,
     width: '100%',
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   browseHallsBtnText: {
     fontFamily: fonts.bold,
@@ -1019,13 +1223,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  savedHeaderIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.primaryGlow,
+  },
+  savedSectionEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 9,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
   savedSectionTitle: {
     fontFamily: fonts.headingBold,
     fontSize: 13,
     color: colors.textDark,
+    marginTop: 1,
   },
   savedItemCountText: {
-    fontFamily: fonts.regular,
+    fontFamily: fonts.semiBold,
     fontSize: 11,
     color: colors.textGray,
   },
@@ -1038,6 +1261,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 1,
+      },
+      web: {
+        boxShadow: '0 2px 6px rgba(18, 18, 23, 0.04)',
+      },
+    }),
   },
   savedItemImg: {
     width: 44,
@@ -1071,15 +1308,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: spacing.borderRadiusFull,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
+    elevation: 2,
   },
   savedAddBtnText: {
     fontFamily: fonts.bold,
     fontSize: 11,
     color: colors.white,
-    marginLeft: 2,
+    marginLeft: 3,
   },
 });
 
