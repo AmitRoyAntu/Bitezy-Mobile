@@ -17,7 +17,6 @@ import { colors, spacing, fonts } from '../../theme/colors';
 import { CUET_HALLS, CUET_DEPARTMENTS } from '../../data/cuetOptions';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { useFavorites } from '../../context/FavoritesContext';
 import { useCart } from '../../context/CartContext';
 import DataService from '../../api/DataService';
 import Logo from '../../components/Logo';
@@ -26,7 +25,6 @@ const CustomerProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const { currentUser, logout, updateUser } = useAuth();
   const { showToast } = useToast();
-  const { favorites, toggleFavorite } = useFavorites();
   const { updateQty } = useCart();
 
   const [name, setName] = useState(currentUser?.name || '');
@@ -55,40 +53,43 @@ const CustomerProfileScreen = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    const loadStats = async () => {
-      try {
-        const orders = await DataService.getOrders();
-        if (orders && orders.length > 0) {
-          const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-          const completed = orders.filter(
-            (o) => o.status === 'DELIVERED' || o.status === 'PICKED_UP'
-          ).length;
-          setStats({
-            totalOrders: orders.length,
-            totalSpent,
-            completedOrders: completed,
-          });
-        }
-      } catch (e) {
-        console.log('Error loading stats:', e);
-      }
-    };
-    loadStats();
+    loadUserStats();
   }, []);
+
+  const loadUserStats = async () => {
+    try {
+      const orders = await DataService.getOrders();
+      if (orders && orders.length) {
+        const completed = orders.filter((o) => ['DELIVERED', 'PICKED_UP'].includes(o.status));
+        const spent = completed.reduce((sum, o) => sum + (o.total || 0), 0);
+        setStats({
+          totalOrders: orders.length,
+          totalSpent: spent,
+          completedOrders: completed.length,
+        });
+      }
+    } catch (err) {
+      // Keep defaults
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!name.trim()) {
-      showToast('Name cannot be empty', 'warning');
+      showToast('Please enter your name', 'error');
       return;
     }
-    setLoading(true);
+    if (!phone.trim()) {
+      showToast('Please enter your contact number', 'error');
+      return;
+    }
 
+    setLoading(true);
     try {
       const updatePayload = {
         name: name.trim(),
         phone: phone.trim(),
-        residence: residence.trim(),
-        department: department.trim(),
+        residence,
+        department,
         cuetId: cuetId.trim(),
       };
       const updated = await DataService.updateProfile(updatePayload);
@@ -100,23 +101,6 @@ const CustomerProfileScreen = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAddFavoriteToCart = (item) => {
-    const price = Number(item.price) || 0;
-    const providerName =
-      item.providerName ||
-      (typeof item.provider === 'object' ? item.provider?.name : item.provider) ||
-      'Campus Canteen';
-    updateQty(
-      item.name || 'Favourite dish',
-      price,
-      1,
-      item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&auto=format&fit=crop&q=80',
-      providerName,
-      item.desc || ''
-    );
-    showToast(`Added "${item.name || 'dish'}" to cart!`);
   };
 
   return (
@@ -307,66 +291,6 @@ const CustomerProfileScreen = () => {
                   <Text style={styles.infoValue}>Chittagong University of Engineering & Technology (CUET)</Text>
                 </View>
               </View>
-            </View>
-          )}
-        </View>
-
-        {/* Favorites Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardEyebrow}>Saved for later</Text>
-              <Text style={styles.cardTitle}>Your Favourites</Text>
-            </View>
-            <View style={styles.favCountBadge}>
-              <Text style={styles.favCountText}>{favorites?.length || 0}</Text>
-            </View>
-          </View>
-
-          {!favorites || favorites.length === 0 ? (
-            <View style={styles.favEmptyBox}>
-              <View style={styles.favEmptyIconCircle}>
-                <Ionicons name="heart" size={26} color={colors.primary} />
-              </View>
-              <Text style={styles.favEmptyText}>No favourites yet</Text>
-              <Text style={styles.favEmptySub}>Tap the heart on any dish to save it for later</Text>
-            </View>
-          ) : (
-            <View style={styles.favList}>
-              {favorites.slice(0, 4).map((item, idx) => (
-                <View
-                  key={item.id || `${item.providerId}-${idx}`}
-                  style={[styles.favItemRow, idx === Math.min(favorites.length, 4) - 1 && styles.favItemRowLast]}
-                >
-                  <View style={[styles.favItemImg, { backgroundColor: colors.primaryLight }]}>
-                    <Ionicons name="fast-food-outline" size={20} color={colors.primary} />
-                  </View>
-                  <View style={styles.favItemInfo}>
-                    <Text style={styles.favItemName} numberOfLines={1}>{item.name || 'Saved dish'}</Text>
-                    <Text style={styles.favItemPrice}>৳{item.price || '—'}</Text>
-                    {item.providerName ? (
-                      <Text style={styles.favItemProvider} numberOfLines={1}>{item.providerName}</Text>
-                    ) : null}
-                  </View>
-                  <View style={styles.favActions}>
-                    <TouchableOpacity
-                      style={styles.favAddToCartBtn}
-                      onPress={() => handleAddFavoriteToCart(item)}
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="cart-outline" size={13} color={colors.white} style={{ marginRight: 4 }} />
-                      <Text style={styles.favAddToCartText}>Add</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.favRemoveBtn}
-                      onPress={() => toggleFavorite(item)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="trash-outline" size={16} color={colors.danger} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
             </View>
           )}
         </View>
@@ -818,117 +742,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  /* Favorites */
-  favCountBadge: {
-    minWidth: 28,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: spacing.borderRadiusFull,
-    backgroundColor: colors.dangerLight,
-    alignItems: 'center',
-  },
-  favCountText: {
-    fontFamily: fonts.bold,
-    fontSize: 12,
-    color: colors.danger,
-  },
-  favEmptyBox: {
-    alignItems: 'center',
-    paddingVertical: spacing.lg,
-  },
-  favEmptyIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  favEmptyText: {
-    fontFamily: fonts.headingBold,
-    fontSize: 14,
-    color: colors.textDark,
-    marginTop: spacing.xs,
-  },
-  favEmptySub: {
-    fontFamily: fonts.regular,
-    fontSize: 12,
-    color: colors.textGray,
-    textAlign: 'center',
-    marginTop: 4,
-    paddingHorizontal: spacing.lg,
-  },
-  favList: { marginTop: spacing.xs },
-  favItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm + 2,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  favItemRowLast: { borderBottomWidth: 0 },
-  favItemImg: {
-    width: 48,
-    height: 48,
-    borderRadius: spacing.borderRadiusSm,
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  favItemInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-    marginRight: spacing.sm,
-  },
-  favItemName: {
-    fontFamily: fonts.headingBold,
-    fontSize: 13,
-    color: colors.textDark,
-  },
-  favItemPrice: {
-    fontFamily: fonts.bold,
-    fontSize: 13,
-    color: colors.primary,
-    marginTop: 2,
-  },
-  favItemProvider: {
-    fontFamily: fonts.regular,
-    fontSize: 10,
-    color: colors.textGray,
-    marginTop: 1,
-  },
-  favActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  favAddToCartBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: spacing.borderRadiusFull,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  favAddToCartText: {
-    fontFamily: fonts.bold,
-    fontSize: 11,
-    color: colors.white,
-  },
-  favRemoveBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.dangerLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 });
 
 export default CustomerProfileScreen;
