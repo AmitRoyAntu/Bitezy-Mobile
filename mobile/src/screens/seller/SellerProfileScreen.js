@@ -420,21 +420,30 @@ const SellerProfileScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         {/* Log Out Button */}
-        <CustomButton
-          title="Log Out"
+        <TouchableOpacity
+          style={styles.logoutPillBtn}
           onPress={logout}
-          variant="outline"
-          style={styles.logoutBtn}
-        />
+          activeOpacity={0.8}
+        >
+          <Ionicons name="log-out-outline" size={18} color={colors.danger} style={{ marginRight: 6 }} />
+          <Text style={styles.logoutPillBtnText}>Log Out Canteen Account</Text>
+        </TouchableOpacity>
 
+        {/* Brand Footer */}
+        <View style={styles.brandFooter}>
+          <Text style={styles.brandFooterText}>Bitezy Canteen Management • v1.2.0</Text>
+          <Text style={styles.brandFooterSubtext}>CUET Campus Food Network</Text>
+        </View>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  container: { flex: 1, backgroundColor: '#F3F4F7' },
+  scrollContent: { paddingHorizontal: spacing.lg, paddingBottom: 140 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   heroCard: {
@@ -789,9 +798,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  logoutBtn: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
+  logoutPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1.2,
+    borderColor: '#FECACA',
+    paddingVertical: 12,
+    borderRadius: spacing.borderRadiusFull,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  logoutPillBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.danger,
+  },
+  brandFooter: {
+    alignItems: 'center',
+    marginVertical: spacing.md,
+  },
+  brandFooterText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.textGray,
+  },
+  brandFooterSubtext: {
+    fontFamily: fonts.regular,
+    fontSize: 10,
+    color: colors.textLight,
+    marginTop: 2,
+  },
+  bottomSpacer: {
+    height: 70,
   },
 });
 

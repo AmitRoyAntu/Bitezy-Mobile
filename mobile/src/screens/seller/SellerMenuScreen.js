@@ -329,7 +329,7 @@ const SellerMenuScreen = () => {
               </View>
             </View>
           )}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: 170 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -343,9 +343,12 @@ const SellerMenuScreen = () => {
         />
       )}
 
-      {/* Floating Add Item Button */}
+      {/* Floating Add Item Button (Floats cleanly above navigation bar) */}
       <TouchableOpacity
-        style={[styles.floatingAddBtn, { bottom: Math.max(insets.bottom + 16, 20) }]}
+        style={[
+          styles.floatingAddBtn,
+          { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom + 80, 92) : 84 },
+        ]}
         onPress={handleOpenAddModal}
         activeOpacity={0.85}
       >
