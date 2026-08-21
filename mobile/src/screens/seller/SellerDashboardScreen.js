@@ -412,6 +412,62 @@ const SellerDashboardScreen = ({ navigation }) => {
             })
           )}
         </View>
+
+        {/* Latest Reviews Preview */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <View>
+              <Text style={styles.sectionEyebrow}>Reputation</Text>
+              <Text style={styles.sectionHeading}>Latest Reviews</Text>
+              <Text style={styles.sectionSub}>What students are saying</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings', { screen: 'Reviews' })}
+              activeOpacity={0.7}
+              style={styles.viewAllBtn}
+            >
+              <Text style={styles.viewAllLink}>View All</Text>
+              <Ionicons name="chevron-forward" size={13} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
+
+          {reviews.length === 0 ? (
+            <View style={styles.emptyRecentBox}>
+              <View style={styles.emptyRecentIcon}>
+                <Ionicons name="chatbubbles-outline" size={22} color={colors.primary} />
+              </View>
+              <Text style={styles.emptyRecentText}>No reviews yet.</Text>
+            </View>
+          ) : (
+            reviews.slice(0, 3).map((rev) => {
+              const reviewer = rev.user?.name || 'CUET Student';
+              const initial = reviewer.charAt(0).toUpperCase();
+              const date = rev.createdAt
+                ? new Date(rev.createdAt).toLocaleDateString()
+                : 'Verified Buyer';
+              return (
+                <View key={rev._id || rev.id} style={styles.reviewRow}>
+                  <View style={styles.reviewAvatar}>
+                    <Text style={styles.reviewAvatarText}>{initial}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.reviewTopLine}>
+                      <Text style={styles.reviewName} numberOfLines={1}>{reviewer}</Text>
+                      <View style={styles.reviewRatingPill}>
+                        <Ionicons name="star" size={11} color={colors.rating} style={{ marginRight: 3 }} />
+                        <Text style={styles.reviewRatingText}>{rev.rating}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.reviewComment} numberOfLines={2}>
+                      "{rev.comment || 'Happy with the service!'}"
+                    </Text>
+                    <Text style={styles.reviewDate}>{date}</Text>
+                  </View>
+                </View>
+              );
+            })
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -874,6 +930,71 @@ const styles = StyleSheet.create({
   },
   orderRightCol: {
     alignItems: 'flex-end',
+  },
+
+  /* Latest Reviews Preview */
+  reviewRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  reviewAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+    shadowColor: colors.primaryGlow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+  },
+  reviewAvatarText: {
+    fontFamily: fonts.headingBold,
+    fontSize: 13,
+    color: colors.primary,
+  },
+  reviewTopLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 3,
+  },
+  reviewName: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.textDark,
+    flex: 1,
+    marginRight: spacing.xs,
+  },
+  reviewRatingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.ratingBg,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  reviewRatingText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.ratingText,
+  },
+  reviewComment: {
+    fontFamily: fonts.medium,
+    fontSize: 12,
+    color: colors.textDark,
+    lineHeight: 17,
+  },
+  reviewDate: {
+    fontFamily: fonts.regular,
+    fontSize: 10,
+    color: colors.textLight,
+    marginTop: 4,
   },
 });
 
