@@ -250,7 +250,7 @@ const OrderHistoryScreen = ({ navigation }) => {
                     ]}
                   >
                     {isDone ? (
-                      <Ionicons name="checkmark" size={10} color={colors.white} />
+                      <Ionicons name="checkmark" size={11} color={colors.white} />
                     ) : (
                       <View style={styles.minimalDotInner} />
                     )}
@@ -307,6 +307,10 @@ const OrderHistoryScreen = ({ navigation }) => {
       <View style={[styles.cozyCard, isActive && styles.cozyCardActive]}>
         {/* Card Header: Canteen & Status */}
         <View style={styles.cardHeaderRow}>
+          <View style={styles.canteenIconCircle}>
+            <Ionicons name="storefront-outline" size={16} color={colors.primary} />
+          </View>
+
           <View style={styles.canteenCol}>
             <View style={styles.canteenTitleRow}>
               <Text style={styles.canteenTitle} numberOfLines={1}>
@@ -329,7 +333,7 @@ const OrderHistoryScreen = ({ navigation }) => {
             </View>
           ) : isDelivered ? (
             <View style={styles.deliveredPill}>
-              <Ionicons name="checkmark" size={11} color="#059669" style={{ marginRight: 2 }} />
+              <Ionicons name="checkmark" size={11} color={colors.success} style={{ marginRight: 2 }} />
               <Text style={styles.deliveredPillText}>Delivered</Text>
             </View>
           ) : (
@@ -379,18 +383,21 @@ const OrderHistoryScreen = ({ navigation }) => {
 
         {/* Card Footer: Total Price + Actions */}
         <View style={styles.cardFooterRow}>
-          <Text style={styles.cardTotalPrice}>৳ {item.total}</Text>
+          <View style={styles.cardTotalCol}>
+            <Text style={styles.cardTotalLabel}>Total</Text>
+            <Text style={styles.cardTotalPrice}>৳ {item.total}</Text>
+          </View>
 
           <View style={styles.cardActionsCol}>
             {/* Circular Quick Contact Buttons (Active Orders) */}
             {isActive && (
-              <>
+              <View style={styles.contactIconsRow}>
                 <TouchableOpacity
                   style={styles.circleBtnWhatsApp}
                   onPress={() => handleWhatsApp(providerPhone, item._id || item.id, providerName)}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="logo-whatsapp" size={14} color="#059669" />
+                  <Ionicons name="logo-whatsapp" size={15} color={colors.success} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -398,9 +405,9 @@ const OrderHistoryScreen = ({ navigation }) => {
                   onPress={() => handleCall(providerPhone)}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="call-outline" size={13} color={colors.primary} />
+                  <Ionicons name="call-outline" size={14} color={colors.primary} />
                 </TouchableOpacity>
-              </>
+              </View>
             )}
 
             <TouchableOpacity
@@ -423,6 +430,7 @@ const OrderHistoryScreen = ({ navigation }) => {
                 onPress={() => handleCancelOrder(item)}
                 activeOpacity={0.8}
               >
+                <Ionicons name="close" size={12} color={colors.danger} style={{ marginRight: 4 }} />
                 <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
             ) : (
@@ -445,8 +453,12 @@ const OrderHistoryScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Cozy Header */}
       <View style={[styles.headerBox, { paddingTop: Math.max(insets.top + spacing.sm, 40) }]}>
-        <View style={styles.headerTitleRow}>
-          <Text style={styles.headerTitle}>My Orders</Text>
+        <View style={styles.headerTopRow}>
+          <View style={styles.headerTitleCol}>
+            <Text style={styles.headerEyebrow}>TRACKING</Text>
+            <Text style={styles.headerTitle}>My Orders</Text>
+          </View>
+
           {activeOrdersCount > 0 && (
             <View style={styles.activeHeaderBadge}>
               <View style={styles.pulseDotGreen} />
@@ -467,7 +479,7 @@ const OrderHistoryScreen = ({ navigation }) => {
                   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                   setSelectedTab(tab);
                 }}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
                 <Text style={[styles.segmentText, isActive && styles.segmentTextActive]}>
                   {tab}
@@ -503,6 +515,7 @@ const OrderHistoryScreen = ({ navigation }) => {
               <View style={styles.emptyIconCircle}>
                 <Ionicons name="receipt-outline" size={32} color={colors.primary} />
               </View>
+              <Text style={styles.emptyEyebrow}>EMPTY LIST</Text>
               <Text style={styles.emptyTitle}>No orders to display</Text>
               <Text style={styles.emptySubtitle}>
                 {selectedTab === 'All'
@@ -528,43 +541,53 @@ const OrderHistoryScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F7',
+    backgroundColor: colors.background,
   },
 
   /* Header */
   headerBox: {
     backgroundColor: colors.card,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm + 2,
+    paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E6EC',
+    borderBottomColor: colors.border,
   },
-  headerTitleRow: {
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  headerTitleCol: {
+    flex: 1,
+  },
+  headerEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    marginBottom: 4,
   },
   headerTitle: {
     fontFamily: fonts.headingBold,
-    fontSize: 22,
+    fontSize: 24,
     color: colors.textDark,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
   activeHeaderBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: colors.successLight,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: spacing.borderRadiusFull,
   },
   pulseDotGreen: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
-    marginRight: 5,
+    backgroundColor: colors.success,
+    marginRight: 6,
   },
   pulseDotAmber: {
     width: 6,
@@ -576,30 +599,39 @@ const styles = StyleSheet.create({
   activeHeaderBadgeText: {
     fontFamily: fonts.bold,
     fontSize: 11,
-    color: '#059669',
+    color: colors.success,
   },
 
   /* Segment Tabs */
   segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: spacing.borderRadiusFull,
-    padding: 3,
+    padding: 4,
   },
   segmentTab: {
     flex: 1,
-    paddingVertical: 6,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: spacing.borderRadiusFull,
   },
   segmentTabActive: {
     backgroundColor: colors.card,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 6px rgba(18, 18, 23, 0.08)',
+      },
+    }),
   },
   segmentText: {
     fontFamily: fonts.medium,
@@ -619,33 +651,33 @@ const styles = StyleSheet.create({
   /* Cozy Order Card */
   cozyCard: {
     backgroundColor: colors.card,
-    borderRadius: 16,
+    borderRadius: spacing.borderRadiusMd,
     padding: spacing.md,
     marginBottom: spacing.md,
-    borderWidth: 1.2,
-    borderColor: '#DDE1E6',
+    borderWidth: 1,
+    borderColor: colors.border,
     ...Platform.select({
       ios: {
-        shadowColor: '#121217',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 10,
       },
       android: {
-        elevation: 3,
+        elevation: 2,
       },
       web: {
-        boxShadow: '0 4px 14px rgba(18, 18, 23, 0.06), 0 1px 3px rgba(18, 18, 23, 0.04)',
+        boxShadow: '0 4px 14px rgba(18, 18, 23, 0.05), 0 1px 3px rgba(18, 18, 23, 0.03)',
       },
     }),
   },
   cozyCardActive: {
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 75, 38, 0.4)',
-    backgroundColor: '#FFFDFB',
+    borderColor: colors.primary,
+    backgroundColor: '#FFFCFA',
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 16px rgba(255, 75, 38, 0.1), 0 1px 4px rgba(18, 18, 23, 0.04)',
+        boxShadow: '0 6px 18px rgba(255, 75, 38, 0.10), 0 1px 4px rgba(18, 18, 23, 0.04)',
       },
     }),
   },
@@ -653,9 +685,17 @@ const styles = StyleSheet.create({
   /* Card Header */
   cardHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 6,
+    marginBottom: spacing.sm,
+  },
+  canteenIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
   },
   canteenCol: {
     flex: 1,
@@ -681,40 +721,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    marginTop: 2,
+    marginTop: 4,
     gap: 4,
-  },
-  methodTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: spacing.borderRadiusFull,
-  },
-  methodTagDelivery: {
-    backgroundColor: 'rgba(255, 75, 38, 0.08)',
-  },
-  methodTagPickup: {
-    backgroundColor: 'rgba(79, 70, 229, 0.08)',
-  },
-  methodTagText: {
-    fontFamily: fonts.semiBold,
-    fontSize: 10,
-  },
-  methodTagTextDelivery: {
-    color: colors.primary,
-  },
-  methodTagTextPickup: {
-    color: '#4F46E5',
   },
 
   /* Badges */
   activePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 75, 38, 0.08)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     borderRadius: spacing.borderRadiusFull,
   },
   activePillText: {
@@ -725,20 +742,20 @@ const styles = StyleSheet.create({
   deliveredPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: colors.successLight,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     borderRadius: spacing.borderRadiusFull,
   },
   deliveredPillText: {
     fontFamily: fonts.bold,
     fontSize: 11,
-    color: '#059669',
+    color: colors.success,
   },
   cancelledPill: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     borderRadius: spacing.borderRadiusFull,
   },
   cancelledPillText: {
@@ -749,17 +766,17 @@ const styles = StyleSheet.create({
 
   /* Active Live Stepper Box */
   activeProgressBox: {
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 10,
+    backgroundColor: colors.primaryLight,
+    borderRadius: spacing.borderRadiusSm + 4,
+    padding: 12,
     marginVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 75, 38, 0.12)',
+    borderColor: colors.primaryGlow,
   },
   statusBubble: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   statusBubbleText: {
     fontFamily: fonts.semiBold,
@@ -776,34 +793,45 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   minimalDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#E5E7EB',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.borderDark,
     justifyContent: 'center',
     alignItems: 'center',
   },
   minimalDotDone: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.success,
   },
   minimalDotCurrent: {
     backgroundColor: colors.primary,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.35,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   minimalDotInner: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
   },
   minimalStepText: {
     fontFamily: fonts.regular,
-    fontSize: 9,
+    fontSize: 10,
     color: colors.textLight,
-    marginTop: 3,
+    marginTop: 4,
   },
   minimalStepTextDone: {
     fontFamily: fonts.bold,
-    color: '#059669',
+    color: colors.success,
   },
   minimalStepTextCurrent: {
     fontFamily: fonts.bold,
@@ -812,22 +840,13 @@ const styles = StyleSheet.create({
   minimalLine: {
     flex: 1,
     height: 2,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.borderDark,
     marginBottom: 14,
     marginHorizontal: -2,
     zIndex: 1,
   },
   minimalLineDone: {
-    backgroundColor: '#10B981',
-  },
-
-  /* Items Line */
-  itemsLine: {
-    fontFamily: fonts.regular,
-    fontSize: 12,
-    color: '#4B5563',
-    lineHeight: 18,
-    marginVertical: 4,
+    backgroundColor: colors.success,
   },
 
   /* Receipt Breakdown */
@@ -837,19 +856,19 @@ const styles = StyleSheet.create({
   },
   receiptDivider: {
     height: 1,
-    backgroundColor: '#F0F0F0',
-    marginVertical: 6,
+    backgroundColor: colors.border,
+    marginVertical: 8,
   },
   receiptRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 2,
+    paddingVertical: 3,
   },
   receiptItemQty: {
     fontFamily: fonts.bold,
     fontSize: 11,
     color: colors.primary,
-    width: 22,
+    width: 24,
   },
   receiptItemName: {
     fontFamily: fonts.regular,
@@ -858,14 +877,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   receiptItemPrice: {
-    fontFamily: fonts.medium,
+    fontFamily: fonts.semiBold,
     fontSize: 12,
     color: colors.textDark,
   },
   receiptMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 6,
   },
   receiptMetaText: {
     fontFamily: fonts.regular,
@@ -873,91 +892,104 @@ const styles = StyleSheet.create({
     color: colors.textGray,
   },
 
-  /* Active Contact Bar */
-  contactBar: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 6,
-    marginBottom: 2,
-  },
-  contactPillWhatsApp: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    paddingVertical: 5,
-    borderRadius: spacing.borderRadiusFull,
-  },
-  contactPillWhatsAppText: {
-    fontFamily: fonts.bold,
-    fontSize: 11,
-    color: '#059669',
-  },
-  contactPillCall: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primaryLight,
-    paddingVertical: 5,
-    borderRadius: spacing.borderRadiusFull,
-  },
-  contactPillCallText: {
-    fontFamily: fonts.bold,
-    fontSize: 11,
-    color: colors.primary,
-  },
-
   /* Card Footer */
   cardFooterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6,
-    paddingTop: 6,
+    marginTop: 10,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.border,
+  },
+  cardTotalCol: {
+    flex: 1,
+  },
+  cardTotalLabel: {
+    fontFamily: fonts.medium,
+    fontSize: 10,
+    color: colors.textLight,
+    letterSpacing: 0.6,
+    marginBottom: 2,
   },
   cardTotalPrice: {
     fontFamily: fonts.headingBold,
-    fontSize: 15,
+    fontSize: 16,
     color: colors.textDark,
+    letterSpacing: -0.2,
   },
   cardActionsCol: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+  contactIconsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  circleBtnWhatsApp: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.successLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  circleBtnCall: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   receiptToggle: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: spacing.borderRadiusFull,
   },
   receiptToggleText: {
-    fontFamily: fonts.medium,
-    fontSize: 12,
+    fontFamily: fonts.semiBold,
+    fontSize: 11,
     color: colors.textGray,
   },
   cancelBtn: {
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.dangerLight,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: spacing.borderRadiusFull,
   },
   cancelBtnText: {
     fontFamily: fonts.bold,
     fontSize: 11,
-    color: '#DC2626',
+    color: colors.danger,
   },
   reorderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: spacing.borderRadiusFull,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 4px 10px rgba(255, 75, 38, 0.28)',
+      },
+    }),
   },
   reorderBtnText: {
     fontFamily: fonts.bold,
@@ -965,49 +997,75 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
+  /* States */
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   emptyBox: {
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xl,
     alignItems: 'center',
     marginTop: 40,
   },
   emptyIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.primaryGlow,
+  },
+  emptyEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.4,
+    marginBottom: 4,
   },
   emptyTitle: {
     fontFamily: fonts.headingBold,
-    fontSize: 16,
+    fontSize: 17,
     color: colors.textDark,
+    marginBottom: 4,
   },
   emptySubtitle: {
     fontFamily: fonts.regular,
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textGray,
-    marginTop: 3,
     textAlign: 'center',
-    marginBottom: spacing.md,
+    lineHeight: 18,
+    marginBottom: spacing.lg,
   },
   emptyButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 10,
     borderRadius: spacing.borderRadiusFull,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 4px 12px rgba(255, 75, 38, 0.28)',
+      },
+    }),
   },
   emptyButtonText: {
     fontFamily: fonts.bold,
-    fontSize: 12,
+    fontSize: 13,
     color: colors.white,
   },
 });
