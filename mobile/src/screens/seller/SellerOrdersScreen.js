@@ -126,8 +126,16 @@ const SellerOrdersScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: Math.max(insets.top + spacing.sm, 44) }]}>
-        <Text style={styles.headerTitle}>Order Management</Text>
-        <Text style={styles.headerSubtitle}>Manage incoming food requests & delivery statuses</Text>
+        <View style={styles.headerTopRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerEyebrow}>Operations</Text>
+            <Text style={styles.headerTitle}>Order Management</Text>
+            <Text style={styles.headerSubtitle}>Manage incoming food requests & delivery statuses</Text>
+          </View>
+          <View style={styles.headerIconBox}>
+            <Ionicons name="receipt" size={18} color={colors.primary} />
+          </View>
+        </View>
 
         {/* Segmented Tabs */}
         <View style={styles.tabSegment}>
@@ -136,6 +144,12 @@ const SellerOrdersScreen = () => {
             onPress={() => handleTabChange('active')}
             activeOpacity={0.8}
           >
+            <Ionicons
+              name="flash"
+              size={13}
+              color={activeTab === 'active' ? colors.primary : colors.textGray}
+              style={{ marginRight: 5 }}
+            />
             <Text style={[styles.segmentText, activeTab === 'active' && styles.segmentTextActive]}>
               Active Orders
             </Text>
@@ -153,6 +167,12 @@ const SellerOrdersScreen = () => {
             onPress={() => handleTabChange('history')}
             activeOpacity={0.8}
           >
+            <Ionicons
+              name="archive-outline"
+              size={13}
+              color={activeTab === 'history' ? colors.primary : colors.textGray}
+              style={{ marginRight: 5 }}
+            />
             <Text style={[styles.segmentText, activeTab === 'history' && styles.segmentTextActive]}>
               Order History
             </Text>
@@ -178,26 +198,55 @@ const SellerOrdersScreen = () => {
               <View style={styles.orderCard}>
                 {/* Card Top Row */}
                 <View style={styles.cardTopRow}>
-                  <View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ flex: 1, marginRight: spacing.sm }}>
+                    <Text style={styles.orderEyebrow}>Order</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                       <Text style={styles.orderIdText}>{orderIdShort}</Text>
                       <OrderTypeBadge type={item.type} style={{ marginLeft: 6 }} />
                     </View>
-                    <Text style={styles.orderTimeText}>
-                      {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
-                    </Text>
+                    <View style={styles.orderTimeRow}>
+                      <Ionicons name="time-outline" size={11} color={colors.textGray} style={{ marginRight: 3 }} />
+                      <Text style={styles.orderTimeText}>
+                        {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                      </Text>
+                    </View>
                   </View>
                   <StatusBadge status={item.status} />
                 </View>
 
                 {/* Customer Details Box */}
                 <View style={styles.customerBox}>
+                  <View style={styles.customerAvatar}>
+                    <Text style={styles.customerAvatarText}>
+                      {(item.customer?.name || 'S').charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
                   <View style={styles.customerInfoCol}>
-                    <Text style={styles.customerName}>
+                    <View style={styles.customerTopRow}>
+                      <Text style={styles.customerEyebrow}>Customer</Text>
+                      {item.customer?.buyerType ? (
+                        <View style={[
+                          styles.roleChip,
+                          item.customer.buyerType === 'Staff' || item.customer.buyerType === 'Teacher'
+                            ? styles.roleChipStaff
+                            : styles.roleChipStudent,
+                        ]}>
+                          <Text style={[
+                            styles.roleChipText,
+                            item.customer.buyerType === 'Staff' || item.customer.buyerType === 'Teacher'
+                              ? styles.roleChipTextStaff
+                              : styles.roleChipTextStudent,
+                          ]}>
+                            {item.customer.buyerType}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                    <Text style={styles.customerName} numberOfLines={1}>
                       {item.customer?.name || 'Student Buyer'}
                     </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                      <Ionicons name="location-outline" size={12} color={colors.textGray} style={{ marginRight: 3 }} />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+                      <Ionicons name="location" size={11} color={colors.primary} style={{ marginRight: 3 }} />
                       <Text style={styles.customerLocation} numberOfLines={1}>
                         {item.deliveryAddress || item.customer?.residence || 'CUET Campus'}
                       </Text>
@@ -207,30 +256,45 @@ const SellerOrdersScreen = () => {
                   {/* Customer Contact Action Buttons */}
                   <View style={styles.customerActionCol}>
                     <TouchableOpacity
-                      style={styles.whatsAppPill}
+                      style={styles.whatsappBtn}
                       onPress={() => handleWhatsAppCustomer(item)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="logo-whatsapp" size={13} color={colors.white} style={{ marginRight: 3 }} />
-                      <Text style={styles.whatsAppPillText}>WhatsApp</Text>
+                      <Ionicons name="logo-whatsapp" size={16} color={colors.white} />
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={styles.callPill}
+                      style={styles.callBtn}
                       onPress={() => handleCallCustomer(item)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="call" size={12} color={colors.primary} />
+                      <Ionicons name="call" size={14} color={colors.primary} />
                     </TouchableOpacity>
                   </View>
                 </View>
 
+                {/* Special Instructions */}
+                {item.notes ? (
+                  <View style={styles.notesBox}>
+                    <View style={styles.notesIconBox}>
+                      <Ionicons name="chatbox-ellipses" size={14} color={colors.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.notesEyebrow}>Special Instructions</Text>
+                      <Text style={styles.notesText}>"{item.notes}"</Text>
+                    </View>
+                  </View>
+                ) : null}
+
                 {/* Items Summary */}
                 <View style={styles.itemsContainer}>
+                  <Text style={styles.itemsEyebrow}>Items</Text>
                   {Array.isArray(item.items) ? (
                     item.items.map((it, idx) => (
                       <View key={idx} style={styles.itemRow}>
-                        <Text style={styles.itemQty}>{it.qty || 1}x</Text>
+                        <View style={styles.qtyChip}>
+                          <Text style={styles.qtyChipText}>{it.qty || 1}</Text>
+                        </View>
                         <Text style={styles.itemName} numberOfLines={1}>{it.name}</Text>
                         <Text style={styles.itemPrice}>৳{(it.price || 0) * (it.qty || 1)}</Text>
                       </View>
@@ -240,7 +304,10 @@ const SellerOrdersScreen = () => {
 
                 {/* Total & Divider */}
                 <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>Total Amount:</Text>
+                  <View style={styles.totalLabelCol}>
+                    <Text style={styles.totalLabel}>Total Amount</Text>
+                    <Text style={styles.totalSub}>Inclusive of all items</Text>
+                  </View>
                   <Text style={styles.totalVal}>৳ {item.total}</Text>
                 </View>
 
@@ -342,7 +409,10 @@ const SellerOrdersScreen = () => {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="receipt-outline" size={48} color={colors.textLight} style={{ marginBottom: 8 }} />
+              <View style={styles.emptyIconHalo}>
+                <Ionicons name="receipt-outline" size={32} color={colors.primary} />
+              </View>
+              <Text style={styles.emptyEyebrow}>Nothing here yet</Text>
               <Text style={styles.emptyTitle}>No {activeTab} orders</Text>
               <Text style={styles.emptySubtitle}>
                 {activeTab === 'active'
@@ -362,13 +432,43 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: colors.card,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingBottom: spacing.md,
+    borderBottomLeftRadius: spacing.borderRadiusLg,
+    borderBottomRightRadius: spacing.borderRadiusLg,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 14,
+    elevation: 3,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+  },
+  headerIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: colors.primaryGlow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+  },
+  headerEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
   headerTitle: {
     fontFamily: fonts.headingExtraBold,
-    fontSize: 20,
+    fontSize: 22,
     color: colors.textDark,
   },
   headerSubtitle: {
@@ -376,31 +476,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textGray,
     marginTop: 2,
-    marginBottom: spacing.md,
   },
 
   /* Tabs Segment */
   tabSegment: {
     flexDirection: 'row',
-    backgroundColor: colors.background,
-    borderRadius: spacing.borderRadiusSm,
-    padding: 3,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: spacing.borderRadiusFull,
+    padding: 4,
   },
   segmentBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: spacing.borderRadiusSm - 2,
+    paddingVertical: 9,
+    borderRadius: spacing.borderRadiusFull,
   },
   segmentBtnActive: {
     backgroundColor: colors.card,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   segmentText: {
     fontFamily: fonts.medium,
@@ -413,10 +512,12 @@ const styles = StyleSheet.create({
   },
   activeBadge: {
     backgroundColor: colors.border,
-    paddingHorizontal: 6,
+    paddingHorizontal: 7,
     paddingVertical: 1,
     borderRadius: spacing.borderRadiusFull,
     marginLeft: 6,
+    minWidth: 20,
+    alignItems: 'center',
   },
   activeBadgeHighlight: {
     backgroundColor: colors.primary,
@@ -433,6 +534,7 @@ const styles = StyleSheet.create({
   listContent: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
+    flexGrow: 1,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
@@ -440,34 +542,44 @@ const styles = StyleSheet.create({
   orderCard: {
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
     elevation: 4,
   },
   cardTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingBottom: spacing.xs,
+    paddingBottom: spacing.sm,
+    marginBottom: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  orderEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
   },
   orderIdText: {
     fontFamily: fonts.headingBold,
     fontSize: 16,
     color: colors.textDark,
   },
+  orderTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
   orderTimeText: {
-    fontFamily: fonts.regular,
+    fontFamily: fonts.medium,
     fontSize: 11,
-    color: colors.textLight,
-    marginTop: 2,
+    color: colors.textGray,
   },
   typePill: {
     flexDirection: 'row',
@@ -488,67 +600,168 @@ const styles = StyleSheet.create({
   /* Customer Info Box */
   customerBox: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FAFBFD',
-    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: spacing.borderRadiusMd,
     padding: spacing.sm,
-    marginVertical: spacing.sm,
-    borderWidth: 1,
-    borderColor: '#EDF2F7',
+    marginBottom: spacing.sm,
+  },
+  customerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  customerAvatarText: {
+    fontFamily: fonts.headingBold,
+    fontSize: 16,
+    color: colors.white,
   },
   customerInfoCol: { flex: 1, marginRight: spacing.xs },
+  customerEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 9,
+    color: colors.textGray,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 1,
+  },
   customerName: {
     fontFamily: fonts.bold,
     fontSize: 13,
     color: colors.textDark,
   },
   customerLocation: {
-    fontFamily: fonts.regular,
+    fontFamily: fonts.medium,
     fontSize: 11,
     color: colors.textGray,
-    marginTop: 2,
   },
   customerActionCol: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing.xs,
   },
-  whatsAppPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  whatsappBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#25D366',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: spacing.borderRadiusSm,
-  },
-  whatsAppPillText: {
-    fontFamily: fonts.bold,
-    fontSize: 11,
-    color: colors.white,
-  },
-  callPill: {
-    backgroundColor: colors.primaryLight,
-    padding: 6,
-    borderRadius: spacing.borderRadiusSm,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#25D366',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  callBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  roleChip: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  roleChipStaff: {
+    backgroundColor: '#FEF3C7',
+  },
+  roleChipStudent: {
+    backgroundColor: colors.infoLight,
+  },
+  roleChipText: {
+    fontFamily: fonts.bold,
+    fontSize: 9,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  roleChipTextStaff: {
+    color: '#B45309',
+  },
+  roleChipTextStudent: {
+    color: colors.info,
+  },
+
+  /* Special Instructions Box */
+  notesBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.primaryLight,
+    borderRadius: spacing.borderRadiusMd,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  notesIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+    shadowColor: colors.primaryGlow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+  },
+  notesEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 9,
+    color: colors.primary,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  notesText: {
+    fontFamily: fonts.medium,
+    fontSize: 12,
+    color: colors.textDark,
+    lineHeight: 17,
   },
 
   /* Items Container */
   itemsContainer: {
     paddingVertical: spacing.xs,
   },
+  itemsEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 9,
+    color: colors.textGray,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: spacing.xs,
+  },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 3,
+    paddingVertical: 5,
   },
-  itemQty: {
+  qtyChip: {
+    width: 26,
+    height: 22,
+    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  qtyChipText: {
     fontFamily: fonts.bold,
-    fontSize: 12,
+    fontSize: 11,
     color: colors.primary,
-    width: 24,
   },
   itemName: {
     fontFamily: fonts.medium,
@@ -566,19 +779,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: spacing.xs + 2,
+    paddingTop: spacing.sm,
     marginTop: spacing.xs,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
+  totalLabelCol: { flex: 1 },
   totalLabel: {
-    fontFamily: fonts.semiBold,
-    fontSize: 13,
+    fontFamily: fonts.bold,
+    fontSize: 10,
     color: colors.textGray,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  totalSub: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textLight,
+    marginTop: 2,
   },
   totalVal: {
     fontFamily: fonts.headingExtraBold,
-    fontSize: 16,
+    fontSize: 18,
     color: colors.primary,
   },
 
@@ -586,15 +808,15 @@ const styles = StyleSheet.create({
   actionsRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginTop: spacing.sm + 2,
+    marginTop: spacing.sm,
   },
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: spacing.borderRadiusSm,
+    paddingVertical: 11,
+    borderRadius: spacing.borderRadiusFull,
   },
   actionBtnText: {
     fontFamily: fonts.bold,
@@ -603,12 +825,14 @@ const styles = StyleSheet.create({
   },
   acceptBtn: {
     backgroundColor: colors.success,
-    flex: 1,
+    shadowColor: colors.success,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
   rejectBtn: {
-    backgroundColor: '#FFEBEE',
-    borderWidth: 1,
-    borderColor: '#FFCDD2',
+    backgroundColor: colors.dangerLight,
     flex: 1,
   },
   rejectBtnText: {
@@ -617,15 +841,49 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
   sendBtn: {
-    backgroundColor: '#2980B9',
+    backgroundColor: colors.info,
+    shadowColor: colors.info,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
   deliverBtn: {
     backgroundColor: colors.success,
+    shadowColor: colors.success,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   emptyContainer: {
-    padding: spacing.xxl,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxl,
+  },
+  emptyIconHalo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    shadowColor: colors.primaryGlow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+  },
+  emptyEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 4,
   },
   emptyTitle: {
     fontFamily: fonts.headingBold,
@@ -637,8 +895,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textGray,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 6,
     maxWidth: 260,
+    lineHeight: 18,
   },
 });
 

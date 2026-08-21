@@ -137,40 +137,68 @@ const SellerProfileScreen = ({ navigation }) => {
       >
         {/* Header Hero Card */}
         <View style={styles.heroCard}>
-          <Image
-            source={{
-              uri:
-                shopImg ||
-                provider?.img ||
-                'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80',
-            }}
-            style={styles.heroBanner}
-          />
-          <View style={styles.heroOverlay}>
+          <View style={styles.heroBgWrap}>
+            <Image
+              source={{
+                uri:
+                  shopImg ||
+                  provider?.img ||
+                  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80',
+              }}
+              style={styles.heroBg}
+            />
+            <View style={styles.heroScrim} />
+          </View>
+          <View style={styles.heroGlow} />
+          <View style={styles.heroTopRow}>
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarText}>
                 {ownerName ? ownerName.charAt(0).toUpperCase() : 'M'}
               </Text>
             </View>
-            <Text style={styles.heroShopName}>{shopName || 'Canteen Name'}</Text>
-            <Text style={styles.heroOwnerSub}>
-              {ownerName} • {currentUser?.email}
+            <View style={styles.heroStatusChip}>
+              <View style={styles.heroStatusDot} />
+              <Text style={styles.heroStatusText}>Verified Seller</Text>
+            </View>
+          </View>
+          <View style={styles.heroBottomBlock}>
+            <Text style={styles.heroEyebrow}>Your Canteen</Text>
+            <Text style={styles.heroShopName} numberOfLines={1}>
+              {shopName || 'Canteen Name'}
             </Text>
+            <View style={styles.heroMetaRow}>
+              <View style={styles.heroMetaItem}>
+                <Ionicons name="person-circle-outline" size={13} color={colors.white} />
+                <Text style={styles.heroMetaText} numberOfLines={1}>
+                  {ownerName || 'Manager'}
+                </Text>
+              </View>
+              <View style={styles.heroMetaDot} />
+              <View style={styles.heroMetaItem}>
+                <Ionicons name="mail-outline" size={13} color={colors.white} />
+                <Text style={styles.heroMetaText} numberOfLines={1}>
+                  {currentUser?.email}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
         {/* Canteen Settings Card */}
         <View style={styles.sectionCard}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardTitle}>Canteen & Owner Profile</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardEyebrow}>Your Kitchen</Text>
+              <Text style={styles.cardTitle}>Canteen & Owner Profile</Text>
+            </View>
             <TouchableOpacity
-              style={styles.editToggleBtn}
+              style={[styles.editToggleBtn, isEditing && styles.editToggleBtnActive]}
               onPress={() => setIsEditing(!isEditing)}
               activeOpacity={0.7}
             >
               <Ionicons
                 name={isEditing ? 'close' : 'create-outline'}
-                size={16}
+                size={14}
                 color={isEditing ? colors.danger : colors.primary}
                 style={{ marginRight: 4 }}
               />
@@ -180,13 +208,14 @@ const SellerProfileScreen = ({ navigation }) => {
                   isEditing && { color: colors.danger },
                 ]}
               >
-                {isEditing ? 'Cancel' : 'Edit Profile'}
+                {isEditing ? 'Cancel' : 'Edit'}
               </Text>
             </TouchableOpacity>
           </View>
 
           {isEditing ? (
             <View style={styles.formContainer}>
+              <Text style={styles.formEyebrow}>Owner Details</Text>
               <CustomInput
                 label="Owner Name"
                 value={ownerName}
@@ -201,6 +230,9 @@ const SellerProfileScreen = ({ navigation }) => {
                 placeholder="018XXXXXXXX"
                 keyboardType="phone-pad"
               />
+
+              <View style={styles.formDivider} />
+              <Text style={styles.formEyebrow}>Canteen Details</Text>
 
               <CustomInput
                 label="Canteen / Shop Name"
@@ -222,6 +254,9 @@ const SellerProfileScreen = ({ navigation }) => {
                 onChangeText={setShopLocation}
                 placeholder="e.g. Kabi Kazi Nazrul Islam Hall, Ground Floor"
               />
+
+              <View style={styles.formDivider} />
+              <Text style={styles.formEyebrow}>Hours & Delivery</Text>
 
               <View style={styles.timeRow}>
                 <View style={{ flex: 1, marginRight: spacing.xs }}>
@@ -274,40 +309,75 @@ const SellerProfileScreen = ({ navigation }) => {
             </View>
           ) : (
             <View style={styles.detailsList}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Shop Name</Text>
-                <Text style={styles.detailVal}>{shopName || 'N/A'}</Text>
+              <View style={styles.detailTile}>
+                <View style={styles.detailIconBox}>
+                  <Ionicons name="storefront" size={15} color={colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.detailLabel}>Shop Name</Text>
+                  <Text style={styles.detailVal}>{shopName || 'N/A'}</Text>
+                </View>
               </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Type</Text>
-                <Text style={styles.detailVal}>{shopType}</Text>
+              <View style={styles.detailTile}>
+                <View style={[styles.detailIconBox, styles.detailIconBoxAlt]}>
+                  <Ionicons name="grid-outline" size={15} color={colors.info} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.detailLabel}>Type</Text>
+                  <Text style={styles.detailVal}>{shopType}</Text>
+                </View>
               </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Location</Text>
-                <Text style={styles.detailVal}>{shopLocation || 'CUET Campus'}</Text>
+              <View style={styles.detailTile}>
+                <View style={[styles.detailIconBox, styles.detailIconBoxSuccess]}>
+                  <Ionicons name="location" size={15} color={colors.success} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.detailLabel}>Campus Location</Text>
+                  <Text style={styles.detailVal}>{shopLocation || 'CUET Campus'}</Text>
+                </View>
               </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Operating Hours</Text>
-                <Text style={styles.detailVal}>{openTime} - {closeTime}</Text>
+              <View style={styles.detailTile}>
+                <View style={[styles.detailIconBox, styles.detailIconBoxRating]}>
+                  <Ionicons name="time" size={15} color={colors.rating} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.detailLabel}>Operating Hours</Text>
+                  <Text style={styles.detailVal}>{openTime} - {closeTime}</Text>
+                </View>
               </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Delivery Speed</Text>
-                <Text style={styles.detailVal}>{deliveryTime}</Text>
+              <View style={styles.detailTile}>
+                <View style={[styles.detailIconBox, styles.detailIconBoxPrimary]}>
+                  <Ionicons name="bicycle-outline" size={15} color={colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.detailLabel}>Delivery Speed</Text>
+                  <Text style={styles.detailVal}>{deliveryTime}</Text>
+                </View>
               </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Manager Phone</Text>
-                <Text style={styles.detailVal}>{ownerPhone}</Text>
+              <View style={styles.detailTile}>
+                <View style={[styles.detailIconBox, styles.detailIconBoxInfo]}>
+                  <Ionicons name="call" size={15} color={colors.info} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.detailLabel}>Manager Phone</Text>
+                  <Text style={styles.detailVal}>{ownerPhone}</Text>
+                </View>
               </View>
 
               {shopDescription ? (
-                <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
-                  <Text style={styles.detailLabel}>Description</Text>
-                  <Text style={[styles.detailVal, { marginTop: 3 }]}>{shopDescription}</Text>
+                <View style={[styles.detailTile, styles.detailTileFull]}>
+                  <View style={[styles.detailIconBox, styles.detailIconBoxDark]}>
+                    <Ionicons name="document-text" size={15} color={colors.textDark} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.detailLabel}>Description & Notice</Text>
+                    <Text style={[styles.detailVal, { marginTop: 3 }]}>{shopDescription}</Text>
+                  </View>
                 </View>
               ) : null}
             </View>
@@ -317,15 +387,16 @@ const SellerProfileScreen = ({ navigation }) => {
         {/* Support Card */}
         <View style={styles.supportCard}>
           <View style={styles.supportIconBox}>
-            <Ionicons name="headset-outline" size={24} color={colors.primary} />
+            <Ionicons name="headset" size={20} color={colors.primary} />
           </View>
           <View style={{ flex: 1 }}>
+            <Text style={styles.supportEyebrow}>Need a hand?</Text>
             <Text style={styles.supportTitle}>CUET Seller Helpline</Text>
-            <Text style={styles.supportSub}>Need assistance with menu pricing or payout transfers?</Text>
+            <Text style={styles.supportSub}>Pricing or payout help is one tap away.</Text>
           </View>
           <TouchableOpacity style={styles.supportBtn} onPress={handleOpenSupport} activeOpacity={0.85}>
-            <Ionicons name="logo-whatsapp" size={16} color={colors.white} style={{ marginRight: 4 }} />
-            <Text style={styles.supportBtnText}>Help</Text>
+            <Ionicons name="logo-whatsapp" size={14} color={colors.white} style={{ marginRight: 4 }} />
+            <Text style={styles.supportBtnText}>Chat</Text>
           </TouchableOpacity>
         </View>
 
@@ -335,14 +406,17 @@ const SellerProfileScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('Reviews')}
           activeOpacity={0.85}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="star" size={20} color="#FF9F43" style={{ marginRight: 10 }} />
-            <View>
-              <Text style={styles.reviewsLinkTitle}>Customer Reviews & Ratings</Text>
-              <Text style={styles.reviewsLinkSub}>Read feedback from students and teachers</Text>
-            </View>
+          <View style={styles.reviewsIconBox}>
+            <Ionicons name="star" size={18} color={colors.rating} />
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
+          <View style={{ flex: 1, marginLeft: spacing.md }}>
+            <Text style={styles.reviewsLinkEyebrow}>Reputation</Text>
+            <Text style={styles.reviewsLinkTitle}>Customer Reviews & Ratings</Text>
+            <Text style={styles.reviewsLinkSub}>Read feedback from students and teachers</Text>
+          </View>
+          <View style={styles.reviewsChevronBox}>
+            <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+          </View>
         </TouchableOpacity>
 
         {/* Log Out Button */}
@@ -364,78 +438,171 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   heroCard: {
-    height: 180,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     overflow: 'hidden',
     marginBottom: spacing.md,
     position: 'relative',
+    backgroundColor: colors.primaryDark,
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 8,
   },
-  heroBanner: { width: '100%', height: '100%' },
-  heroOverlay: {
+  heroBgWrap: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-    padding: spacing.md,
+  },
+  heroBg: {
+    width: '100%',
+    height: '100%',
+  },
+  heroScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(18, 18, 23, 0.62)',
+  },
+  heroGlow: {
+    position: 'absolute',
+    top: -60,
+    right: -60,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: colors.primaryGlow,
+  },
+  heroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
   },
   avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
-    borderWidth: 2,
-    borderColor: colors.white,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.85)',
+    shadowColor: colors.shadowStrong,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   avatarText: {
-    fontFamily: fonts.headingBold,
-    fontSize: 18,
+    fontFamily: fonts.headingExtraBold,
+    fontSize: 22,
     color: colors.white,
+  },
+  heroStatusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  heroStatusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.success,
+    marginRight: 6,
+  },
+  heroStatusText: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.white,
+    letterSpacing: 0.3,
+  },
+  heroBottomBlock: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  heroEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primaryLight,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 4,
   },
   heroShopName: {
     fontFamily: fonts.headingExtraBold,
-    fontSize: 18,
+    fontSize: 22,
     color: colors.white,
   },
-  heroOwnerSub: {
-    fontFamily: fonts.regular,
-    fontSize: 12,
+  heroMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    flexWrap: 'wrap',
+  },
+  heroMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: '70%',
+  },
+  heroMetaText: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
     color: 'rgba(255,255,255,0.85)',
-    marginTop: 1,
+    marginLeft: 4,
+  },
+  heroMetaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.45)',
+    marginHorizontal: 8,
   },
 
   sectionCard: {
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 14,
+    elevation: 3,
   },
   cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingBottom: spacing.sm,
+    marginBottom: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  cardEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
   cardTitle: {
     fontFamily: fonts.headingBold,
-    fontSize: 15,
+    fontSize: 16,
     color: colors.textDark,
   },
   editToggleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primaryLight,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: spacing.borderRadiusSm,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: spacing.borderRadiusFull,
+  },
+  editToggleBtnActive: {
+    backgroundColor: colors.dangerLight,
   },
   editToggleText: {
     fontFamily: fonts.bold,
@@ -444,7 +611,21 @@ const styles = StyleSheet.create({
   },
 
   formContainer: {
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  formEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  formDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginTop: spacing.md,
   },
   timeRow: {
     flexDirection: 'row',
@@ -452,21 +633,44 @@ const styles = StyleSheet.create({
 
   detailsList: {
     marginTop: spacing.xs,
+    gap: spacing.sm,
   },
-  detailRow: {
-    paddingVertical: 9,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  detailTile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSubtle,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.sm,
+    borderRadius: spacing.borderRadiusMd,
   },
+  detailTileFull: {
+    alignItems: 'flex-start',
+    paddingVertical: spacing.sm,
+  },
+  detailIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  detailIconBoxAlt: { backgroundColor: colors.infoLight },
+  detailIconBoxSuccess: { backgroundColor: colors.successLight },
+  detailIconBoxRating: { backgroundColor: colors.ratingBg },
+  detailIconBoxPrimary: { backgroundColor: colors.primaryLight },
+  detailIconBoxInfo: { backgroundColor: colors.infoLight },
+  detailIconBoxDark: { backgroundColor: colors.surfaceSubtle },
   detailLabel: {
-    fontFamily: fonts.semiBold,
-    fontSize: 11,
+    fontFamily: fonts.bold,
+    fontSize: 10,
     color: colors.textGray,
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   detailVal: {
-    fontFamily: fonts.bold,
+    fontFamily: fonts.semiBold,
     fontSize: 13,
     color: colors.textDark,
     marginTop: 2,
@@ -476,42 +680,59 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
-    gap: spacing.sm,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 14,
+    elevation: 3,
   },
   supportIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: spacing.sm,
+    shadowColor: colors.primaryGlow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+  },
+  supportEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
   supportTitle: {
     fontFamily: fonts.bold,
-    fontSize: 13,
+    fontSize: 14,
     color: colors.textDark,
   },
   supportSub: {
     fontFamily: fonts.regular,
     fontSize: 11,
     color: colors.textGray,
-    marginTop: 1,
+    marginTop: 2,
   },
   supportBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#25D366',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: spacing.borderRadiusSm,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: spacing.borderRadiusFull,
+    shadowColor: '#25D366',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
   },
   supportBtnText: {
     fontFamily: fonts.bold,
@@ -521,28 +742,51 @@ const styles = StyleSheet.create({
 
   reviewsLinkCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 14,
+    elevation: 3,
+  },
+  reviewsIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.ratingBg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reviewsLinkEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.ratingText,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
   reviewsLinkTitle: {
     fontFamily: fonts.bold,
-    fontSize: 13,
+    fontSize: 14,
     color: colors.textDark,
   },
   reviewsLinkSub: {
     fontFamily: fonts.regular,
     fontSize: 11,
     color: colors.textGray,
-    marginTop: 1,
+    marginTop: 2,
+  },
+  reviewsChevronBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   logoutBtn: {
