@@ -227,26 +227,26 @@ const SellerDashboardScreen = ({ navigation }) => {
             <Text style={styles.kpiSub}>Total: ৳ {totalRevenue.toLocaleString()}</Text>
           </View>
 
-          {/* Total Orders */}
+          {/* Pending Orders */}
           <View style={styles.kpiCard}>
             <View style={[styles.kpiIconBox, { backgroundColor: colors.primaryLight }]}>
               <Ionicons name="receipt-outline" size={16} color={colors.primary} />
             </View>
-            <Text style={styles.kpiLabel}>Total Orders</Text>
-            <Text style={styles.kpiValue}>{totalOrdersCount}</Text>
-            <Text style={[styles.kpiSub, pendingOrdersCount > 0 && { color: colors.danger, fontFamily: fonts.bold }]}>
-              Pending: {pendingOrdersCount}
+            <Text style={styles.kpiLabel}>Pending Orders</Text>
+            <Text style={[styles.kpiValue, pendingOrdersCount > 0 && { color: colors.primary }]}>
+              {pendingOrdersCount}
             </Text>
+            <Text style={styles.kpiSub}>Total: {totalOrdersCount}</Text>
           </View>
 
-          {/* Rating */}
+          {/* Delivered Orders */}
           <View style={styles.kpiCard}>
-            <View style={[styles.kpiIconBox, { backgroundColor: colors.ratingBg }]}>
-              <Ionicons name="star" size={15} color={colors.rating} />
+            <View style={[styles.kpiIconBox, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+              <Ionicons name="checkmark-done-circle-outline" size={16} color="#3B82F6" />
             </View>
-            <Text style={styles.kpiLabel}>Avg. Rating</Text>
-            <Text style={styles.kpiValue}>★ {avgRating}</Text>
-            <Text style={styles.kpiSub}>{reviews.length} {reviews.length === 1 ? 'Review' : 'Reviews'}</Text>
+            <Text style={styles.kpiLabel}>Delivered</Text>
+            <Text style={styles.kpiValue}>{totalCompleted}</Text>
+            <Text style={styles.kpiSub}>Completed</Text>
           </View>
         </View>
 
@@ -406,62 +406,6 @@ const SellerDashboardScreen = ({ navigation }) => {
 
                   <View style={styles.orderRightCol}>
                     <StatusBadge status={ord.status} />
-                  </View>
-                </View>
-              );
-            })
-          )}
-        </View>
-
-        {/* Latest Reviews Preview */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeaderRow}>
-            <View>
-              <Text style={styles.sectionEyebrow}>Reputation</Text>
-              <Text style={styles.sectionHeading}>Latest Reviews</Text>
-              <Text style={styles.sectionSub}>What students are saying</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Settings', { screen: 'Reviews' })}
-              activeOpacity={0.7}
-              style={styles.viewAllBtn}
-            >
-              <Text style={styles.viewAllLink}>View All</Text>
-              <Ionicons name="chevron-forward" size={13} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-
-          {reviews.length === 0 ? (
-            <View style={styles.emptyRecentBox}>
-              <View style={styles.emptyRecentIcon}>
-                <Ionicons name="chatbubbles-outline" size={22} color={colors.primary} />
-              </View>
-              <Text style={styles.emptyRecentText}>No reviews yet.</Text>
-            </View>
-          ) : (
-            reviews.slice(0, 3).map((rev) => {
-              const reviewer = rev.user?.name || 'CUET Student';
-              const initial = reviewer.charAt(0).toUpperCase();
-              const date = rev.createdAt
-                ? new Date(rev.createdAt).toLocaleDateString()
-                : 'Verified Buyer';
-              return (
-                <View key={rev._id || rev.id} style={styles.reviewRow}>
-                  <View style={styles.reviewAvatar}>
-                    <Text style={styles.reviewAvatarText}>{initial}</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.reviewTopLine}>
-                      <Text style={styles.reviewName} numberOfLines={1}>{reviewer}</Text>
-                      <View style={styles.reviewRatingPill}>
-                        <Ionicons name="star" size={11} color={colors.rating} style={{ marginRight: 3 }} />
-                        <Text style={styles.reviewRatingText}>{rev.rating}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.reviewComment} numberOfLines={2}>
-                      "{rev.comment || 'Happy with the service!'}"
-                    </Text>
-                    <Text style={styles.reviewDate}>{date}</Text>
                   </View>
                 </View>
               );
@@ -933,69 +877,6 @@ const styles = StyleSheet.create({
   },
 
   /* Latest Reviews Preview */
-  reviewRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  reviewAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.sm,
-    shadowColor: colors.primaryGlow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
-  },
-  reviewAvatarText: {
-    fontFamily: fonts.headingBold,
-    fontSize: 13,
-    color: colors.primary,
-  },
-  reviewTopLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 3,
-  },
-  reviewName: {
-    fontFamily: fonts.bold,
-    fontSize: 13,
-    color: colors.textDark,
-    flex: 1,
-    marginRight: spacing.xs,
-  },
-  reviewRatingPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.ratingBg,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: spacing.borderRadiusFull,
-  },
-  reviewRatingText: {
-    fontFamily: fonts.bold,
-    fontSize: 11,
-    color: colors.ratingText,
-  },
-  reviewComment: {
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    color: colors.textDark,
-    lineHeight: 17,
-  },
-  reviewDate: {
-    fontFamily: fonts.regular,
-    fontSize: 10,
-    color: colors.textLight,
-    marginTop: 4,
-  },
 });
 
 export default SellerDashboardScreen;

@@ -6,6 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -132,18 +133,19 @@ const SellerReviewsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: '#F3F4F7' },
   header: {
     backgroundColor: colors.card,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.sm + 2,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#E2E6EC',
   },
   headerTitle: {
-    fontFamily: fonts.headingExtraBold,
-    fontSize: 20,
+    fontFamily: fonts.headingBold,
+    fontSize: 18,
     color: colors.textDark,
+    letterSpacing: -0.2,
   },
   headerSubtitle: {
     fontFamily: fonts.regular,
@@ -153,8 +155,8 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    padding: spacing.md,
+    paddingBottom: 60,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
@@ -163,14 +165,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: 16,
     padding: spacing.md,
     marginBottom: spacing.md,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    borderWidth: 1.2,
+    borderColor: '#DDE1E6',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#121217',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(18, 18, 23, 0.03)',
+      },
+    }),
   },
   scoreCol: { alignItems: 'flex-start' },
   scoreNum: {
@@ -185,11 +198,13 @@ const styles = StyleSheet.create({
     color: colors.textGray,
   },
   summaryBadgeBox: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: 'rgba(255, 75, 38, 0.08)',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: spacing.borderRadiusSm,
+    borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 75, 38, 0.15)',
   },
   badgeLabel: {
     fontFamily: fonts.bold,
@@ -200,14 +215,25 @@ const styles = StyleSheet.create({
 
   reviewCard: {
     backgroundColor: colors.card,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: 16,
     padding: spacing.md,
     marginBottom: spacing.sm,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    borderWidth: 1.2,
+    borderColor: '#DDE1E6',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#121217',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(18, 18, 23, 0.03)',
+      },
+    }),
   },
   reviewTopRow: {
     flexDirection: 'row',
