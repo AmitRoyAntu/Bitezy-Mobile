@@ -16,6 +16,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import CustomInput from '../../components/CustomInput';
 import CustomSelect from '../../components/CustomSelect';
 import CustomButton from '../../components/CustomButton';
+import ProfileInfoRow from '../../components/ProfileInfoRow';
+import LogoutButton from '../../components/LogoutButton';
+import BrandFooter from '../../components/BrandFooter';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { CUET_HALLS, CUET_DEPARTMENTS } from '../../data/cuetOptions';
 import { useAuth } from '../../context/AuthContext';
@@ -247,55 +250,42 @@ const CustomerProfileScreen = () => {
             </View>
           ) : (
             <View style={styles.infoList}>
-              <View style={styles.infoTile}>
-                <View style={[styles.infoIconBox, { backgroundColor: colors.primaryLight }]}>
-                  <Ionicons name="id-card-outline" size={18} color={colors.primary} />
-                </View>
-                <View style={styles.infoTextContainer}>
-                  <Text style={styles.infoLabel}>Student / CUET ID</Text>
-                  <Text style={styles.infoValue}>{currentUser?.cuetId || '2204000'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.infoTile}>
-                <View style={[styles.infoIconBox, { backgroundColor: colors.infoLight }]}>
-                  <Ionicons name="book-outline" size={18} color={colors.info} />
-                </View>
-                <View style={styles.infoTextContainer}>
-                  <Text style={styles.infoLabel}>Department</Text>
-                  <Text style={styles.infoValue}>{currentUser?.department || 'Computer Science & Engineering (CSE)'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.infoTile}>
-                <View style={[styles.infoIconBox, { backgroundColor: colors.successLight }]}>
-                  <Ionicons name="business-outline" size={18} color={colors.success} />
-                </View>
-                <View style={styles.infoTextContainer}>
-                  <Text style={styles.infoLabel}>Hall Residence / Address</Text>
-                  <Text style={styles.infoValue}>{currentUser?.residence || 'Kabi Kazi Nazrul Islam Hall, Room 302'}</Text>
-                </View>
-              </View>
-
-              <View style={styles.infoTile}>
-                <View style={[styles.infoIconBox, { backgroundColor: colors.ratingBg }]}>
-                  <Ionicons name="call-outline" size={18} color={colors.rating} />
-                </View>
-                <View style={styles.infoTextContainer}>
-                  <Text style={styles.infoLabel}>Contact Number</Text>
-                  <Text style={styles.infoValue}>{currentUser?.phone || '01812345678'}</Text>
-                </View>
-              </View>
-
-              <View style={[styles.infoTile, styles.infoTileLast]}>
-                <View style={[styles.infoIconBox, { backgroundColor: colors.surfaceSubtle }]}>
-                  <Ionicons name="location-outline" size={18} color={colors.textDark} />
-                </View>
-                <View style={styles.infoTextContainer}>
-                  <Text style={styles.infoLabel}>Institution</Text>
-                  <Text style={styles.infoValue}>Chittagong University of Engineering & Technology (CUET)</Text>
-                </View>
-              </View>
+              <ProfileInfoRow
+                icon="id-card-outline"
+                label="Student / CUET ID"
+                value={currentUser?.cuetId || '2204000'}
+                iconColor={colors.primary}
+                iconBg="rgba(255, 75, 38, 0.08)"
+              />
+              <ProfileInfoRow
+                icon="book-outline"
+                label="Department"
+                value={currentUser?.department || 'Computer Science & Engineering (CSE)'}
+                iconColor={colors.info}
+                iconBg={colors.infoLight}
+              />
+              <ProfileInfoRow
+                icon="business-outline"
+                label="Hall Residence / Address"
+                value={currentUser?.residence || 'Kabi Kazi Nazrul Islam Hall, Room 302'}
+                iconColor={colors.success}
+                iconBg={colors.successLight}
+              />
+              <ProfileInfoRow
+                icon="call-outline"
+                label="Contact Number"
+                value={currentUser?.phone || '01812345678'}
+                iconColor={colors.rating}
+                iconBg={colors.ratingBg}
+              />
+              <ProfileInfoRow
+                icon="location-outline"
+                label="Institution"
+                value="Chittagong University of Engineering & Technology (CUET)"
+                iconColor={colors.textDark}
+                iconBg={colors.surfaceSubtle}
+                isLast
+              />
             </View>
           )}
         </View>
@@ -367,28 +357,11 @@ const CustomerProfileScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity
-          style={styles.logoutPillBtn}
-          onPress={logout}
-          activeOpacity={0.8}
-        >
-          <View style={styles.logoutIconCircle}>
-            <Ionicons name="log-out-outline" size={16} color={colors.danger} />
-          </View>
-          <Text style={styles.logoutPillBtnText}>Log Out Account</Text>
-        </TouchableOpacity>
+        {/* Modular Logout Button */}
+        <LogoutButton onPress={logout} label="Log Out Account" />
 
-        {/* Brand Footer */}
-        <View style={styles.brandFooter}>
-          <View style={styles.brandFooterLogo}>
-            <Logo size={28} />
-          </View>
-          <Text style={styles.brandFooterText}>Bitezy Campus Dining</Text>
-          <Text style={styles.brandFooterSubtext}>Crafted for CUETians · v1.2.0</Text>
-        </View>
-
-        <View style={styles.bottomSpacer} />
+        {/* Modular Brand Footer */}
+        <BrandFooter />
       </ScrollView>
     </View>
   );
@@ -628,39 +601,6 @@ const styles = StyleSheet.create({
   },
   saveBtn: { marginTop: spacing.md },
 
-  /* Info tiles */
-  infoList: { marginTop: spacing.xs },
-  infoTile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm + 2,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  infoTileLast: { borderBottomWidth: 0 },
-  infoIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  infoTextContainer: { flex: 1 },
-  infoLabel: {
-    fontFamily: fonts.semiBold,
-    fontSize: 10,
-    color: colors.textGray,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  infoValue: {
-    fontFamily: fonts.bold,
-    fontSize: 13,
-    color: colors.textDark,
-    marginTop: 3,
-  },
-
   /* Support */
   supportRow: {
     flexDirection: 'row',
@@ -698,55 +638,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  /* Logout */
-  logoutPillBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.dangerLight,
-    borderWidth: 1,
-    borderColor: colors.dangerLight,
-    paddingVertical: 12,
-    borderRadius: spacing.borderRadiusFull,
-    marginBottom: spacing.lg,
-    gap: 8,
-  },
-  logoutIconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoutPillBtnText: {
-    fontFamily: fonts.bold,
-    fontSize: 14,
-    color: colors.danger,
-  },
-
-  /* Brand Footer */
-  brandFooter: {
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    paddingTop: spacing.md,
-  },
-  brandFooterLogo: {
-    marginBottom: spacing.sm,
-  },
-  brandFooterText: {
-    fontFamily: fonts.bold,
-    fontSize: 12,
-    color: colors.textDark,
-  },
-  brandFooterSubtext: {
-    fontFamily: fonts.regular,
-    fontSize: 11,
-    color: colors.textLight,
-    marginTop: 2,
-  },
-
 });
 
 export default CustomerProfileScreen;

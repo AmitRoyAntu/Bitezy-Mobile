@@ -201,12 +201,16 @@ const ProviderListScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.greeting}>Hungry on campus?</Text>
-        <Text style={styles.subGreeting}>Order from your favourite hall canteens & carts</Text>
+        <View style={styles.greetingBlock}></View>
+          <Text style={styles.greeting}>Hungry on campus?</Text>
+          <Text style={styles.subGreeting}>Order from your favourite hall canteens & carts</Text>
+        </View>
 
         {/* Integrated Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={18} color={colors.textLight} style={styles.searchIcon} />
+          <View style={styles.searchIconBox}>
+            <Ionicons name="search" size={16} color={colors.primary} />
+          </View>
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -240,6 +244,7 @@ const ProviderListScreen = ({ navigation }) => {
         {activeCategory !== 'All' && (
           <View style={styles.activeFilterRow}>
             <View style={styles.activeFilterPill}>
+              <View style={styles.activeFilterDot} />
               <Text style={styles.activeFilterText}>Filtered by: {activeCategory}</Text>
               <TouchableOpacity
                 onPress={() => setActiveCategory('All')}
@@ -380,8 +385,9 @@ const ProviderListScreen = ({ navigation }) => {
                       <View style={styles.heroIconDecoration}>
                         <Ionicons
                           name={activeBanner.bgIcon}
-                          size={76}
-                          color="rgba(255, 255, 255, 0.05)"
+                          size={84}
+                          color={activeBanner.accentColor}
+                          style={styles.heroIconBg}
                         />
                       </View>
                     </View>
@@ -390,12 +396,20 @@ const ProviderListScreen = ({ navigation }) => {
               )}
 
               {/* Section Header with Count */}
-              <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>
-                  {activeCategory === 'All' ? 'Campus Canteens & Halls' : `${activeCategory} Spots`}
+              <View style={styles.sectionHeaderBlock}>
+                <Text style={styles.sectionEyebrow}>
+                  {activeCategory === 'All' ? 'BROWSE PROVIDERS' : `${activeCategory.toUpperCase()} SPOTS`}
                 </Text>
-                <View style={styles.countPill}>
-                  <Text style={styles.countText}>{filteredProviders.length} places</Text>
+                <View style={styles.sectionHeaderRow}>
+                  <Text style={styles.sectionTitle}>
+                    {activeCategory === 'All' ? 'Campus Canteens & Halls' : `${activeCategory} Spots`}
+                  </Text>
+                  <View style={styles.countPill}>
+                    <View style={styles.countIconBox}>
+                      <Ionicons name="storefront-outline" size={12} color={colors.primary} />
+                    </View>
+                    <Text style={styles.countText}>{filteredProviders.length} places</Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -419,8 +433,11 @@ const ProviderListScreen = ({ navigation }) => {
 
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconBox}>
-                <Ionicons name="search-outline" size={36} color={colors.textLight} />
+              <Text style={styles.emptyEyebrow}>NOTHING FOUND</Text>
+              <View style={styles.emptyIconOuter}>
+                <View style={styles.emptyIconBox}>
+                  <Ionicons name="search-outline" size={38} color={colors.primary} />
+                </View>
               </View>
               <Text style={styles.emptyTitle}>No matching food places</Text>
               <Text style={styles.emptyText}>Try searching for something else or reset your filter</Text>
@@ -432,6 +449,7 @@ const ProviderListScreen = ({ navigation }) => {
                     setSearchQuery('');
                   }}
                 >
+                  <Ionicons name="refresh-outline" size={14} color={colors.primary} style={{ marginRight: 6 }} />
                   <Text style={styles.emptyResetBtnText}>Show All Providers</Text>
                 </TouchableOpacity>
               )}
@@ -459,12 +477,15 @@ const ProviderListScreen = ({ navigation }) => {
           >
             <View style={styles.sheetDragHandle} />
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Filter by Category</Text>
+              <View style={styles.sheetTitleCol}>
+                <Text style={styles.sheetEyebrow}>REFINE YOUR FEED</Text>
+                <Text style={styles.sheetTitle}>Filter by Category</Text>
+              </View>
               <TouchableOpacity
                 onPress={() => setShowFilterModal(false)}
                 style={styles.sheetCloseBtn}
               >
-                <Ionicons name="close" size={22} color={colors.textDark} />
+                <Ionicons name="close" size={20} color={colors.textDark} />
               </TouchableOpacity>
             </View>
 
@@ -558,20 +579,25 @@ const ProviderListScreen = ({ navigation }) => {
           >
             <View style={styles.sheetDragHandle} />
             <View style={styles.sheetHeader}>
-              <View style={styles.savedModalTitleRow}>
-                <Ionicons name="bookmark" size={18} color={colors.primary} style={{ marginRight: 6 }} />
-                <Text style={styles.sheetTitle}>Saved Watchlist</Text>
-                {favorites.length > 0 && (
-                  <View style={styles.savedModalBadge}>
-                    <Text style={styles.savedModalBadgeText}>{favorites.length}</Text>
+              <View style={styles.sheetTitleCol}>
+                <Text style={styles.sheetEyebrow}>QUICK REORDER</Text>
+                <View style={styles.savedModalTitleRow}>
+                  <View style={styles.savedTitleIconBox}>
+                    <Ionicons name="bookmark" size={14} color={colors.primary} />
                   </View>
-                )}
+                  <Text style={styles.sheetTitle}>Saved Watchlist</Text>
+                  {favorites.length > 0 && (
+                    <View style={styles.savedModalBadge}>
+                      <Text style={styles.savedModalBadgeText}>{favorites.length}</Text>
+                    </View>
+                  )}
+                </View>
               </View>
               <TouchableOpacity
                 onPress={() => setShowSavedModal(false)}
                 style={styles.sheetCloseBtn}
               >
-                <Ionicons name="close" size={22} color={colors.textDark} />
+                <Ionicons name="close" size={20} color={colors.textDark} />
               </TouchableOpacity>
             </View>
 
@@ -680,18 +706,28 @@ const styles = StyleSheet.create({
   },
   watchlistIconButtonActive: {
     backgroundColor: colors.primaryLight,
-    borderColor: 'rgba(255, 75, 38, 0.25)',
+    borderColor: colors.primaryGlow,
   },
   watchlistDot: {
     position: 'absolute',
     top: 7,
     right: 7,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: colors.primary,
-    borderWidth: 1.2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accent,
+    borderWidth: 1.5,
     borderColor: colors.card,
+  },
+  greetingBlock: {
+    marginTop: 4,
+  },
+  greetingEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    marginBottom: 4,
   },
   greeting: {
     fontFamily: fonts.headingBold,
@@ -710,12 +746,32 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4F5F8',
+    backgroundColor: colors.inputBg,
     borderRadius: spacing.borderRadiusMd,
-    paddingHorizontal: spacing.md,
-    height: 48,
+    paddingHorizontal: spacing.sm + 2,
+    height: 50,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderDark,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 1,
+      },
+    }),
+  },
+  searchIconBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -766,12 +822,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primaryLight,
-    paddingLeft: spacing.md,
+    paddingLeft: spacing.sm + 2,
     paddingRight: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: 'rgba(255, 75, 38, 0.2)',
+    borderColor: colors.primaryGlow,
+  },
+  activeFilterDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+    marginRight: 6,
   },
   activeFilterText: {
     fontFamily: fonts.bold,
@@ -794,7 +857,7 @@ const styles = StyleSheet.create({
   /* Hero Campus Specials Banner */
   heroBannerCard: {
     backgroundColor: colors.secondary,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusLg,
     padding: spacing.md + 2,
     height: 156,
     justifyContent: 'center',
@@ -802,19 +865,19 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.borderDark,
     ...Platform.select({
       ios: {
-        shadowColor: colors.secondary,
+        shadowColor: colors.shadowStrong,
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.25,
+        shadowOpacity: 1,
         shadowRadius: 12,
       },
       android: {
         elevation: 4,
       },
       web: {
-        boxShadow: '0 6px 20px rgba(18, 18, 23, 0.18)',
+        boxShadow: `0 6px 20px ${colors.shadowStrong}`,
       },
     }),
   },
