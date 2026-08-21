@@ -26,10 +26,10 @@ import { useFavorites } from '../../context/FavoritesContext';
 import { useCart } from '../../context/CartContext';
 
 const CATEGORIES = [
-  { name: 'All', icon: 'apps-outline' },
-  { name: 'Canteen', icon: 'restaurant-outline' },
-  { name: 'Cafeteria', icon: 'cafe-outline' },
-  { name: 'Cart', icon: 'fast-food-outline' },
+  { name: 'All', icon: 'apps-outline', desc: 'All campus food options' },
+  { name: 'Canteen', icon: 'restaurant-outline', desc: 'Hall dining & meal plans' },
+  { name: 'Cafeteria', icon: 'cafe-outline', desc: 'Central dining & snacks' },
+  { name: 'Cart', icon: 'fast-food-outline', desc: 'Quick bites, tea & snacks' },
 ];
 
 const HERO_BANNERS = [
@@ -201,7 +201,7 @@ const ProviderListScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.greetingBlock}></View>
+        <View style={styles.greetingBlock}>
           <Text style={styles.greeting}>Hungry on campus?</Text>
           <Text style={styles.subGreeting}>Order from your favourite hall canteens & carts</Text>
         </View>
@@ -985,39 +985,70 @@ const styles = StyleSheet.create({
   },
   heroIconDecoration: {
     position: 'absolute',
-    right: -10,
-    bottom: -10,
+    right: -16,
+    bottom: -16,
     zIndex: 1,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heroIconBg: {
+    opacity: 0.18,
   },
 
 
   /* Section Header */
+  sectionHeaderBlock: {
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  sectionEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    marginBottom: 6,
+    paddingHorizontal: 2,
+  },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-    marginTop: spacing.xs,
     paddingHorizontal: 2,
   },
   sectionTitle: {
     fontFamily: fonts.headingBold,
-    fontSize: 16,
+    fontSize: 17,
     color: colors.textDark,
     letterSpacing: -0.3,
   },
   countPill: {
-    backgroundColor: colors.surfaceSubtle,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingLeft: 4,
+    paddingRight: 10,
+    paddingVertical: 4,
     borderRadius: spacing.borderRadiusFull,
     borderWidth: 1,
-    borderColor: colors.borderDark,
+    borderColor: colors.primaryGlow,
+  },
+  countIconBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 5,
   },
   countText: {
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.bold,
     fontSize: 11,
-    color: colors.textGray,
+    color: colors.primary,
   },
 
   center: {
@@ -1030,6 +1061,16 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     alignItems: 'center',
     marginTop: spacing.lg,
+  },
+  emptyEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    marginBottom: 12,
+  },
+  emptyIconOuter: {
+    marginBottom: spacing.xs,
   },
   emptyIconBox: {
     width: 68,
@@ -1102,6 +1143,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
+  },
+  sheetTitleCol: {
+    flex: 1,
+  },
+  sheetEyebrow: {
+    fontFamily: fonts.bold,
+    fontSize: 10,
+    color: colors.primary,
+    letterSpacing: 1.2,
+    marginBottom: 4,
   },
   sheetTitle: {
     fontFamily: fonts.headingBold,
@@ -1213,6 +1264,15 @@ const styles = StyleSheet.create({
   savedModalTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  savedTitleIconBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
   savedModalBadge: {
     backgroundColor: colors.primaryLight,
