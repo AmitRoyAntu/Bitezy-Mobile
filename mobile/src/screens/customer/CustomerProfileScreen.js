@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,9 +8,11 @@ import {
   ActivityIndicator,
   Image,
   Linking,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import CustomInput from '../../components/CustomInput';
 import CustomSelect from '../../components/CustomSelect';
 import CustomButton from '../../components/CustomButton';
@@ -53,9 +55,11 @@ const CustomerProfileScreen = () => {
     }
   }, [currentUser]);
 
-  useEffect(() => {
-    loadUserStats();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadUserStats();
+    }, [])
+  );
 
   const loadUserStats = async () => {
     try {

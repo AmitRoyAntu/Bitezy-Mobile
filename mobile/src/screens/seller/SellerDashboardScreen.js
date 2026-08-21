@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import Logo from '../../components/Logo';
 import OrderTypeBadge from '../../components/OrderTypeBadge';
 import StatusBadge from '../../components/StatusBadge';
@@ -32,7 +33,8 @@ const SellerDashboardScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [chartDays, setChartDays] = useState(7);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (isBackground = false) => {
+    if (!isBackground) setLoading(true);
     try {
       const myProvider = await DataService.getMyProvider();
       setProvider(myProvider);
@@ -52,9 +54,11 @@ const SellerDashboardScreen = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboardData(orders.length > 0);
+    }, [])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);

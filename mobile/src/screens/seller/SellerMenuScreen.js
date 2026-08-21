@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 import CustomSelect from '../../components/CustomSelect';
@@ -74,9 +75,11 @@ const SellerMenuScreen = () => {
     }
   };
 
-  useEffect(() => {
-    loadMenuData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadMenuData();
+    }, [])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);
