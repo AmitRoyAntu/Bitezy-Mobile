@@ -11,6 +11,7 @@ yarn-error.log*
 web-build/
 dist/
 build/
+expo-env.d.ts
 
 # Native builds & caches
 *.orig.*
@@ -21,13 +22,17 @@ build/
 *.mobileprovision
 android/
 ios/
+/android
+/ios
 *.apk
 *.aab
 *.ipa
+.kotlin/
 
 # Environment & Local Secrets
 .env
 .env.local
+.env.*.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -40,6 +45,7 @@ ios/
 .Trashes
 ehthumbs.db
 Thumbs.db
+*.pem
 
 # IDE & Editor Files
 .idea/
@@ -47,15 +53,11 @@ Thumbs.db
 *.swp
 *.swo
 *~
-
-# Puku
-.puku/
-
-credentials
-frontend/
+*.tsbuildinfo
 
 # Local History & Editor Backups
 .history/
 .history
 .gitignore_*
 *.history
+.metro-health-check*
