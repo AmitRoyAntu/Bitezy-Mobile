@@ -4,6 +4,7 @@ import FloatingTabBar from '../components/FloatingTabBar';
 
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
+import AdminReviewsScreen from '../screens/admin/AdminReviewsScreen';
 import AdminUsersScreen from '../screens/admin/AdminUsersScreen';
 import AdminSellersScreen from '../screens/admin/AdminSellersScreen';
 
@@ -15,6 +16,8 @@ const getIconName = (routeName, isFocused) => {
       return isFocused ? 'pie-chart' : 'pie-chart-outline';
     case 'AdminOrders':
       return isFocused ? 'receipt' : 'receipt-outline';
+    case 'AdminReviews':
+      return isFocused ? 'star' : 'star-outline';
     case 'AdminUsers':
       return isFocused ? 'people' : 'people-outline';
     case 'AdminSellers':
@@ -49,6 +52,11 @@ const AdminNavigator = () => {
         name="AdminOrders"
         component={AdminOrdersScreen}
         options={{ tabBarLabel: 'Orders' }}
+      />
+      <Tab.Screen
+        name="AdminReviews"
+        component={AdminReviewsScreen}
+        options={{ tabBarLabel: 'Reviews' }}
       />
       <Tab.Screen
         name="AdminUsers"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
+  TouchableOpacity,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing } from '../../theme/colors';
 import AdminHeader from '../../components/AdminHeader';
 import SellerCard from '../../components/SellerCard';
@@ -16,6 +19,7 @@ const AdminSellersScreen = () => {
   const [sellersData, setSellersData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadData = useCallback(async () => {
     try {
@@ -65,6 +69,17 @@ const AdminSellersScreen = () => {
     loadData();
   };
 
+  const filteredSellers = useMemo(() => {
+    if (!searchQuery.trim()) return sellersData;
+    const q = searchQuery.toLowerCase();
+    return sellersData.filter((s) => {
+      const shop = (s.shopName || '').toLowerCase();
+      const owner = (s.seller?.name || '').toLowerCase();
+      const loc = (s.location || '').toLowerCase();
+      return shop.includes(q) || owner.includes(q) || loc.includes(q);
+    });
+  }, [sellersData, searchQuery]);
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -77,7 +92,7 @@ const AdminSellersScreen = () => {
     <View style={styles.container}>
       <AdminHeader />
       <FlatList
-        data={sellersData}
+        data={filteredSellers}
         keyExtractor={(item) => String(item.seller._id || item.seller.id)}
         renderItem={({ item }) => (
           <SellerCard
@@ -94,11 +109,29 @@ const AdminSellersScreen = () => {
             <Text style={styles.subtitle}>
               {sellersData.length} registered canteens & food carts
             </Text>
+
+            {/* Search Bar */}
+            <View style={styles.searchBar}>
+              <Ionicons name="search-outline" size={18} color={colors.textGray} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search by shop name, owner, or hall..."
+                placeholderTextColor={colors.textLight}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={18} color={colors.textGray} />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         }
         ListEmptyComponent={
-          <View style={styles.center}>
-            <Text style={styles.emptyText}>No sellers registered.</Text>
+          <View style={styles.emptyContainer}>
+            <Ionicons name="storefront-outline" size={48} color={colors.textLight} />
+            <Text style={styles.emptyText}>No sellers matched your search.</Text>
           </View>
         }
         contentContainerStyle={styles.listContent}
@@ -124,7 +157,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    backgroundColor: colors.background,
   },
   listContent: {
     padding: spacing.md,
@@ -144,12 +177,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.regular,
     color: colors.textGray,
+    marginBottom: spacing.md,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: spacing.borderRadiusMd,
+    paddingHorizontal: spacing.md,
+    height: 48,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.sm + 4,
+    shadowColor: colors.secondary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.textDark,
+    marginLeft: spacing.sm,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
   },
   emptyText: {
     textAlign: 'center',
     color: colors.textGray,
     fontFamily: fonts.regular,
     fontSize: 14,
+    marginTop: spacing.sm,
   },
 });
 

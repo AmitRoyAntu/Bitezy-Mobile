@@ -489,6 +489,29 @@ class LocalDataService {
     return this.getReviewsByProvider(providerId);
   }
 
+  async getAllReviews() {
+    await this.initStorage();
+    return this.reviews.map((r) => {
+      const provider = this.providers.find(
+        (p) => String(p._id || p.id) === String(r.provider)
+      );
+      return {
+        ...r,
+        providerName: provider ? provider.name : 'Vendor',
+        providerLocation: provider ? provider.location : '',
+      };
+    });
+  }
+
+  async deleteReview(reviewId) {
+    await this.initStorage();
+    this.reviews = this.reviews.filter(
+      (r) => String(r._id || r.id) !== String(reviewId)
+    );
+    await this.persist('bitezy_mock_reviews', this.reviews);
+    return { success: true };
+  }
+
   // Admin
   async getUsers() {
     await this.initStorage();
