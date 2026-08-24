@@ -528,6 +528,30 @@ class LocalDataService {
     }
     throw new Error('User not found');
   }
+
+  async blockSeller(sellerId, isBlocked) {
+    await this.initStorage();
+    // 1. Update seller user account
+    const userIndex = this.users.findIndex(
+      (u) => String(u._id || u.id) === String(sellerId)
+    );
+    if (userIndex !== -1) {
+      this.users[userIndex].isBlocked = isBlocked;
+      await this.persist('bitezy_mock_users', this.users);
+    }
+
+    // 2. Update linked provider / canteen profile
+    const providerIndex = this.providers.findIndex(
+      (p) => String(p.seller) === String(sellerId) || String(p._id || p.id) === String(sellerId)
+    );
+    if (providerIndex !== -1) {
+      this.providers[providerIndex].isBlocked = isBlocked;
+      this.providers[providerIndex].isOpen = !isBlocked;
+      await this.persist('bitezy_mock_providers', this.providers);
+    }
+
+    return { success: true, isBlocked };
+  }
 }
 
 export default new LocalDataService();

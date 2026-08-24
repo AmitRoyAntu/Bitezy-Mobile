@@ -13,18 +13,27 @@ import CustomInput from '../../components/CustomInput';
 import CustomSelect from '../../components/CustomSelect';
 import CustomButton from '../../components/CustomButton';
 import Logo from '../../components/Logo';
-import { colors, spacing } from '../../theme/colors';
+import { colors, fonts, spacing } from '../../theme/colors';
 import { CUET_HALLS, CUET_DEPARTMENTS } from '../../data/cuetOptions';
 import DataService from '../../api/DataService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 
+const BUYER_TYPES = [
+  { label: 'Student', value: 'Student' },
+  { label: 'Teacher', value: 'Teacher' },
+  { label: 'Staff', value: 'Staff' },
+];
+
 const RegisterScreen = ({ navigation }) => {
   const [role, setRole] = useState('buyer'); // 'buyer' | 'seller'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [buyerType, setBuyerType] = useState('Student');
   const [residence, setResidence] = useState('');
   const [department, setDepartment] = useState('');
   const [roomNumber, setRoomNumber] = useState('');
@@ -41,6 +50,9 @@ const RegisterScreen = ({ navigation }) => {
     if (!name.trim()) errs.name = 'Full name is required';
     if (!email.trim()) errs.email = 'Email address is required';
     if (!password.trim()) errs.password = 'Password is required';
+    if (confirmPassword.trim() && confirmPassword !== password) {
+      errs.confirmPassword = 'Passwords do not match';
+    }
     if (!residence) errs.residence = 'Please select your Campus Hall / Residence';
 
     if (Object.keys(errs).length > 0) {
@@ -55,13 +67,14 @@ const RegisterScreen = ({ navigation }) => {
     const payload = {
       name: name.trim(),
       email: email.trim(),
+      phone: phone.trim() || '01800000000',
       password,
       role,
       residence: fullResidence,
       department: department || 'Computer Science & Engineering (CSE)',
       ...(role === 'buyer'
-        ? { cuetId: dynamicValue.trim() || '2204000', buyerType: 'Student' }
-        : { vendorName: dynamicValue.trim() }),
+        ? { cuetId: dynamicValue.trim() || '2204000', buyerType }
+        : { vendorName: dynamicValue.trim() || `${name.trim()}'s Canteen` }),
     };
 
     try {
@@ -179,8 +192,11 @@ const RegisterScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
+            {/* Basic Info Section */}
+            <Text style={styles.sectionHeading}>Basic Information</Text>
+
             <CustomInput
-              label="Full Name"
+              label="Full Name *"
               value={name}
               onChangeText={setName}
               placeholder="e.g. Amit Roy"
@@ -188,17 +204,25 @@ const RegisterScreen = ({ navigation }) => {
             />
 
             <CustomInput
-              label="Email Address"
+              label="Email Address *"
               value={email}
               onChangeText={setEmail}
-              placeholder="e.g. example@cuet.ac.bd"
+              placeholder="e.g. demo@cuet.ac.bd"
               keyboardType="email-address"
               error={errors.email}
             />
 
+            <CustomInput
+              label="Phone Number"
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="e.g. 018XXXXXXXX"
+              keyboardType="phone-pad"
+            />
+
             <View style={styles.passwordContainer}>
               <CustomInput
-                label="Create Password"
+                label="Create Password *"
                 value={password}
                 onChangeText={setPassword}
                 placeholder="••••••••"
@@ -218,25 +242,67 @@ const RegisterScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Dropdown 1: Campus Hall / Residence */}
+            <CustomInput
+              label="Confirm Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="••••••••"
+              secureTextEntry={!showPassword}
+              error={errors.confirmPassword}
+              style={{ marginTop: spacing.md }}
+            />
+
+            {/* Academic / Campus Details */}
+            <Text style={[styles.sectionHeading, { marginTop: spacing.md }]}>
+              {role === 'buyer' ? 'Academic & Campus Details' : 'Canteen Details'}
+            </Text>
+
+            {role === 'buyer' && (
+              <View style={styles.buyerTypeRow}>
+                <Text style={styles.buyerTypeLabel}>Account Category:</Text>
+                <View style={styles.buyerTypeChips}>
+                  {BUYER_TYPES.map((bt) => (
+                    <TouchableOpacity
+                      key={bt.value}
+                      style={[
+                        styles.buyerTypeChip,
+                        buyerType === bt.value && styles.buyerTypeChipActive,
+                      ]}
+                      onPress={() => setBuyerType(bt.value)}
+                    >
+                      <Text
+                        style={[
+                          styles.buyerTypeChipText,
+                          buyerType === bt.value && styles.buyerTypeChipTextActive,
+                        ]}
+                      >
+                        {bt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Dropdown: Campus Hall / Residence */}
             <CustomSelect
-              label="Campus Hall / Residence"
+              label="Campus Hall / Location *"
               value={residence}
               options={CUET_HALLS}
               onSelect={setResidence}
-              placeholder="Select residential hall..."
+              placeholder="Select residential hall or campus building..."
               error={errors.residence}
               style={{ marginTop: spacing.sm }}
             />
 
             <CustomInput
-              label="Room Number / Flat (Optional)"
+              label="Room / Flat / Desk Number (Optional)"
               value={roomNumber}
               onChangeText={setRoomNumber}
               placeholder="e.g. Room 302 / Extension 4"
             />
 
-            {/* Dropdown 2: Department (for student/buyer) */}
+            {/* Dropdown: Department (for student/buyer) */}
             {role === 'buyer' && (
               <CustomSelect
                 label="Academic Department"
@@ -249,7 +315,7 @@ const RegisterScreen = ({ navigation }) => {
 
             {role === 'buyer' ? (
               <CustomInput
-                label="Student ID (Optional)"
+                label="Student / CUET ID (Optional)"
                 value={dynamicValue}
                 onChangeText={setDynamicValue}
                 placeholder="e.g. 2204000"
@@ -338,12 +404,12 @@ const styles = StyleSheet.create({
   },
   switcherText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: fonts.semiBold,
     color: colors.textGray,
   },
   switcherTextActive: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.primary,
   },
   cardHeader: {
@@ -351,26 +417,36 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: fonts.headingBold,
     color: colors.textDark,
   },
   subtitle: {
     fontSize: 13,
+    fontFamily: fonts.regular,
     color: colors.textGray,
     marginTop: 4,
   },
+  sectionHeading: {
+    fontSize: 13,
+    fontFamily: fonts.bold,
+    color: colors.textDark,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+  },
   roleGrid: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: spacing.md,
     marginBottom: spacing.lg,
   },
   roleCard: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: spacing.borderRadiusMd,
     padding: spacing.md,
     borderWidth: 1.5,
     borderColor: colors.border,
+    alignItems: 'center',
     position: 'relative',
   },
   roleCardActive: {
@@ -378,43 +454,82 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
   },
   roleIconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.card,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   roleIconBadgeActive: {
     backgroundColor: colors.white,
   },
   roleCardTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
     color: colors.textDark,
+    textAlign: 'center',
+    marginBottom: 2,
   },
   roleCardTitleActive: {
     color: colors.primary,
   },
   roleCardDesc: {
-    fontSize: 11,
+    fontSize: 10,
+    fontFamily: fonts.regular,
     color: colors.textGray,
-    marginTop: 2,
+    textAlign: 'center',
   },
   checkBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 6,
+    right: 6,
   },
   passwordContainer: {
     position: 'relative',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   eyeBtn: {
     position: 'absolute',
     right: spacing.md,
     top: 36,
-    padding: 4,
+    zIndex: 10,
+  },
+  buyerTypeRow: {
+    marginBottom: spacing.md,
+  },
+  buyerTypeLabel: {
+    fontSize: 13,
+    fontFamily: fonts.semiBold,
+    color: colors.textDark,
+    marginBottom: 6,
+  },
+  buyerTypeChips: {
+    flexDirection: 'row',
+    gap: spacing.xs + 4,
+  },
+  buyerTypeChip: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: spacing.borderRadiusSm,
+    backgroundColor: colors.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  buyerTypeChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  buyerTypeChipText: {
+    fontSize: 12,
+    fontFamily: fonts.semiBold,
+    color: colors.textGray,
+  },
+  buyerTypeChipTextActive: {
+    color: colors.white,
   },
   submitBtn: {
     marginTop: spacing.md,
@@ -422,16 +537,18 @@ const styles = StyleSheet.create({
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginVertical: spacing.lg,
+    alignItems: 'center',
+    marginTop: spacing.lg,
   },
   footerText: {
-    color: colors.textGray,
     fontSize: 14,
+    fontFamily: fonts.regular,
+    color: colors.textGray,
   },
   signInText: {
-    color: colors.primary,
-    fontWeight: '700',
     fontSize: 14,
+    fontFamily: fonts.bold,
+    color: colors.primary,
   },
 });
 

@@ -1,15 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing } from '../theme/colors';
 
-const SellerCard = ({ seller, shopName, location, totalOrders, totalRevenue }) => {
+const SellerCard = ({
+  seller,
+  shopName,
+  location,
+  totalOrders,
+  totalRevenue,
+  onToggleBlock,
+}) => {
+  const isBlocked = !!seller?.isBlocked;
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, isBlocked && styles.cardBlocked]}>
       <View style={styles.topRow}>
         <View style={styles.nameSection}>
-          <View style={styles.shopIcon}>
-            <Ionicons name="storefront-outline" size={20} color={colors.primary} />
+          <View style={[styles.shopIcon, isBlocked && styles.shopIconBlocked]}>
+            <Ionicons
+              name="storefront-outline"
+              size={20}
+              color={isBlocked ? colors.danger : colors.primary}
+            />
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.shopName} numberOfLines={1}>
@@ -20,6 +33,23 @@ const SellerCard = ({ seller, shopName, location, totalOrders, totalRevenue }) =
             </Text>
           </View>
         </View>
+
+        {onToggleBlock && (
+          <TouchableOpacity
+            style={[
+              styles.actionBtn,
+              { backgroundColor: isBlocked ? colors.successLight : colors.dangerLight },
+            ]}
+            onPress={() => onToggleBlock(seller._id || seller.id, isBlocked)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isBlocked ? 'checkmark-circle-outline' : 'ban-outline'}
+              size={16}
+              color={isBlocked ? colors.success : colors.danger}
+            />
+          </TouchableOpacity>
+        )}
       </View>
 
       {location ? (
@@ -46,6 +76,13 @@ const SellerCard = ({ seller, shopName, location, totalOrders, totalRevenue }) =
           </Text>
         </View>
       </View>
+
+      {isBlocked && (
+        <View style={styles.blockedBanner}>
+          <Ionicons name="ban" size={12} color={colors.danger} />
+          <Text style={styles.blockedText}>Seller Suspended & Storefront Closed</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -64,6 +101,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
+  cardBlocked: {
+    borderColor: colors.dangerBorder,
+    backgroundColor: '#FFFAFA',
+  },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -75,6 +116,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm + 4,
     flex: 1,
+    marginRight: spacing.sm,
   },
   shopIcon: {
     width: 40,
@@ -83,6 +125,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  shopIconBlocked: {
+    backgroundColor: colors.dangerLight,
   },
   textContainer: {
     flex: 1,
@@ -97,6 +142,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     color: colors.textGray,
     marginTop: 1,
+  },
+  actionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   locationRow: {
     marginBottom: spacing.sm + 2,
@@ -143,6 +195,20 @@ const styles = StyleSheet.create({
     width: 1,
     backgroundColor: colors.borderDark,
     marginHorizontal: 8,
+  },
+  blockedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.sm + 2,
+    paddingTop: spacing.xs + 2,
+    borderTopWidth: 1,
+    borderTopColor: '#FFEBEE',
+  },
+  blockedText: {
+    fontSize: 12,
+    fontFamily: fonts.semiBold,
+    color: colors.danger,
   },
 });
 
