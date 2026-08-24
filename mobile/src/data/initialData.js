@@ -1,5 +1,17 @@
 export const initialUsers = [
   {
+    _id: "admin1",
+    id: "admin1",
+    name: "System Admin",
+    email: "admin@bitezy.com",
+    phone: "01800000000",
+    role: "admin",
+    department: "Administration",
+    residence: "Administration Building",
+    password: "demo123",
+    isBlocked: false,
+  },
+  {
     _id: "1",
     id: 1,
     name: "Amit Roy",
