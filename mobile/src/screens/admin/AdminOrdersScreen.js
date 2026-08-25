@@ -9,11 +9,13 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing } from '../../theme/colors';
 import AdminHeader from '../../components/AdminHeader';
 import OrderCard from '../../components/OrderCard';
+import StatusBadge from '../../components/StatusBadge';
 import DataService from '../../api/DataService';
 
 const STATUS_FILTERS = [
@@ -40,6 +42,9 @@ const AdminOrdersScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortOption, setSortOption] = useState('recent_desc');
+
+  // Selected Order for Modal Details
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const loadOrders = useCallback(async () => {
     try {
@@ -119,12 +124,19 @@ const AdminOrdersScreen = () => {
       <FlatList
         data={filteredAndSortedOrders}
         keyExtractor={(item) => String(item._id || item.id)}
-        renderItem={({ item }) => <OrderCard order={item} showItems />}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => setSelectedOrder(item)}
+            activeOpacity={0.8}
+          >
+            <OrderCard order={item} showItems />
+          </TouchableOpacity>
+        )}
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.title}>All System Orders</Text>
             <Text style={styles.subtitle}>
-              {filteredAndSortedOrders.length} of {orders.length} orders matching filters
+              {filteredAndSortedOrders.length} of {orders.length} orders — tap any order for details
             </Text>
 
             {/* Search Input */}
@@ -229,6 +241,111 @@ const AdminOrdersScreen = () => {
           />
         }
       />
+
+      {/* FULL ORDER DETAIL INSPECTION MODAL */}
+      <Modal
+        visible={!!selectedOrder}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSelectedOrder(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>
+                  Order #{String(selectedOrder?._id || selectedOrder?.id || '').slice(-6)}
+                </Text>
+                <Text style={styles.modalSubtitle}>Full Order Inspection</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.closeBtn}
+                onPress={() => setSelectedOrder(null)}
+              >
+                <Ionicons name="close" size={20} color={colors.textDark} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedOrder && (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.orderDetailRow}>
+                  <Text style={styles.orderDetailLabel}>Status:</Text>
+                  <StatusBadge status={selectedOrder.status} />
+                </View>
+
+                <View style={styles.orderDetailRow}>
+                  <Text style={styles.orderDetailLabel}>Order Type:</Text>
+                  <Text style={styles.orderDetailVal}>
+                    {selectedOrder.type === 'delivery' ? '🛵 Room Delivery' : '🛍️ Self Pickup'}
+                  </Text>
+                </View>
+
+                <View style={styles.orderDetailRow}>
+                  <Text style={styles.orderDetailLabel}>Customer:</Text>
+                  <Text style={styles.orderDetailVal}>
+                    {typeof selectedOrder.customer === 'object'
+                      ? selectedOrder.customer?.name
+                      : selectedOrder.customer || 'Student'}
+                  </Text>
+                </View>
+
+                <View style={styles.orderDetailRow}>
+                  <Text style={styles.orderDetailLabel}>Canteen / Provider:</Text>
+                  <Text style={styles.orderDetailVal}>
+                    {typeof selectedOrder.provider === 'object'
+                      ? selectedOrder.provider?.name
+                      : selectedOrder.providerName || 'Vendor'}
+                  </Text>
+                </View>
+
+                {selectedOrder.deliveryAddress ? (
+                  <View style={styles.orderDetailRow}>
+                    <Text style={styles.orderDetailLabel}>Delivery Address:</Text>
+                    <Text style={styles.orderDetailVal}>{selectedOrder.deliveryAddress}</Text>
+                  </View>
+                ) : null}
+
+                {selectedOrder.createdAt && (
+                  <View style={styles.orderDetailRow}>
+                    <Text style={styles.orderDetailLabel}>Placed At:</Text>
+                    <Text style={styles.orderDetailVal}>
+                      {new Date(selectedOrder.createdAt).toLocaleString()}
+                    </Text>
+                  </View>
+                )}
+
+                <Text style={[styles.modalSectionLabel, { marginTop: 14 }]}>Items Ordered:</Text>
+                <View style={styles.orderItemsBox}>
+                  {(selectedOrder.items || []).map((item, i) => (
+                    <View key={i} style={styles.itemLine}>
+                      <Text style={styles.itemLineQty}>{item.qty || item.quantity || 1}x</Text>
+                      <Text style={styles.itemLineName}>{item.name}</Text>
+                      <Text style={styles.itemLinePrice}>
+                        ৳{(item.price || 0) * (item.qty || item.quantity || 1)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+
+                <View style={styles.orderSummaryBox}>
+                  <View style={styles.summaryLine}>
+                    <Text style={styles.sumLineLabel}>Subtotal</Text>
+                    <Text style={styles.sumLineVal}>৳{selectedOrder.subtotal || selectedOrder.total}</Text>
+                  </View>
+                  <View style={styles.summaryLine}>
+                    <Text style={styles.sumLineLabel}>Delivery Fee</Text>
+                    <Text style={styles.sumLineVal}>৳{selectedOrder.deliveryFee || 0}</Text>
+                  </View>
+                  <View style={[styles.summaryLine, styles.totalLine]}>
+                    <Text style={styles.totalLineLabel}>Total Amount</Text>
+                    <Text style={styles.totalLineVal}>৳{selectedOrder.total}</Text>
+                  </View>
+                </View>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -246,7 +363,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: spacing.md,
-    paddingBottom: 40,
+    paddingBottom: 120, // Generous padding so FloatingTabBar never covers the last order
   },
   header: {
     marginBottom: spacing.md,
@@ -359,6 +476,136 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     fontSize: 14,
     marginTop: spacing.sm,
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: spacing.borderRadiusLg,
+    borderTopRightRadius: spacing.borderRadiusLg,
+    padding: spacing.lg,
+    maxHeight: '85%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: fonts.headingBold,
+    color: colors.textDark,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    fontFamily: fonts.regular,
+    color: colors.textGray,
+    marginTop: 2,
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSectionLabel: {
+    fontSize: 12,
+    fontFamily: fonts.semiBold,
+    color: colors.textGray,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+  },
+  orderDetailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  orderDetailLabel: {
+    fontSize: 13,
+    fontFamily: fonts.semiBold,
+    color: colors.textGray,
+  },
+  orderDetailVal: {
+    fontSize: 13,
+    fontFamily: fonts.medium,
+    color: colors.textDark,
+  },
+  orderItemsBox: {
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: spacing.borderRadiusSm,
+    padding: spacing.sm + 4,
+    marginBottom: spacing.sm + 4,
+  },
+  itemLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  itemLineQty: {
+    fontSize: 13,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+    width: 30,
+  },
+  itemLineName: {
+    fontSize: 13,
+    fontFamily: fonts.medium,
+    color: colors.textDark,
+    flex: 1,
+  },
+  itemLinePrice: {
+    fontSize: 13,
+    fontFamily: fonts.semiBold,
+    color: colors.textDark,
+  },
+  orderSummaryBox: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.sm,
+    gap: 4,
+  },
+  summaryLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  sumLineLabel: {
+    fontSize: 13,
+    fontFamily: fonts.regular,
+    color: colors.textGray,
+  },
+  sumLineVal: {
+    fontSize: 13,
+    fontFamily: fonts.medium,
+    color: colors.textDark,
+  },
+  totalLine: {
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  totalLineLabel: {
+    fontSize: 15,
+    fontFamily: fonts.headingBold,
+    color: colors.textDark,
+  },
+  totalLineVal: {
+    fontSize: 16,
+    fontFamily: fonts.headingBold,
+    color: colors.primary,
   },
 });
 

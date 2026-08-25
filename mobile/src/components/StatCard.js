@@ -13,22 +13,29 @@ const StatCard = ({ label, value, trend, trendColor, onPress, icon }) => {
       activeOpacity={onPress ? 0.75 : 1}
     >
       <View style={styles.topRow}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.label} numberOfLines={1}>
+          {label}
+        </Text>
         {onPress && (
           <View style={styles.tapIndicator}>
-            <Ionicons name={icon || 'chevron-forward'} size={14} color={colors.primary} />
+            <Ionicons name={icon || 'chevron-forward'} size={13} color={colors.primary} />
           </View>
         )}
       </View>
-      <Text style={styles.value}>{value}</Text>
+
+      <Text style={styles.value} numberOfLines={1}>
+        {value}
+      </Text>
+
       {trend ? (
         <View style={styles.trendRow}>
-          <Text style={[styles.trend, { color: trendColor || colors.textGray }]}>
+          <Text
+            style={[styles.trend, { color: trendColor || colors.textGray }]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {trend}
           </Text>
-          {onPress && (
-            <Text style={styles.clickHint}>Tap for details</Text>
-          )}
         </View>
       ) : null}
     </Container>
@@ -45,6 +52,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     justifyContent: 'space-between',
     minHeight: 110,
+    overflow: 'hidden',
     shadowColor: colors.secondary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -55,6 +63,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 4,
   },
   label: {
     fontSize: 11,
@@ -63,6 +72,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     flex: 1,
+    marginRight: 4,
   },
   tapIndicator: {
     width: 22,
@@ -71,7 +81,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 4,
   },
   value: {
     fontSize: 22,
@@ -80,18 +89,11 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   trendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginTop: 2,
   },
   trend: {
     fontSize: 12,
     fontFamily: fonts.medium,
-  },
-  clickHint: {
-    fontSize: 10,
-    fontFamily: fonts.semiBold,
-    color: colors.primary,
   },
 });
 
