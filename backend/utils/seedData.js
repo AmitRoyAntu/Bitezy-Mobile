@@ -77,7 +77,15 @@ const seedData = async () => {
         for (const u of usersData) {
             if (u.role === 'seller' && userMap[u.id]) {
                 const sellerId = userMap[u.id];
-                const existing = await Provider.findOne({ seller: sellerId });
+                let existing = await Provider.findOne({ seller: sellerId });
+                if (!existing && u.shopName) {
+                    existing = await Provider.findOne({ name: u.shopName });
+                    if (existing) {
+                        existing.seller = sellerId;
+                        await existing.save();
+                        providerMap[u.id] = existing._id;
+                    }
+                }
                 if (!existing) {
                     const extraProv = await Provider.create({
                         name: u.shopName || `${u.name}'s Canteen`,

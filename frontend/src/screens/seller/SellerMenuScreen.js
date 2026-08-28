@@ -169,27 +169,35 @@ const SellerMenuScreen = () => {
   };
 
   const handleDeleteItem = (item) => {
-    Alert.alert(
-      'Delete Menu Item',
-      `Are you sure you want to delete "${item.name}" from your canteen menu?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await DataService.deleteMenuItem(item._id || item.id);
-              showToast('Item removed from menu');
-              setMenuItems((prev) => prev.filter((i) => i._id !== item._id && i.id !== item.id));
-            } catch (err) {
-              showToast('Failed to delete item', 'error');
-            }
-          },
-        },
-      ]
-    );
+    const confirmMsg = `Are you sure you want to delete "${item.name}" from your canteen menu?`;
+
+    const performDelete = async () => {
+      try {
+        await DataService.deleteMenuItem(item._id || item.id);
+        showToast('Item removed from menu');
+        setMenuItems((prev) => prev.filter((i) => i._id !== item._id && i.id !== item.id));
+      } catch (err) {
+        showToast('Failed to delete item', 'error');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm(confirmMsg)) {
+        performDelete();
+      }
+      return;
+    }
+
+    Alert.alert('Delete Menu Item', confirmMsg, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: performDelete,
+      },
+    ]);
   };
+
 
   return (
     <View style={styles.container}>

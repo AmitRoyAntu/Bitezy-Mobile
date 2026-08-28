@@ -44,7 +44,15 @@ const getMyProvider = async (req, res) => {
 
         let provider = await Provider.findOne({ seller: req.user._id });
 
-        // Auto-heal: If seller has no provider document yet, create one seamlessly
+        if (!provider && req.user.shopName) {
+            provider = await Provider.findOne({ name: new RegExp(`^${req.user.shopName}$`, 'i') });
+            if (provider) {
+                provider.seller = req.user._id;
+                await provider.save();
+            }
+        }
+
+        // Auto-heal: If seller still has no provider document, create one seamlessly
         if (!provider) {
             provider = await Provider.create({
                 name: req.user.shopName || `${req.user.name}'s Canteen`,

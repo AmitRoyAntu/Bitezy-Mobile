@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Platform,
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,37 +49,45 @@ const AdminReviewsScreen = () => {
 
   const handleDeleteReview = (review) => {
     const reviewerName = review.user?.name || 'Customer';
-    Alert.alert(
-      'Remove Review',
-      `Are you sure you want to remove the review by "${reviewerName}" for ${review.providerName || 'this seller'}? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await DataService.deleteReview(review._id || review.id);
-              setReviews((prev) =>
-                prev.filter((r) => String(r._id || r.id) !== String(review._id || review.id))
-              );
-              setToast({
-                visible: true,
-                message: 'Review removed successfully',
-                type: 'success',
-              });
-            } catch (e) {
-              setToast({
-                visible: true,
-                message: 'Failed to delete review',
-                type: 'error',
-              });
-            }
-          },
-        },
-      ]
-    );
+    const confirmMsg = `Are you sure you want to remove the review by "${reviewerName}" for ${review.providerName || 'this seller'}? This action cannot be undone.`;
+
+    const performDelete = async () => {
+      try {
+        await DataService.deleteReview(review._id || review.id);
+        setReviews((prev) =>
+          prev.filter((r) => String(r._id || r.id) !== String(review._id || review.id))
+        );
+        setToast({
+          visible: true,
+          message: 'Review removed successfully',
+          type: 'success',
+        });
+      } catch (e) {
+        setToast({
+          visible: true,
+          message: 'Failed to delete review',
+          type: 'error',
+        });
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm(confirmMsg)) {
+        performDelete();
+      }
+      return;
+    }
+
+    Alert.alert('Remove Review', confirmMsg, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: performDelete,
+      },
+    ]);
   };
+
 
   const filteredReviews = useMemo(() => {
     return reviews.filter((r) => {

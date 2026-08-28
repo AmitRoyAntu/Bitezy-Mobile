@@ -33,9 +33,9 @@ class HttpDataService {
   }
 
   /**
-   * Centralized HTTP client sending Bearer JWT headers
+   * Centralized HTTP client sending Bearer JWT headers with fast timeout
    */
-  async request(endpoint, method = 'GET', body = null) {
+  async request(endpoint, method = 'GET', body = null, timeoutMs = 6000) {
     const token = await this.getAuthToken();
     const headers = {
       'Content-Type': 'application/json',
@@ -46,9 +46,13 @@ class HttpDataService {
       headers.Authorization = `Bearer ${token}`;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     const config = {
       method,
       headers,
+      signal: controller.signal,
     };
 
     if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
@@ -60,6 +64,8 @@ class HttpDataService {
 
     try {
       const response = await fetch(url, config);
+      clearTimeout(timeoutId);
+
       const text = await response.text();
       let data = {};
 
@@ -76,6 +82,12 @@ class HttpDataService {
 
       return data;
     } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        const timeoutMsg = `Cannot connect to server at ${API_CONFIG.BASE_URL}. Please ensure backend is running and your phone is on the same Wi-Fi.`;
+        console.warn(timeoutMsg);
+        throw new Error(timeoutMsg);
+      }
       console.warn(`API request [${method} ${url}] error:`, err.message);
       throw err;
     }
@@ -116,7 +128,7 @@ class HttpDataService {
     try {
       const token = await this.getAuthToken();
       if (!token || token.startsWith('mock_token_')) return null;
-      const data = await this.request('/auth/me', 'GET');
+      const data = await this.request('/auth/me', 'GET', null, 4000);
       return data;
     } catch (err) {
       return null;

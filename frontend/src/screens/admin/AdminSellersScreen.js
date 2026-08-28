@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Platform,
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -80,46 +81,57 @@ const AdminSellersScreen = () => {
     const item = sellersData.find((s) => String(s.seller._id || s.seller.id) === String(sellerId));
     const shopName = item?.shopName || 'this seller';
     const actionName = currentBlocked ? 'Activate & Reopen' : 'Suspend & Block';
+    const confirmMsg = `Are you sure you want to ${currentBlocked ? 'activate' : 'suspend'} "${shopName}"? ${
+      !currentBlocked
+        ? 'Their store will be closed and students will not be able to order.'
+        : 'Their store will be available for orders again.'
+    }`;
+
+    const performAction = async () => {
+      try {
+        await DataService.blockSeller(sellerId, !currentBlocked);
+        setSellersData((prev) =>
+          prev.map((s) =>
+            String(s.seller._id || s.seller.id) === String(sellerId)
+              ? { ...s, seller: { ...s.seller, isBlocked: !currentBlocked } }
+              : s
+          )
+        );
+        setToast({
+          visible: true,
+          message: `Seller "${shopName}" ${!currentBlocked ? 'suspended' : 'activated'} successfully`,
+          type: 'success',
+        });
+      } catch (e) {
+        setToast({
+          visible: true,
+          message: 'Failed to update seller status',
+          type: 'error',
+        });
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm(confirmMsg)) {
+        performAction();
+      }
+      return;
+    }
 
     Alert.alert(
       `${actionName} Seller`,
-      `Are you sure you want to ${currentBlocked ? 'activate' : 'suspend'} "${shopName}"? ${
-        !currentBlocked
-          ? 'Their store will be closed and students will not be able to order.'
-          : 'Their store will be available for orders again.'
-      }`,
+      confirmMsg,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: currentBlocked ? 'Activate' : 'Suspend',
           style: currentBlocked ? 'default' : 'destructive',
-          onPress: async () => {
-            try {
-              await DataService.blockSeller(sellerId, !currentBlocked);
-              setSellersData((prev) =>
-                prev.map((s) =>
-                  String(s.seller._id || s.seller.id) === String(sellerId)
-                    ? { ...s, seller: { ...s.seller, isBlocked: !currentBlocked } }
-                    : s
-                )
-              );
-              setToast({
-                visible: true,
-                message: `Seller "${shopName}" ${!currentBlocked ? 'suspended' : 'activated'} successfully`,
-                type: 'success',
-              });
-            } catch (e) {
-              setToast({
-                visible: true,
-                message: 'Failed to update seller status',
-                type: 'error',
-              });
-            }
-          },
+          onPress: performAction,
         },
       ]
     );
   };
+
 
   const filteredSellers = useMemo(() => {
     return sellersData.filter((s) => {

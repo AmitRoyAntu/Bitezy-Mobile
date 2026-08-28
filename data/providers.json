@@ -17,7 +17,7 @@
       "name": "Dr. Qudrat-E-Khuda Hall Canteen",
       "type": "Canteen",
       "img": "https://placehold.co/600x400/FF6B6B/FFFFFF?text=QK+Dining",
-      "seller": 102,
+      "seller": 108,
       "location": "Dr. Qudrat-E-Khuda Hall, Ground Floor",
       "rating": 4.5,
       "deliveryTime": "20-25 min",
@@ -83,6 +83,18 @@
       "deliveryTime": "10-15 min",
       "isOpen": true,
       "description": "Famous street food cart known for delicious fuchka, chotpoti, and evening snacks. Quick and budget-friendly."
+    },
+    {
+      "id": 8,
+      "name": "Sufia Kamal Hall Canteen",
+      "type": "Canteen",
+      "img": "https://placehold.co/600x400/E89993/FFFFFF?text=Sufia+Kamal",
+      "seller": 109,
+      "location": "Sufia Kamal Hall, Ground Floor",
+      "rating": 4.7,
+      "deliveryTime": "15-20 min",
+      "isOpen": true,
+      "description": "Fresh home-style cooking, evening snacks, and quick hostel room delivery."
     }
   ]
 }

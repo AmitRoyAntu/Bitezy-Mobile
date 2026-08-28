@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Platform,
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,6 +55,38 @@ const AdminUsersScreen = () => {
     const userName = targetUser?.name || 'this user';
     const actionName = currentBlocked ? 'Unblock' : 'Block';
 
+    const performAction = async () => {
+      try {
+        await DataService.blockUser(userId, !currentBlocked);
+        setUsers((prev) =>
+          prev.map((u) =>
+            String(u._id || u.id) === String(userId)
+              ? { ...u, isBlocked: !currentBlocked }
+              : u
+          )
+        );
+        setToast({
+          visible: true,
+          message: `${userName} ${currentBlocked ? 'unblocked' : 'blocked'} successfully`,
+          type: 'success',
+        });
+      } catch (e) {
+        setToast({
+          visible: true,
+          message: `Failed to ${actionName.toLowerCase()} user`,
+          type: 'error',
+        });
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      const msg = `Are you sure you want to ${actionName.toLowerCase()} account access for "${userName}"?`;
+      if (typeof window !== 'undefined' && window.confirm(msg)) {
+        performAction();
+      }
+      return;
+    }
+
     Alert.alert(
       `${actionName} Account`,
       `Are you sure you want to ${actionName.toLowerCase()} account access for "${userName}"?`,
@@ -62,33 +95,12 @@ const AdminUsersScreen = () => {
         {
           text: actionName,
           style: currentBlocked ? 'default' : 'destructive',
-          onPress: async () => {
-            try {
-              await DataService.blockUser(userId, !currentBlocked);
-              setUsers((prev) =>
-                prev.map((u) =>
-                  String(u._id || u.id) === String(userId)
-                    ? { ...u, isBlocked: !currentBlocked }
-                    : u
-                )
-              );
-              setToast({
-                visible: true,
-                message: `User ${!currentBlocked ? 'blocked' : 'unblocked'} successfully`,
-                type: 'success',
-              });
-            } catch (e) {
-              setToast({
-                visible: true,
-                message: 'Failed to update user status',
-                type: 'error',
-              });
-            }
-          },
+          onPress: performAction,
         },
       ]
     );
   }, [users]);
+
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {

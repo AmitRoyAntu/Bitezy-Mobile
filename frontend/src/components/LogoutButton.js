@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing } from '../theme/colors';
 
 /**
- * Modular LogoutButton component with built-in confirmation alert.
+ * Modular LogoutButton component with cross-platform (Web + Mobile) confirmation alert.
  */
 const LogoutButton = ({
   onPress,
@@ -14,6 +14,14 @@ const LogoutButton = ({
   style,
 }) => {
   const handlePress = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' ? window.confirm(confirmMessage) : true;
+      if (confirmed && onPress) {
+        onPress();
+      }
+      return;
+    }
+
     Alert.alert(confirmTitle, confirmMessage, [
       { text: 'Cancel', style: 'cancel' },
       {

@@ -133,7 +133,15 @@ const getMyOrders = async (req, res) => {
 // GET /api/orders/seller (Private/Seller)
 const getSellerOrders = async (req, res) => {
     try {
-        const provider = await Provider.findOne({ seller: req.user._id });
+        let provider = await Provider.findOne({ seller: req.user._id });
+
+        if (!provider && req.user.shopName) {
+            provider = await Provider.findOne({ name: new RegExp(`^${req.user.shopName}$`, 'i') });
+            if (provider) {
+                provider.seller = req.user._id;
+                await provider.save();
+            }
+        }
 
         if (!provider) {
             return res.json([]);
@@ -148,6 +156,7 @@ const getSellerOrders = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 };
+
 
 // GET /api/orders (Private/Admin)
 const getAllOrders = async (req, res) => {
