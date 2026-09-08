@@ -1,0 +1,30 @@
+export const CUET_HALLS = [
+  'Kabi Kazi Nazrul Islam Hall (KKNI Hall)',
+  'Dr. Qudrat-i-Khuda Hall (QK Hall)',
+  'Shaheed Mohammad Shah Hall (SMS Hall)',
+  'Bangabandhu Hall',
+  'Shamsen Nahar Khan Hall (SNK Hall)',
+  'Sufia Kamal Hall',
+  'Tareq Huda Hall',
+  'Teachers / Officers Quarters',
+  'Staff Quarters',
+  'Day Scholar / Non-Resident',
+];
+
+export const CUET_DEPARTMENTS = [
+  'Computer Science & Engineering (CSE)',
+  'Electrical & Electronic Engineering (EEE)',
+  'Civil Engineering (CE)',
+  'Mechanical Engineering (ME)',
+  'Electronics & Telecommunication Engineering (ETE)',
+  'Mechatronics & Industrial Engineering (MIE)',
+  'Urban & Regional Planning (URP)',
+  'Architecture (ARCH)',
+  'Petroleum & Mining Engineering (PME)',
+  'Materials Science & Engineering (MSE)',
+  'Biomedical Engineering (BME)',
+  'Physics',
+  'Chemistry',
+  'Mathematics',
+  'Humanities',
+];

@@ -1,0 +1,20 @@
+{
+  "name": "bitezy-mobile-app",
+  "version": "1.0.0",
+  "description": "Bitezy Campus Dining & Smart Ordering Platform - Mobile & Backend",
+  "private": true,
+  "scripts": {
+    "start:backend": "npm start --prefix backend",
+    "start:frontend": "npm start --prefix frontend",
+    "seed": "node backend/utils/seedData.js"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "express",
+    "mongodb",
+    "campus-dining"
+  ],
+  "author": "Bitezy Team",
+  "license": "ISC"
+}
