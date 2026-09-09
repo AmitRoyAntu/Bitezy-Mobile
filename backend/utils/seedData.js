@@ -127,7 +127,7 @@ const seedData = async () => {
                         openTime: u.openTime || '06:00',
                         closeTime: u.closeTime || '23:00',
                         isOpen: true,
-                        rating: 4.8
+                        rating: 0
                     });
                     providerMap[u.id] = extraProv._id;
                 }
@@ -170,10 +170,12 @@ const seedData = async () => {
         const ordersData = loadJSON('orders').orders;
         await Order.create(ordersData.map(o => {
             const { id, customer, provider, items, ...rest } = o;
+            const buyerUser = usersData.find(u => u.id === customer);
             return {
                 ...rest,
                 customer: userMap[customer] || defaultBuyerId,
                 provider: providerMap[provider] || defaultProviderId,
+                deliveryAddress: o.deliveryAddress || (o.type === 'delivery' ? (buyerUser?.residence || 'Campus Hall Room') : 'Pickup at counter'),
                 items: (items || []).map(item => ({
                     ...item,
                     menuItem: menuMap[item.menuItem] || createdMenuItems[0]._id

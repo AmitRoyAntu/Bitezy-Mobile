@@ -90,8 +90,8 @@ const RegisterScreen = ({ navigation }) => {
       ...(role === 'buyer'
         ? {
             residence: fullResidence,
-            department: department || 'Computer Science & Engineering (CSE)',
-            cuetId: dynamicValue.trim() || '2204000',
+            department: department ? department.trim() : '',
+            cuetId: dynamicValue ? dynamicValue.trim() : '',
             buyerType,
           }
         : {
