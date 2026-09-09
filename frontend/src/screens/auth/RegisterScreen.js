@@ -25,6 +25,12 @@ const BUYER_TYPES = [
   { label: 'Staff', value: 'Staff' },
 ];
 
+const SHOP_TYPES = [
+  { label: 'Residential Hall Canteen', value: 'Canteen' },
+  { label: 'Central Cafeteria', value: 'Cafeteria' },
+  { label: 'Campus Food Cart', value: 'Cart' },
+];
+
 const RegisterScreen = ({ navigation }) => {
   const [role, setRole] = useState('buyer'); // 'buyer' | 'seller'
   const [name, setName] = useState('');
@@ -38,6 +44,11 @@ const RegisterScreen = ({ navigation }) => {
   const [department, setDepartment] = useState('');
   const [roomNumber, setRoomNumber] = useState('');
   const [dynamicValue, setDynamicValue] = useState('');
+  const [shopName, setShopName] = useState('');
+  const [shopType, setShopType] = useState('Canteen');
+  const [openTime, setOpenTime] = useState('06:00');
+  const [closeTime, setCloseTime] = useState('22:00');
+  const [deliveryTime, setDeliveryTime] = useState('15-20 min');
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -49,11 +60,15 @@ const RegisterScreen = ({ navigation }) => {
     const errs = {};
     if (!name.trim()) errs.name = 'Full name is required';
     if (!email.trim()) errs.email = 'Email address is required';
+    if (!phone.trim()) errs.phone = 'Phone number is required';
     if (!password.trim()) errs.password = 'Password is required';
     if (confirmPassword.trim() && confirmPassword !== password) {
       errs.confirmPassword = 'Passwords do not match';
     }
-    if (!residence) errs.residence = 'Please select your Campus Hall / Residence';
+    if (!residence) errs.residence = role === 'buyer' ? 'Please select your Campus Hall / Residence' : 'Please select canteen location';
+    if (role === 'seller' && !shopName.trim()) {
+      errs.shopName = 'Canteen / Shop name is required';
+    }
 
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
@@ -62,19 +77,32 @@ const RegisterScreen = ({ navigation }) => {
     setErrors({});
     setLoading(true);
 
-    const fullResidence = roomNumber.trim() ? `${residence}, Room ${roomNumber.trim()}` : residence;
+    const fullResidence = roomNumber.trim()
+      ? (role === 'buyer' ? `${residence}, Room ${roomNumber.trim()}` : `${residence}, ${roomNumber.trim()}`)
+      : residence;
 
     const payload = {
       name: name.trim(),
       email: email.trim(),
-      phone: phone.trim() || '01800000000',
+      phone: phone.trim(),
       password,
       role,
-      residence: fullResidence,
-      department: department || 'Computer Science & Engineering (CSE)',
       ...(role === 'buyer'
-        ? { cuetId: dynamicValue.trim() || '2204000', buyerType }
-        : { vendorName: dynamicValue.trim() || `${name.trim()}'s Canteen` }),
+        ? {
+            residence: fullResidence,
+            department: department || 'Computer Science & Engineering (CSE)',
+            cuetId: dynamicValue.trim() || '2204000',
+            buyerType,
+          }
+        : {
+            shopName: shopName.trim(),
+            vendorName: shopName.trim(),
+            type: shopType,
+            location: fullResidence,
+            openTime: openTime.trim() || '06:00',
+            closeTime: closeTime.trim() || '22:00',
+            deliveryTime: deliveryTime.trim() || '15-20 min',
+          }),
     };
 
     try {
@@ -213,8 +241,9 @@ const RegisterScreen = ({ navigation }) => {
             />
 
             <CustomInput
-              label="Phone Number"
+              label="Phone Number *"
               value={phone}
+              error={errors.phone}
               onChangeText={setPhone}
               placeholder="e.g. 018XXXXXXXX"
               keyboardType="phone-pad"
@@ -284,49 +313,93 @@ const RegisterScreen = ({ navigation }) => {
               </View>
             )}
 
-            {/* Dropdown: Campus Hall / Residence */}
+            {role === 'seller' && (
+              <>
+                <CustomInput
+                  label="Canteen / Shop Name *"
+                  value={shopName}
+                  onChangeText={setShopName}
+                  placeholder="e.g. Kabi Kazi Nazrul Islam Hall Canteen"
+                  error={errors.shopName}
+                />
+
+                <CustomSelect
+                  label="Canteen Category"
+                  value={shopType}
+                  options={SHOP_TYPES}
+                  onSelect={setShopType}
+                  placeholder="Select category..."
+                />
+              </>
+            )}
+
+            {/* Dropdown: Campus Hall / Location */}
             <CustomSelect
               label="Campus Hall / Location *"
               value={residence}
               options={CUET_HALLS}
               onSelect={setResidence}
-              placeholder="Select residential hall or campus building..."
+              placeholder={role === 'buyer' ? "Select residential hall or campus building..." : "Select canteen hall or campus area..."}
               error={errors.residence}
               style={{ marginTop: spacing.sm }}
             />
 
             <CustomInput
-              label="Room / Flat / Desk Number (Optional)"
+              label={role === 'buyer' ? "Room / Flat / Desk Number (Optional)" : "Floor / Stall Details (Optional)"}
               value={roomNumber}
               onChangeText={setRoomNumber}
-              placeholder="e.g. Room 302 / Extension 4"
+              placeholder={role === 'buyer' ? "e.g. Room 302 / Extension 4" : "e.g. Ground Floor, Stall 1"}
             />
 
-            {/* Dropdown: Department (for student/buyer) */}
+            {/* Buyer-specific details */}
             {role === 'buyer' && (
-              <CustomSelect
-                label="Academic Department"
-                value={department}
-                options={CUET_DEPARTMENTS}
-                onSelect={setDepartment}
-                placeholder="Select department..."
-              />
+              <>
+                <CustomSelect
+                  label="Academic Department"
+                  value={department}
+                  options={CUET_DEPARTMENTS}
+                  onSelect={setDepartment}
+                  placeholder="Select department..."
+                />
+
+                <CustomInput
+                  label="Student / CUET ID (Optional)"
+                  value={dynamicValue}
+                  onChangeText={setDynamicValue}
+                  placeholder="e.g. 2204000"
+                />
+              </>
             )}
 
-            {role === 'buyer' ? (
-              <CustomInput
-                label="Student / CUET ID (Optional)"
-                value={dynamicValue}
-                onChangeText={setDynamicValue}
-                placeholder="e.g. 2204000"
-              />
-            ) : (
-              <CustomInput
-                label="Canteen / Business Name"
-                value={dynamicValue}
-                onChangeText={setDynamicValue}
-                placeholder="e.g. QK Hall Dining"
-              />
+            {/* Seller-specific details */}
+            {role === 'seller' && (
+              <>
+                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                  <View style={{ flex: 1 }}>
+                    <CustomInput
+                      label="Opening Time"
+                      value={openTime}
+                      onChangeText={setOpenTime}
+                      placeholder="e.g. 06:00"
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <CustomInput
+                      label="Closing Time"
+                      value={closeTime}
+                      onChangeText={setCloseTime}
+                      placeholder="e.g. 22:00"
+                    />
+                  </View>
+                </View>
+
+                <CustomInput
+                  label="Delivery Speed Estimate"
+                  value={deliveryTime}
+                  onChangeText={setDeliveryTime}
+                  placeholder="e.g. 15-20 min"
+                />
+              </>
             )}
 
             <CustomButton

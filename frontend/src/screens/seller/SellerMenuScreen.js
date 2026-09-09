@@ -65,8 +65,12 @@ const SellerMenuScreen = () => {
     try {
       const myProvider = await DataService.getMyProvider();
       setProvider(myProvider);
-      const items = await DataService.getMenu(myProvider?._id || myProvider?.id, false);
-      setMenuItems(items || []);
+
+      let items = await DataService.getSellerMenu();
+      if (!Array.isArray(items) && (myProvider?._id || myProvider?.id)) {
+        items = await DataService.getMenu(myProvider._id || myProvider.id, false);
+      }
+      setMenuItems(Array.isArray(items) ? items : []);
     } catch (err) {
       showToast('Error loading menu items', 'error');
     } finally {
@@ -156,11 +160,17 @@ const SellerMenuScreen = () => {
   };
 
   const handleToggleAvailability = async (item) => {
+    const targetId = item._id || item.id;
+    if (!targetId) return;
+
     const newStatus = !item.available;
     try {
-      await DataService.updateMenuItem(item._id || item.id, { available: newStatus });
+      await DataService.updateMenuItem(targetId, { available: newStatus });
       setMenuItems((prev) =>
-        prev.map((i) => (i._id === item._id || i.id === item.id ? { ...i, available: newStatus } : i))
+        prev.map((i) => {
+          const currentId = i._id || i.id;
+          return currentId === targetId ? { ...i, available: newStatus } : i;
+        })
       );
       showToast(`${item.name} is now ${newStatus ? 'AVAILABLE' : 'OUT OF STOCK'}`);
     } catch (err) {
@@ -175,7 +185,7 @@ const SellerMenuScreen = () => {
       try {
         await DataService.deleteMenuItem(item._id || item.id);
         showToast('Item removed from menu');
-        setMenuItems((prev) => prev.filter((i) => i._id !== item._id && i.id !== item.id));
+        setMenuItems((prev) => prev.filter((i) => (i._id || i.id) !== (item._id || item.id)));
       } catch (err) {
         showToast('Failed to delete item', 'error');
       }
@@ -272,7 +282,7 @@ const SellerMenuScreen = () => {
       ) : (
         <FlatList
           data={filteredItems}
-          keyExtractor={(item) => item._id || item.id || item.name}
+          keyExtractor={(item, index) => String(item._id || item.id || index)}
           renderItem={({ item }) => (
             <View style={[styles.itemCard, !item.available && styles.itemCardDisabled]}>
               <Image

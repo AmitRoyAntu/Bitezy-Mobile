@@ -49,7 +49,8 @@ const createOrder = async (req, res) => {
             couponCode: req.body.couponCode || null,
             total: calculatedTotal,
             type: orderType,
-            deliveryAddress: deliveryAddress || (orderType === 'delivery' ? (req.user.residence || 'Campus Hall Room') : 'Pickup at counter')
+            deliveryAddress: deliveryAddress || (orderType === 'delivery' ? (req.user.residence || 'Campus Hall Room') : 'Pickup at counter'),
+            notes: req.body.notes || ''
         });
 
         const createdOrder = await order.save();
@@ -114,7 +115,14 @@ const updateOrderStatus = async (req, res) => {
                 return res.status(400).json({ message: 'Order cannot be cancelled once accepted by the canteen' });
             }
         } else if (req.user.role === 'seller') {
-            const provider = await Provider.findOne({ seller: req.user._id });
+            let provider = await Provider.findOne({ seller: req.user._id });
+            if (!provider && req.user.shopName) {
+                provider = await Provider.findOne({ name: new RegExp('^' + req.user.shopName + '$', 'i') });
+                if (provider) {
+                    provider.seller = req.user._id;
+                    await provider.save();
+                }
+            }
             if (provider && order.provider && order.provider.toString() !== provider._id.toString()) {
                 if (req.user.role !== 'admin') {
                     return res.status(403).json({ message: 'You are not authorized to update this order' });
@@ -126,8 +134,8 @@ const updateOrderStatus = async (req, res) => {
         const updatedOrder = await order.save();
 
         const populated = await Order.findById(updatedOrder._id)
-            .populate('provider', 'name')
-            .populate('customer', 'name phone residence');
+            .populate('provider', 'name location')
+            .populate('customer', 'name phone residence buyerType department cuetId email');
 
         res.json(populated);
     } catch (error) {
@@ -165,8 +173,8 @@ const getSellerOrders = async (req, res) => {
         }
 
         const orders = await Order.find({ provider: provider._id })
-            .populate('customer', 'name phone residence')
-            .populate('provider', 'name')
+            .populate('customer', 'name phone residence buyerType department cuetId email')
+            .populate('provider', 'name location')
             .sort('-createdAt');
         res.json(orders);
     } catch (error) {

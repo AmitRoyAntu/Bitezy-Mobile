@@ -634,7 +634,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
 
       {/* Floating Sticky "View your cart" Pill */}
       {totalItems > 0 && (
-        <View style={styles.floatingCartContainer} pointerEvents="box-none">
+        <View style={[styles.floatingCartContainer, { pointerEvents: "box-none" }]}>
           <TouchableOpacity
             style={styles.floatingCartBar}
             onPress={() => navigation.navigate('Cart')}

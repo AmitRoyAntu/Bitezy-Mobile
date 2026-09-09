@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import StatusBadge from '../../components/StatusBadge';
 import OrderTypeBadge from '../../components/OrderTypeBadge';
 import { colors, spacing, fonts } from '../../theme/colors';
@@ -47,9 +48,11 @@ const SellerOrdersScreen = () => {
     }
   };
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadOrders();
+    }, [])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -98,7 +101,11 @@ const SellerOrdersScreen = () => {
   };
 
   const handleWhatsAppCustomer = (order) => {
-    const customerPhone = order.customer?.phone || '01812345678';
+    const customerPhone = order.customer?.phone || order.phone;
+    if (!customerPhone) {
+      showToast('No phone number recorded for customer', 'warning');
+      return;
+    }
     const cleanPhone = customerPhone.replace(/[^0-9]/g, '');
     const intlPhone = cleanPhone.startsWith('88') ? cleanPhone : `88${cleanPhone}`;
     const orderIdShort = order._id ? `#${order._id.slice(-6)}` : '#N/A';
@@ -113,7 +120,11 @@ const SellerOrdersScreen = () => {
   };
 
   const handleCallCustomer = (order) => {
-    const customerPhone = order.customer?.phone || '01812345678';
+    const customerPhone = order.customer?.phone || order.phone;
+    if (!customerPhone) {
+      showToast('No phone number recorded for customer', 'warning');
+      return;
+    }
     Linking.openURL(`tel:${customerPhone}`).catch(() => {
       showToast('Could not start phone call', 'error');
     });
@@ -211,9 +222,25 @@ const SellerOrdersScreen = () => {
                       <OrderTypeBadge type={item.type} style={{ marginLeft: 6 }} />
                     </View>
                     <View style={styles.orderTimeRow}>
+                      <Ionicons name="calendar-outline" size={11} color={colors.textGray} style={{ marginRight: 3 }} />
+                      <Text style={styles.orderTimeText}>
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : 'Today'}
+                      </Text>
+                      <Text style={styles.orderTimeDot}>•</Text>
                       <Ionicons name="time-outline" size={11} color={colors.textGray} style={{ marginRight: 3 }} />
                       <Text style={styles.orderTimeText}>
-                        {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : 'Just now'}
                       </Text>
                     </View>
                   </View>
@@ -249,12 +276,12 @@ const SellerOrdersScreen = () => {
                       ) : null}
                     </View>
                     <Text style={styles.customerName} numberOfLines={1}>
-                      {item.customer?.name || 'Student Buyer'}
+                      {item.customer?.name || 'Customer'}
                     </Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
                       <Ionicons name="location" size={11} color={colors.primary} style={{ marginRight: 3 }} />
                       <Text style={styles.customerLocation} numberOfLines={1}>
-                        {item.deliveryAddress || item.customer?.residence || 'CUET Campus'}
+                        {item.deliveryAddress || item.customer?.residence || (item.type === 'delivery' ? 'Campus Delivery' : 'Counter Pickup')}
                       </Text>
                     </View>
                   </View>
@@ -412,7 +439,7 @@ const SellerOrdersScreen = () => {
             );
           }}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} colors={[colors.primary]} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIconHalo}>
@@ -581,6 +608,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
+  },
+  orderTimeDot: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    color: colors.textLight,
+    marginHorizontal: 5,
   },
   orderTimeText: {
     fontFamily: fonts.medium,

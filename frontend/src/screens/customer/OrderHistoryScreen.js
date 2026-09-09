@@ -293,11 +293,19 @@ const OrderHistoryScreen = ({ navigation }) => {
     const itemsCount = item.items ? item.items.reduce((acc, curr) => acc + (curr.qty || 1), 0) : 1;
 
     const formattedDate = item.createdAt
-      ? new Date(item.createdAt).toLocaleDateString('en-US', {
+      ? new Date(item.createdAt).toLocaleDateString('en-GB', {
+          day: '2-digit',
           month: 'short',
-          day: 'numeric',
+          year: 'numeric',
         })
       : 'Today';
+
+    const formattedTime = item.createdAt
+      ? new Date(item.createdAt).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : '';
 
     const itemsSummary = item.items
       ? item.items.map((i) => `${i.qty}x ${i.name}`).join('  •  ')
@@ -316,12 +324,21 @@ const OrderHistoryScreen = ({ navigation }) => {
               <Text style={styles.canteenTitle} numberOfLines={1}>
                 {providerName}
               </Text>
+              <Text style={styles.orderIdSubtext}>{orderIdShort}</Text>
             </View>
             <View style={styles.canteenMetaRow}>
-              <Text style={styles.canteenSubtext}>
-                {formattedDate} • {itemsCount} {itemsCount === 1 ? 'item' : 'items'}
-              </Text>
-              <OrderTypeBadge type={item.type} />
+              <View style={styles.dateTimeBadge}>
+                <Ionicons name="calendar-outline" size={11} color={colors.textGray} style={{ marginRight: 3 }} />
+                <Text style={styles.canteenSubtext}>{formattedDate}</Text>
+                {formattedTime ? (
+                  <>
+                    <Text style={styles.dateTimeDot}>•</Text>
+                    <Ionicons name="time-outline" size={11} color={colors.textGray} style={{ marginRight: 3 }} />
+                    <Text style={styles.canteenSubtext}>{formattedTime}</Text>
+                  </>
+                ) : null}
+              </View>
+              <OrderTypeBadge type={item.type} style={{ marginLeft: 6 }} />
             </View>
           </View>
 
@@ -710,6 +727,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textDark,
     letterSpacing: -0.2,
+  },
+  orderIdSubtext: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.primary,
+    marginLeft: 6,
+  },
+  dateTimeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  dateTimeDot: {
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    color: colors.textLight,
+    marginHorizontal: 4,
   },
   canteenSubtext: {
     fontFamily: fonts.regular,

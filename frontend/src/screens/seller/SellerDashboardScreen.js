@@ -31,7 +31,7 @@ const SellerDashboardScreen = ({ navigation }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [chartDays, setChartDays] = useState(7);
+  const [chartDays] = useState(7);
 
   const loadDashboardData = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
@@ -41,11 +41,13 @@ const SellerDashboardScreen = ({ navigation }) => {
 
       const [sellerOrders, sellerReviews] = await Promise.all([
         DataService.getSellerOrders(),
-        myProvider ? DataService.getReviewsByProvider(myProvider._id || myProvider.id) : [],
+        myProvider?._id || myProvider?.id
+          ? DataService.getReviewsByProvider(myProvider._id || myProvider.id)
+          : [],
       ]);
 
-      setOrders(sellerOrders || []);
-      setReviews(sellerReviews || []);
+      setOrders(Array.isArray(sellerOrders) ? sellerOrders : []);
+      setReviews(Array.isArray(sellerReviews) ? sellerReviews : []);
     } catch (err) {
       showToast('Error loading dashboard data', 'error');
     } finally {
@@ -67,7 +69,7 @@ const SellerDashboardScreen = ({ navigation }) => {
 
   const handleToggleOpenStatus = async () => {
     if (!provider) return;
-    const newStatus = provider.isOpen === false ? true : false;
+    const newStatus = !provider.isOpen;
     try {
       await DataService.updateProvider(provider._id || provider.id, { isOpen: newStatus });
       setProvider({ ...provider, isOpen: newStatus });
@@ -77,7 +79,7 @@ const SellerDashboardScreen = ({ navigation }) => {
     }
   };
 
-  // KPIs Calculations
+  // KPIs Calculations from real database orders
   const todayStr = new Date().toDateString();
   const completedOrders = orders.filter((o) =>
     ['DELIVERED', 'PICKED_UP'].includes(o.status)
@@ -98,16 +100,25 @@ const SellerDashboardScreen = ({ navigation }) => {
 
   const avgRating = reviews.length
     ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)
-    : provider?.rating || '4.8';
+    : provider?.rating
+    ? Number(provider.rating).toFixed(1)
+    : null;
 
-  // Order Type Distribution
-  const totalCompleted = completedOrders.length;
-  const deliveryOrdersCount = completedOrders.filter((o) => (o.type || '').toLowerCase() === 'delivery').length;
-  const pickupOrdersCount = completedOrders.filter((o) => (o.type || '').toLowerCase() === 'pickup').length;
-  const deliveryPercent = totalCompleted > 0 ? Math.round((deliveryOrdersCount / totalCompleted) * 100) : 60;
-  const pickupPercent = totalCompleted > 0 ? Math.round((pickupOrdersCount / totalCompleted) * 100) : 40;
+  // Real Order Type Distribution
+  const totalOrders = orders.length;
+  const deliveryOrdersCount = orders.filter((o) => (o.type || '').toLowerCase() === 'delivery').length;
+  const pickupOrdersCount = orders.filter((o) => (o.type || '').toLowerCase() === 'pickup').length;
+  const deliveryPercent = totalOrders > 0 ? Math.round((deliveryOrdersCount / totalOrders) * 100) : 0;
+  const pickupPercent = totalOrders > 0 ? Math.round((pickupOrdersCount / totalOrders) * 100) : 0;
 
-  // Weekly Sales Trend Data (Last 7 Days)
+  // Real Weekly Sales Trend Data (Last 7 Days)
+  const getLocalDateKey = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const salesDays = [];
   const now = new Date();
   const salesMap = {};
@@ -115,7 +126,7 @@ const SellerDashboardScreen = ({ navigation }) => {
   for (let i = chartDays - 1; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(now.getDate() - i);
-    const key = d.toISOString().split('T')[0];
+    const key = getLocalDateKey(d);
     const dayLabel = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
     salesMap[key] = 0;
     salesDays.push({ key, label: dayLabel, sales: 0 });
@@ -123,7 +134,7 @@ const SellerDashboardScreen = ({ navigation }) => {
 
   completedOrders.forEach((o) => {
     if (o.createdAt) {
-      const key = new Date(o.createdAt).toISOString().split('T')[0];
+      const key = getLocalDateKey(new Date(o.createdAt));
       if (salesMap[key] !== undefined) {
         salesMap[key] += o.total || 0;
       }
@@ -136,12 +147,15 @@ const SellerDashboardScreen = ({ navigation }) => {
 
   const maxSales = Math.max(...salesDays.map((d) => d.sales), 100);
 
-  // Top Selling Items Ranking
+  // Top Selling Items Ranking from Database
   const itemCounts = {};
-  completedOrders.forEach((o) => {
+  const validOrders = orders.filter((o) => o.status !== 'CANCELLED');
+  validOrders.forEach((o) => {
     if (Array.isArray(o.items)) {
       o.items.forEach((item) => {
-        itemCounts[item.name] = (itemCounts[item.name] || 0) + (item.qty || 1);
+        if (item && item.name) {
+          itemCounts[item.name] = (itemCounts[item.name] || 0) + (Number(item.qty) || 1);
+        }
       });
     }
   });
@@ -151,8 +165,11 @@ const SellerDashboardScreen = ({ navigation }) => {
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 3);
 
-  // Recent 3 Orders
-  const recentOrders = [...orders].reverse().slice(0, 3);
+  // Most recent 5 orders from real DB
+  const recentOrders = orders.slice(0, 5);
+
+  const canteenName = provider?.name || currentUser?.shopName || (currentUser?.name ? `${currentUser.name}'s Canteen` : 'Your Canteen');
+  const canteenLocation = provider?.location || currentUser?.location || currentUser?.residence || 'CUET Campus';
 
   if (loading) {
     return (
@@ -170,13 +187,13 @@ const SellerDashboardScreen = ({ navigation }) => {
         <View style={styles.navBusinessBadge}>
           <Ionicons name="storefront" size={13} color={colors.primary} style={{ marginRight: 5 }} />
           <Text style={styles.navBusinessText} numberOfLines={1}>
-            {provider?.name || `${currentUser?.name}'s Canteen`}
+            {canteenName}
           </Text>
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 110 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
       >
@@ -191,11 +208,19 @@ const SellerDashboardScreen = ({ navigation }) => {
             <View style={{ flex: 1, marginRight: spacing.xs }}>
               <Text style={styles.heroEyebrow}>Your Canteen</Text>
               <Text style={styles.canteenTitle} numberOfLines={1}>
-                {provider?.name || `${currentUser?.name}'s Canteen`}
+                {canteenName}
               </Text>
               <Text style={styles.managerSubtitle} numberOfLines={1}>
-                CUET Campus • {provider?.location || 'Ground Floor'}
+                CUET Campus • {canteenLocation}
               </Text>
+
+              {avgRating ? (
+                <View style={styles.ratingBadge}>
+                  <Ionicons name="star" size={11} color="#F59E0B" style={{ marginRight: 3 }} />
+                  <Text style={styles.ratingValueText}>{avgRating}</Text>
+                  <Text style={styles.ratingCountText}>({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</Text>
+                </View>
+              ) : null}
             </View>
 
             <TouchableOpacity
@@ -249,7 +274,7 @@ const SellerDashboardScreen = ({ navigation }) => {
               <Ionicons name="checkmark-done-circle-outline" size={16} color="#3B82F6" />
             </View>
             <Text style={styles.kpiLabel}>Delivered</Text>
-            <Text style={styles.kpiValue}>{totalCompleted}</Text>
+            <Text style={styles.kpiValue}>{completedOrders.length}</Text>
             <Text style={styles.kpiSub}>Completed</Text>
           </View>
         </View>
@@ -260,7 +285,7 @@ const SellerDashboardScreen = ({ navigation }) => {
             <View>
               <Text style={styles.sectionEyebrow}>Performance</Text>
               <Text style={styles.sectionHeading}>Weekly Sales Trend</Text>
-              <Text style={styles.sectionSub}>Daily revenue (BDT)</Text>
+              <Text style={styles.sectionSub}>Daily revenue from database (BDT)</Text>
             </View>
             <View style={styles.timeTag}>
               <Ionicons name="calendar-outline" size={11} color={colors.textGray} style={{ marginRight: 4 }} />
@@ -313,6 +338,7 @@ const SellerDashboardScreen = ({ navigation }) => {
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: `${deliveryPercent}%`, backgroundColor: colors.primary }]} />
               </View>
+              <Text style={styles.progressCountSub}>{deliveryOrdersCount} orders</Text>
             </View>
 
             <View style={styles.progressItem}>
@@ -328,6 +354,7 @@ const SellerDashboardScreen = ({ navigation }) => {
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: `${pickupPercent}%`, backgroundColor: colors.info }]} />
               </View>
+              <Text style={styles.progressCountSub}>{pickupOrdersCount} orders</Text>
             </View>
           </View>
 
@@ -371,7 +398,7 @@ const SellerDashboardScreen = ({ navigation }) => {
             <View>
               <Text style={styles.sectionEyebrow}>Activity</Text>
               <Text style={styles.sectionHeading}>Incoming & Recent Orders</Text>
-              <Text style={styles.sectionSub}>Latest student requests</Text>
+              <Text style={styles.sectionSub}>Latest orders from database</Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('Orders')} activeOpacity={0.7} style={styles.viewAllBtn}>
               <Text style={styles.viewAllLink}>View All</Text>
@@ -389,7 +416,7 @@ const SellerDashboardScreen = ({ navigation }) => {
           ) : (
             recentOrders.map((ord) => {
               const orderIdShort = ord._id ? `#${ord._id.slice(-5)}` : '#N/A';
-              const customerName = ord.customer?.name || 'Student Buyer';
+              const customerName = ord.customer?.name || 'Customer';
 
               return (
                 <View key={ord._id || ord.id} style={styles.recentOrderRow}>
@@ -416,6 +443,57 @@ const SellerDashboardScreen = ({ navigation }) => {
             })
           )}
         </View>
+
+        {/* Customer Reviews & Feedback Preview */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <View>
+              <Text style={styles.sectionEyebrow}>Reputation</Text>
+              <Text style={styles.sectionHeading}>Customer Reviews</Text>
+              <Text style={styles.sectionSub}>
+                {reviews.length > 0
+                  ? `${reviews.length} reviews • ${avgRating} ★ average`
+                  : 'Customer reviews & feedback'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Reviews')}
+              activeOpacity={0.7}
+              style={styles.viewAllBtn}
+            >
+              <Text style={styles.viewAllLink}>View All</Text>
+              <Ionicons name="chevron-forward" size={13} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
+
+          {reviews.length === 0 ? (
+            <View style={styles.emptyRecentBox}>
+              <View style={styles.emptyRecentIcon}>
+                <Ionicons name="star-outline" size={22} color={colors.primary} />
+              </View>
+              <Text style={styles.emptyRecentText}>No reviews submitted yet.</Text>
+            </View>
+          ) : (
+            reviews.slice(0, 3).map((rev) => (
+              <View key={rev._id || rev.id} style={styles.reviewItemRow}>
+                <View style={styles.reviewHeaderRow}>
+                  <Text style={styles.reviewBuyerName} numberOfLines={1}>
+                    {rev.buyer?.name || 'Customer'}
+                  </Text>
+                  <View style={styles.reviewStarRow}>
+                    <Ionicons name="star" size={12} color="#F59E0B" style={{ marginRight: 3 }} />
+                    <Text style={styles.reviewRatingVal}>{Number(rev.rating || 5).toFixed(1)}</Text>
+                  </View>
+                </View>
+                {rev.comment ? (
+                  <Text style={styles.reviewCommentText} numberOfLines={2}>
+                    "{rev.comment}"
+                  </Text>
+                ) : null}
+              </View>
+            ))
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -425,6 +503,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   topNavbar: {
     flexDirection: 'row',
@@ -458,26 +541,21 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
-    paddingBottom: 110,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
-  /* Canteen Hero Card */
+  /* Hero Card */
   headerHero: {
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
     marginBottom: spacing.md,
-    overflow: 'hidden',
     shadowColor: colors.shadowStrong,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 14,
     elevation: 4,
+    position: 'relative',
+    overflow: 'hidden',
   },
   headerHeroGlow: {
     position: 'absolute',
@@ -486,7 +564,8 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: colors.primaryGlow,
+    backgroundColor: colors.primaryLight,
+    opacity: 0.35,
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -520,6 +599,22 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: colors.textGray,
     marginTop: 3,
+  },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  ratingValueText: {
+    fontFamily: fonts.bold,
+    fontSize: 11.5,
+    color: colors.textDark,
+    marginRight: 4,
+  },
+  ratingCountText: {
+    fontFamily: fonts.regular,
+    fontSize: 11,
+    color: colors.textGray,
   },
   statusTogglePill: {
     flexDirection: 'row',
@@ -742,6 +837,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textDark,
   },
+  progressCountSub: {
+    fontFamily: fonts.regular,
+    fontSize: 10,
+    color: colors.textLight,
+    marginTop: 3,
+  },
   progressBarBg: {
     height: 7,
     backgroundColor: colors.surfaceSubtle,
@@ -880,7 +981,38 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
 
-  /* Latest Reviews Preview */
+  /* Reviews Preview */
+  reviewItemRow: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  reviewHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  reviewBuyerName: {
+    fontFamily: fonts.bold,
+    fontSize: 12.5,
+    color: colors.textDark,
+  },
+  reviewStarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reviewRatingVal: {
+    fontFamily: fonts.bold,
+    fontSize: 11.5,
+    color: colors.textDark,
+  },
+  reviewCommentText: {
+    fontFamily: fonts.regular,
+    fontSize: 11.5,
+    color: colors.textGray,
+    fontStyle: 'italic',
+  },
 });
 
 export default SellerDashboardScreen;

@@ -40,8 +40,8 @@ const registerUser = async (req, res) => {
         const {
             name, email, password, phone, role,
             buyerType, cuetId, department, residence,
-            shopName, location, description, openTime, closeTime,
-            type, deliveryTime, img
+            shopName, vendorName, location, description, openTime, closeTime,
+            type, shopType, deliveryTime, img
         } = req.body;
 
         if (!name || !email || !password || !phone) {
@@ -58,26 +58,37 @@ const registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         let user;
+        let createdProvider = null;
         if (role === 'seller') {
+            const resolvedShopName = (shopName || vendorName || `${name.trim()}'s Canteen`).trim();
+            const resolvedLocation = (location || residence || 'CUET Campus').trim();
+            const resolvedType = type || shopType || 'Canteen';
+            const resolvedOpen = openTime || '06:00';
+            const resolvedClose = closeTime || '22:00';
+            const resolvedDelivery = deliveryTime || '15-20 min';
+            const resolvedDesc = description || 'Fresh quality campus meals and fast delivery.';
+            const resolvedImg = img || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80';
+
             user = await Seller.create({
-                name,
+                name: name.trim(),
                 email: normalizedEmail,
-                phone,
+                phone: phone.trim(),
                 password: hashedPassword,
-                role: 'seller'
+                role: 'seller',
+                shopName: resolvedShopName
             });
 
-            const isOpen = calculateIsOpen(openTime, closeTime);
-            await Provider.create({
-                name: shopName || `${name}'s Shop`,
+            const isOpen = calculateIsOpen(resolvedOpen, resolvedClose);
+            createdProvider = await Provider.create({
+                name: resolvedShopName,
                 seller: user._id,
-                location: location || '',
-                description: description || '',
-                type: type || 'Canteen',
-                deliveryTime: deliveryTime || '',
-                img: img || '',
-                openTime: openTime || '',
-                closeTime: closeTime || '',
+                location: resolvedLocation,
+                description: resolvedDesc,
+                type: resolvedType,
+                deliveryTime: resolvedDelivery,
+                img: resolvedImg,
+                openTime: resolvedOpen,
+                closeTime: resolvedClose,
                 isOpen: isOpen,
                 rating: 0
             });
@@ -96,22 +107,33 @@ const registerUser = async (req, res) => {
         }
 
         if (user) {
-            return res.status(201).json({
+            const responseData = {
                 _id: user.id,
+                id: user.id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
                 phone: user.phone,
-                ...(user.role === 'buyer' ? {
-                    residence: user.residence,
-                    buyerType: user.buyerType,
-                    cuetId: user.cuetId,
-                    department: user.department
-                } : {
-                    shopName: shopName,
-                }),
                 token: generateToken(user._id),
-            });
+            };
+
+            if (user.role === 'buyer') {
+                responseData.residence = user.residence;
+                responseData.buyerType = user.buyerType;
+                responseData.cuetId = user.cuetId;
+                responseData.department = user.department;
+            } else if (user.role === 'seller') {
+                responseData.shopName = createdProvider ? createdProvider.name : user.shopName;
+                responseData.location = createdProvider ? createdProvider.location : '';
+                responseData.type = createdProvider ? createdProvider.type : 'Canteen';
+                responseData.openTime = createdProvider ? createdProvider.openTime : '06:00';
+                responseData.closeTime = createdProvider ? createdProvider.closeTime : '22:00';
+                responseData.deliveryTime = createdProvider ? createdProvider.deliveryTime : '15-20 min';
+                responseData.img = createdProvider ? createdProvider.img : '';
+                responseData.isOpen = createdProvider ? createdProvider.isOpen : true;
+            }
+
+            return res.status(201).json(responseData);
         } else {
             return res.status(400).json({ message: 'Invalid user data' });
         }
@@ -146,10 +168,23 @@ const loginUser = async (req, res) => {
             return res.status(401).json({ message: 'Incorrect password. Please try again.' });
         }
 
-        let shopName;
+        let providerData = {};
         if (user.role === 'seller') {
             const provider = await Provider.findOne({ seller: user._id });
-            shopName = provider ? provider.name : undefined;
+            if (provider) {
+                providerData = {
+                    shopName: provider.name,
+                    location: provider.location,
+                    type: provider.type,
+                    openTime: provider.openTime,
+                    closeTime: provider.closeTime,
+                    deliveryTime: provider.deliveryTime,
+                    img: provider.img,
+                    isOpen: provider.isOpen,
+                };
+            } else if (user.shopName) {
+                providerData = { shopName: user.shopName };
+            }
         }
 
         return res.json({
@@ -162,7 +197,7 @@ const loginUser = async (req, res) => {
             buyerType: user.buyerType,
             cuetId: user.cuetId,
             department: user.department,
-            shopName,
+            ...providerData,
             token: generateToken(user._id),
         });
     } catch (error) {

@@ -28,7 +28,7 @@ const FloatingTabBar = ({
   }
 
   return (
-    <View style={styles.floatingContainer} pointerEvents="box-none">
+    <View style={[styles.floatingContainer, { pointerEvents: "box-none" }]}>
       <View style={styles.capsuleDock}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];

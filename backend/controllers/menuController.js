@@ -17,7 +17,7 @@ const getMenuItems = async (req, res) => {
                 // Try finding provider by name or fallback
                 const p = await Provider.findOne({
                     $or: [
-                        { name: new RegExp(`^${vendorId}$`, 'i') },
+                        { name: new RegExp('^' + vendorId + '$', 'i') },
                         { name: /canteen/i }
                     ]
                 });
@@ -30,6 +30,29 @@ const getMenuItems = async (req, res) => {
         }
         
         const items = await MenuItem.find(query).populate('provider', 'name location');
+        res.json(items);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// GET /api/menu/seller (Private/Seller)
+const getSellerMenuItems = async (req, res) => {
+    try {
+        let provider = await Provider.findOne({ seller: req.user._id });
+        if (!provider && req.user.shopName) {
+            provider = await Provider.findOne({ name: new RegExp('^' + req.user.shopName + '$', 'i') });
+            if (provider) {
+                provider.seller = req.user._id;
+                await provider.save();
+            }
+        }
+
+        if (!provider) {
+            return res.json([]);
+        }
+
+        const items = await MenuItem.find({ provider: provider._id }).sort('-createdAt');
         res.json(items);
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -60,10 +83,17 @@ const createMenuItem = async (req, res) => {
         const { name, category, price, desc, img } = req.body;
         
         let provider = await Provider.findOne({ seller: req.user._id });
+        if (!provider && req.user.shopName) {
+            provider = await Provider.findOne({ name: new RegExp('^' + req.user.shopName + '$', 'i') });
+            if (provider) {
+                provider.seller = req.user._id;
+                await provider.save();
+            }
+        }
         
         if (!provider) {
             provider = await Provider.create({
-                name: req.user.shopName || `${req.user.name}'s Canteen`,
+                name: req.user.shopName || (req.user.name + "'s Canteen"),
                 seller: req.user._id,
                 location: req.user.residence || 'CUET Campus',
                 type: 'Canteen',
@@ -102,7 +132,14 @@ const updateMenuItem = async (req, res) => {
             return res.status(404).json({ message: 'Menu item not found' });
         }
 
-        const provider = await Provider.findOne({ seller: req.user._id });
+        let provider = await Provider.findOne({ seller: req.user._id });
+        if (!provider && req.user.shopName) {
+            provider = await Provider.findOne({ name: new RegExp('^' + req.user.shopName + '$', 'i') });
+            if (provider) {
+                provider.seller = req.user._id;
+                await provider.save();
+            }
+        }
         if (req.user.role !== 'admin' && (!provider || item.provider.toString() !== provider._id.toString())) {
             return res.status(403).json({ message: 'Not authorized to update this item' });
         }
@@ -127,7 +164,14 @@ const deleteMenuItem = async (req, res) => {
             return res.status(404).json({ message: 'Menu item not found' });
         }
 
-        const provider = await Provider.findOne({ seller: req.user._id });
+        let provider = await Provider.findOne({ seller: req.user._id });
+        if (!provider && req.user.shopName) {
+            provider = await Provider.findOne({ name: new RegExp('^' + req.user.shopName + '$', 'i') });
+            if (provider) {
+                provider.seller = req.user._id;
+                await provider.save();
+            }
+        }
         if (req.user.role !== 'admin' && (!provider || item.provider.toString() !== provider._id.toString())) {
             return res.status(403).json({ message: 'Not authorized to delete this item' });
         }
@@ -141,6 +185,7 @@ const deleteMenuItem = async (req, res) => {
 
 module.exports = {
     getMenuItems,
+    getSellerMenuItems,
     getMenuItemById,
     createMenuItem,
     updateMenuItem,

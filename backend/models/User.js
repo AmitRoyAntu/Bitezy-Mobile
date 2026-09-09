@@ -26,7 +26,9 @@ const Buyer = User.discriminator('buyer', new mongoose.Schema({
 }));
 
 // Seller Discriminator
-const Seller = User.discriminator('seller', new mongoose.Schema({}));
+const Seller = User.discriminator('seller', new mongoose.Schema({
+  shopName: { type: String, trim: true },
+}));
 
 // Admin Discriminator
 const Admin = User.discriminator('admin', new mongoose.Schema({}));

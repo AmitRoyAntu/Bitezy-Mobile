@@ -16,6 +16,7 @@ const CustomSelect = ({
   value,
   options = [],
   onSelect,
+  onValueChange,
   placeholder = 'Select an option',
   error,
   style,
@@ -36,7 +37,8 @@ const CustomSelect = ({
 
   const handleChoose = (item) => {
     const val = typeof item === 'string' ? item : item.value;
-    onSelect(val);
+    if (onSelect) onSelect(val);
+    if (onValueChange) onValueChange(val);
     setModalVisible(false);
   };
 

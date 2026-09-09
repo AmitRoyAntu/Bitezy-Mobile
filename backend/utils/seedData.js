@@ -13,6 +13,24 @@ const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
 const connectDB = require('../config/db');
 
+const calculateIsOpen = (openTime, closeTime) => {
+    if (!openTime || !closeTime) return true;
+    const now = new Date();
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const bdTime = new Date(utcTime + (3600000 * 6));
+    const currentMinutes = bdTime.getHours() * 60 + bdTime.getMinutes();
+
+    const [openH, openM] = (openTime || "").split(":").map(Number);
+    const [closeH, closeM] = (closeTime || "").split(":").map(Number);
+    const openMinutes = openH * 60 + (openM || 0);
+    const closeMinutes = closeH * 60 + (closeM || 0);
+
+    if (closeMinutes < openMinutes) {
+        return currentMinutes >= openMinutes || currentMinutes < closeMinutes;
+    }
+    return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+};
+
 const loadJSON = (filename) => {
     const data = fs.readFileSync(path.join(__dirname, '../../data', `${filename}.json`), 'utf-8');
     return JSON.parse(data);
@@ -65,9 +83,18 @@ const seedData = async () => {
         
         const createdProviders = await Provider.create(providersData.map(p => {
             const { id, seller, ...rest } = p;
+            const matchedSellerUser = usersData.find(u => u.id === seller || (u.role === 'seller' && (u.shopName === p.name || u.name === p.name)));
+            const sellerId = userMap[seller] || (matchedSellerUser ? userMap[matchedSellerUser.id] : null) || createdUsers.find(u => u.role === 'seller')?._id || new mongoose.Types.ObjectId();
+            const openTime = p.openTime || matchedSellerUser?.openTime || '06:00';
+            const closeTime = p.closeTime || matchedSellerUser?.closeTime || '22:00';
+            const isOpen = calculateIsOpen(openTime, closeTime);
+
             return {
                 ...rest,
-                seller: userMap[seller] || createdUsers.find(u => u.role === 'seller')?._id || new mongoose.Types.ObjectId()
+                openTime,
+                closeTime,
+                isOpen,
+                seller: sellerId
             };
         }));
         

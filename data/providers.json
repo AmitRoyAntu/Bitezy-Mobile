@@ -10,7 +10,9 @@
       "rating": 4.8,
       "deliveryTime": "15-20 min",
       "isOpen": true,
-      "description": "The most popular hall canteen, known for its exceptional beef curry and friendly service. A students' favorite!"
+      "description": "The most popular hall canteen, known for its exceptional beef curry and friendly service. A students' favorite!",
+      "openTime": "06:00",
+      "closeTime": "22:00"
     },
     {
       "id": 2,
@@ -22,7 +24,9 @@
       "rating": 4.5,
       "deliveryTime": "20-25 min",
       "isOpen": true,
-      "description": "Serving fresh breakfast, lunch and dinner for QK Hall residents. Known for authentic Bengali cuisine and quick service."
+      "description": "Serving fresh breakfast, lunch and dinner for QK Hall residents. Known for authentic Bengali cuisine and quick service.",
+      "openTime": "06:00",
+      "closeTime": "22:00"
     },
     {
       "id": 3,
@@ -34,7 +38,9 @@
       "rating": 4.3,
       "deliveryTime": "25-30 min",
       "isOpen": true,
-      "description": "Popular canteen offering diverse menu options including biryani, tehari, and daily specials at affordable prices."
+      "description": "Popular canteen offering diverse menu options including biryani, tehari, and daily specials at affordable prices.",
+      "openTime": "06:30",
+      "closeTime": "21:30"
     },
     {
       "id": 4,
@@ -46,7 +52,9 @@
       "rating": 4.2,
       "deliveryTime": "25-30 min",
       "isOpen": true,
-      "description": "Cozy canteen with excellent rice dishes and snacks. Perfect spot for evening tea and light refreshments."
+      "description": "Cozy canteen with excellent rice dishes and snacks. Perfect spot for evening tea and light refreshments.",
+      "openTime": "06:30",
+      "closeTime": "22:00"
     },
     {
       "id": 5,
@@ -58,7 +66,9 @@
       "rating": 4.1,
       "deliveryTime": "20-25 min",
       "isOpen": true,
-      "description": "Traditional canteen serving homemade-style meals. Specializes in fish curry and local favorites."
+      "description": "Traditional canteen serving homemade-style meals. Specializes in fish curry and local favorites.",
+      "openTime": "06:00",
+      "closeTime": "21:30"
     },
     {
       "id": 6,
@@ -70,7 +80,9 @@
       "rating": 4.6,
       "deliveryTime": "15-20 min",
       "isOpen": true,
-      "description": "Modern cafeteria with wide variety of fast food, beverages, and desserts. Air-conditioned seating available."
+      "description": "Modern cafeteria with wide variety of fast food, beverages, and desserts. Air-conditioned seating available.",
+      "openTime": "07:00",
+      "closeTime": "21:00"
     },
     {
       "id": 7,
@@ -82,7 +94,9 @@
       "rating": 4.4,
       "deliveryTime": "10-15 min",
       "isOpen": true,
-      "description": "Famous street food cart known for delicious fuchka, chotpoti, and evening snacks. Quick and budget-friendly."
+      "description": "Famous street food cart known for delicious fuchka, chotpoti, and evening snacks. Quick and budget-friendly.",
+      "openTime": "11:00",
+      "closeTime": "23:00"
     },
     {
       "id": 8,
@@ -94,7 +108,9 @@
       "rating": 4.7,
       "deliveryTime": "15-20 min",
       "isOpen": true,
-      "description": "Fresh home-style cooking, evening snacks, and quick hostel room delivery."
+      "description": "Fresh home-style cooking, evening snacks, and quick hostel room delivery.",
+      "openTime": "06:00",
+      "closeTime": "23:00"
     }
   ]
 }

@@ -204,6 +204,15 @@ class HttpDataService {
   // MENU ITEMS
   // -------------------------------------------------------------
 
+    async getSellerMenu() {
+    try {
+      const items = await this.request('/menu/seller', 'GET');
+      return Array.isArray(items) ? items : null;
+    } catch (err) {
+      return null;
+    }
+  }
+
   async getMenu(vendorId = null, availableOnly = false) {
     try {
       let endpoint = '/menu';

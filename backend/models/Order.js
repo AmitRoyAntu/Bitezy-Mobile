@@ -22,6 +22,7 @@ const orderSchema = new mongoose.Schema({
     default: 'PENDING' 
   },
   deliveryAddress: { type: String },
+  notes: { type: String, default: '' },
 }, { timestamps: true });
 
 const Order = mongoose.model("Order", orderSchema);
