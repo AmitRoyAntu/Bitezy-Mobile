@@ -36,6 +36,7 @@ ios/
 .env.development.local
 .env.test.local
 .env.production.local
+credentials
 
 # macOS & System Files
 .DS_Store

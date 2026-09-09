@@ -45,6 +45,7 @@ Bitezy-Mobile/
 ### 1. Prerequisites
 
 Before running the project, make sure you have:
+
 - **Node.js** (v18 or higher) installed: `node -v`
 - **MongoDB** running locally on port `27017` (e.g., via MongoDB Community Server or MongoDB Compass) or a MongoDB Atlas URI.
 - **Expo Go** installed on your physical mobile device (available on [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent) and [Apple App Store](https://apps.apple.com/app/expo-go/id982107779)), or an iOS Simulator / Android Emulator.
@@ -54,18 +55,22 @@ Before running the project, make sure you have:
 ### 2. Backend Setup & Run
 
 #### Step 1: Open a terminal and navigate to `backend/`
-```bash
+
+```
 cd backend
 ```
 
 #### Step 2: Install dependencies
-```bash
+
+```
 npm install
 ```
 
 #### Step 3: Configure Environment Variables
+
 Ensure `backend/.env` exists (a template is provided in `backend/example.env`):
-```env
+
+```
 PORT=8002
 NODE_ENV=development
 MONGODB_URI=mongodb://127.0.0.1:27017/bitezy
@@ -73,17 +78,23 @@ JWT_SECRET=your_secret_key
 ```
 
 #### Step 4: Seed Database with Initial Campus Data
+
 Populate all campus canteens, student accounts, menu items, coupons, and reviews:
-```bash
+
+```
 npm run seed
 ```
+
 *(Or from the root directory: `npm run seed`)*
 
 #### Step 5: Start the Backend Server
-```bash
+
+```
 npm start
 ```
+
 The backend will start and log:
+
 ```
 Database connected successfully
 Server is running in development mode on port 8002
@@ -94,22 +105,27 @@ Server is running in development mode on port 8002
 ### 3. Frontend (Mobile App) Setup & Run
 
 #### Step 1: Open a second terminal and navigate to `frontend/`
-```bash
+
+```
 cd frontend
 ```
 
 #### Step 2: Install dependencies
-```bash
+
+```
 npm install
 ```
 
 #### Step 3: Start the Expo Development Server
-```bash
+
+```
 npx expo start -c
 ```
+
 *(Tip: Use `npx expo start --lan -c` if testing on a physical device connected to your local Wi-Fi)*
 
 #### Step 4: Open the App
+
 - **Physical Phone (iOS / Android)**:
   1. Ensure your phone and computer are on the **same Wi-Fi network**.
   2. Open the **Expo Go** app (on Android, scan the terminal QR code; on iOS, scan the QR code with the default Camera app).
@@ -125,7 +141,8 @@ npx expo start -c
 ### 4. Running Both from the Root Directory
 
 You can also start either service directly from the project root:
-```bash
+
+```
 # Start backend
 npm run start:backend
 
@@ -147,54 +164,29 @@ The app automatically detects the host machine's IP address when bundled via Met
    - **Windows**: `ipconfig` (IPv4 Address under Wireless LAN adapter)
    - **Linux**: `hostname -I`
 2. Update `DEFAULT_HOST` in [`frontend/src/api/config.js`](frontend/src/api/config.js):
-   ```javascript
+
+   ```
    export const DEFAULT_HOST = 'YOUR_LOCAL_IP_HERE'; // e.g. '192.168.0.101'
    export const DEFAULT_PORT = 8002;
    ```
+
 3. Ensure your computer's firewall allows incoming traffic on port `8002`.
 
 ---
 
 ## 👥 Default Demo Accounts
 
-All seed accounts are initialized with password: **`demo123`**
-
 | Role | Email | Password | Details & Features |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Student (Buyer)** | `student@bitezy.com` | `demo123` | Student account. Browse canteens, cart, room delivery, order tracking, review canteens. |
-| **Student (Buyer 2)** | `amit@cuet.ac.bd` | `demo123` | Student account (Amit Roy, CSE). |
 | **Canteen Seller** | `seller@bitezy.com` | `demo123` | Canteen manager (Dr. Qudrat-E-Khuda Hall Canteen). Manage live orders, update status, toggle stock, manage menu. |
-| **Canteen Seller 2** | `seller2@bitezy.com` | `demo123` | Canteen manager (Sufia Kamal Hall Canteen). |
 | **System Admin** | `admin@bitezy.com` | `demo123` | Platform administration. Seller approval, user management, promo coupons, review moderation. |
-
----
-
-## 🔌 API Endpoints Reference
-
-| Endpoint | Method | Access | Description |
-|---|---|---|---|
-| `/api/auth/register` | POST | Public | User registration (Student buyer or Canteen seller) |
-| `/api/auth/login` | POST | Public | User authentication and JWT generation |
-| `/api/auth/me` | GET | Private | Get authenticated user profile details |
-| `/api/auth/profile` | PUT | Private | Update user profile / canteen account details |
-| `/api/providers` | GET | Public | List all active campus canteens and cafeterias |
-| `/api/providers/:id` | GET | Public | Get single canteen details & operating hours |
-| `/api/menu` | GET | Public | Get menu items (supports `?vendor=<id>&available=true`) |
-| `/api/menu/seller` | GET | Seller | Get all menu items managed by the logged-in seller |
-| `/api/orders` | POST | Buyer | Create a new food order (delivery or pickup) |
-| `/api/orders/myorders` | GET | Buyer | Customer order history with live status updates |
-| `/api/orders/seller` | GET | Seller | Live canteen order management board |
-| `/api/orders/:id/status`| PUT | Seller/Admin | Update order status (`PREPARING`, `READY`, `DELIVERED`, etc.) |
-| `/api/reviews/provider/:id` | GET | Public | Get verified reviews for a canteen |
-| `/api/reviews` | POST | Buyer | Submit a rating and review for a canteen |
-| `/api/coupons/active` | GET | Public | Retrieve active campus promotional coupons |
-| `/api/coupons/validate` | POST | Private | Validate coupon code during checkout |
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React Native, Expo SDK 51, React Navigation, Safe Area Context, Ionicons
+- **Frontend**: React Native, Expo SDK 57, React Navigation, Safe Area Context, Ionicons
 - **Backend**: Node.js, Express.js, JSON Web Tokens (JWT), bcryptjs
 - **Database**: MongoDB with Mongoose ODM
 - **Architecture**: Modular REST API with role-based access control (Buyer, Seller, Admin)

@@ -247,7 +247,7 @@ const RegisterScreen = ({ navigation }) => {
               label="Full Name *"
               value={name}
               onChangeText={setName}
-              placeholder="e.g. Amit Roy"
+              placeholder="e.g. John Doe"
               error={errors.name}
             />
 

@@ -14,8 +14,8 @@ export const initialUsers = [
   {
     _id: "1",
     id: 1,
-    name: "Amit Roy",
-    email: "amit@cuet.ac.bd",
+    name: "Demo Student",
+    email: "student2@bitezy.com",
     phone: "01812345678",
     role: "buyer",
     buyerType: "Student",
@@ -592,7 +592,7 @@ export const initialReviews = [
   {
     _id: "r1",
     provider: "1",
-    user: { _id: "1", name: "Amit Roy" },
+    user: { _id: "1", name: "Demo Student" },
     rating: 5,
     comment: "Best beef curry in CUET! Always fresh and spicy.",
     createdAt: "2026-04-18T14:00:00Z",

@@ -14,8 +14,8 @@
     },
     {
       "id": 1,
-      "name": "Amit Roy",
-      "email": "amit@cuet.ac.bd",
+      "name": "Demo Student",
+      "email": "student2@bitezy.com",
       "phone": "01812345678",
       "role": "buyer",
       "buyerType": "Student",
