@@ -23,6 +23,7 @@ import DataService from '../../api/DataService';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { useFavorites } from '../../context/FavoritesContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -31,7 +32,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 const TABS = ['Menu', 'Reviews', 'About'];
 
 const ProviderMenuScreen = ({ route, navigation }) => {
-  const { provider } = route.params;
+  const { provider: initialProvider } = route.params;
+  const [provider, setProvider] = useState(initialProvider);
   const [activeTab, setActiveTab] = useState('Menu');
   const [menuItems, setMenuItems] = useState([]);
   const [reviews, setReviews] = useState([]);
@@ -50,10 +52,15 @@ const ProviderMenuScreen = ({ route, navigation }) => {
 
   const loadData = async () => {
     try {
-      const [items, revs] = await Promise.all([
-        DataService.getMenuByProvider(provider._id || provider.id, true),
-        DataService.getReviewsByProvider(provider._id || provider.id),
+      const provId = initialProvider?._id || initialProvider?.id;
+      const [freshProvider, items, revs] = await Promise.all([
+        provId ? DataService.getProviderById(provId).catch(() => null) : Promise.resolve(null),
+        provId ? DataService.getMenuByProvider(provId, true) : Promise.resolve([]),
+        provId ? DataService.getReviewsByProvider(provId) : Promise.resolve([]),
       ]);
+      if (freshProvider) {
+        setProvider(freshProvider);
+      }
       setMenuItems(items || []);
       setReviews(revs || []);
     } catch (err) {
@@ -65,7 +72,13 @@ const ProviderMenuScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     loadData();
-  }, [provider]);
+  }, [initialProvider]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+    }, [initialProvider])
+  );
 
   const categories = useMemo(() => {
     const cats = new Set(menuItems.map((m) => m.category).filter(Boolean));
@@ -129,7 +142,11 @@ const ProviderMenuScreen = ({ route, navigation }) => {
   };
 
   const handleWhatsAppContact = () => {
-    const phone = provider.phone || '01811112222';
+    const phone = provider.phone || provider.seller?.phone;
+    if (!phone) {
+      showToast('No contact phone registered for this canteen', 'info');
+      return;
+    }
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     const intlPhone = cleanPhone.startsWith('88') ? cleanPhone : `88${cleanPhone}`;
     const text = encodeURIComponent(`Hello ${provider.name}, I am inquiring regarding your menu on Bitezy CUET.`);
@@ -141,7 +158,11 @@ const ProviderMenuScreen = ({ route, navigation }) => {
   };
 
   const handlePhoneCall = () => {
-    const phone = provider.phone || '01811112222';
+    const phone = provider.phone || provider.seller?.phone;
+    if (!phone) {
+      showToast('No contact phone registered for this canteen', 'info');
+      return;
+    }
     Linking.openURL(`tel:${phone}`).catch(() => {
       showToast('Could not start phone call', 'error');
     });
@@ -191,7 +212,9 @@ const ProviderMenuScreen = ({ route, navigation }) => {
   };
 
   const avgRating = useMemo(() => {
-    if (!reviews.length) return provider.rating || '4.5';
+    if (!reviews.length) {
+      return provider.rating && Number(provider.rating) > 0 ? Number(provider.rating).toFixed(1) : 'New';
+    }
     const sum = reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
     return (sum / reviews.length).toFixed(1);
   }, [reviews, provider.rating]);
@@ -391,21 +414,23 @@ const ProviderMenuScreen = ({ route, navigation }) => {
               <View style={styles.reviewHeaderRow}>
                 <View style={styles.reviewerAvatar}>
                   <Text style={styles.reviewerAvatarText}>
-                    {item.user?.name ? item.user.name.charAt(0).toUpperCase() : 'S'}
+                    {(item.buyer?.name || item.user?.name || 'S').charAt(0).toUpperCase()}
                   </Text>
                 </View>
                 <View style={styles.reviewerInfo}>
                   <View style={styles.reviewerNameRow}>
                     <Text style={styles.reviewerName} numberOfLines={1}>
-                      {item.user ? item.user.name : 'CUET Student'}
+                      {item.buyer?.name || item.user?.name || 'Verified Customer'}
                     </Text>
                     <View style={styles.verifiedStudentBadge}>
                       <Ionicons name="school" size={10} color={colors.primary} style={{ marginRight: 3 }} />
-                      <Text style={styles.verifiedStudentText}>CUET Student</Text>
+                      <Text style={styles.verifiedStudentText}>
+                        {item.buyer?.department || item.buyer?.studentId || 'CUET Student'}
+                      </Text>
                     </View>
                   </View>
                   <Text style={styles.reviewDate}>
-                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Verified Buyer'}
+                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Verified Review'}
                   </Text>
                 </View>
               </View>
@@ -440,7 +465,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
             <View style={styles.emptyContainer}>
               <Ionicons name="chatbubbles-outline" size={42} color={colors.textLight} style={{ marginBottom: 8 }} />
               <Text style={styles.emptyTitle}>No reviews yet</Text>
-              <Text style={styles.emptyText}>Be the first CUET student to write a review!</Text>
+              <Text style={styles.emptyText}>Be the first to share your experience with {provider.name}!</Text>
             </View>
           }
         />
@@ -465,7 +490,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
               </View>
             </View>
             <Text style={styles.aboutDescription}>
-              {provider.description || `${provider.name} is one of CUET's dedicated residential food providers, serving freshly prepared Bengali meals, snacks, and refreshments for students and teachers.`}
+              {provider.description || `Welcome to ${provider.name}. Check out our fresh campus menu, student meal options, and daily specials.`}
             </Text>
           </View>
 
@@ -491,11 +516,13 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                   <Text style={styles.infoGridVal}>
                     {provider.openTime && provider.closeTime
                       ? `${provider.openTime} - ${provider.closeTime}`
-                      : '06:00 AM - 10:00 PM (Daily)'}
+                      : 'Operating hours not set'}
                   </Text>
-                  <View style={styles.liveOpenPill}>
-                    <View style={styles.liveOpenDot} />
-                    <Text style={styles.liveOpenText}>Open Now</Text>
+                  <View style={[styles.liveOpenPill, provider.isOpen === false && styles.liveClosedPill]}>
+                    <View style={[styles.liveOpenDot, provider.isOpen === false && styles.liveClosedDot]} />
+                    <Text style={[styles.liveOpenText, provider.isOpen === false && styles.liveClosedText]}>
+                      {provider.isOpen === false ? 'Closed' : 'Open Now'}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -507,7 +534,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
               </View>
               <View style={styles.infoGridTextCol}>
                 <Text style={styles.infoGridLabel}>Delivery Time</Text>
-                <Text style={styles.infoGridVal}>{provider.deliveryTime || '15-25 min'}</Text>
+                <Text style={styles.infoGridVal}>{provider.deliveryTime || 'Campus Delivery'}</Text>
               </View>
             </View>
           </View>
@@ -519,9 +546,13 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                 <Ionicons name="compass-outline" size={13} color={colors.primary} style={{ marginRight: 4 }} />
                 <Text style={styles.mapBadgeText}>Campus Landmark</Text>
               </View>
-              <Text style={styles.coordText}>
-                {`${(provider.lat || 22.46332).toFixed(5)}° N, ${(provider.lng || 91.97085).toFixed(5)}° E`}
-              </Text>
+              {provider.lat && provider.lng ? (
+                <Text style={styles.coordText}>
+                  {`${Number(provider.lat).toFixed(5)}° N, ${Number(provider.lng).toFixed(5)}° E`}
+                </Text>
+              ) : (
+                <Text style={styles.coordText}>CUET Campus</Text>
+              )}
             </View>
 
             {/* Landmark Details Showcase */}
@@ -1164,6 +1195,15 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 10,
     color: '#10B981',
+  },
+  liveClosedPill: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+  },
+  liveClosedDot: {
+    backgroundColor: '#EF4444',
+  },
+  liveClosedText: {
+    color: '#EF4444',
   },
 
   /* About Map Card */

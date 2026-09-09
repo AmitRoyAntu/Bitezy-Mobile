@@ -43,7 +43,7 @@ const getProviderReviews = async (req, res) => {
         }
 
         const reviews = await Review.find({ provider: queryProvider })
-            .populate('buyer', 'name')
+            .populate('buyer', 'name department studentId cuetId buyerType')
             .sort('-createdAt');
         res.json(reviews);
     } catch (error) {
@@ -79,7 +79,7 @@ const createReview = async (req, res) => {
 
         await syncProviderRating(provider);
 
-        const populatedReview = await Review.findById(review._id).populate('buyer', 'name');
+        const populatedReview = await Review.findById(review._id).populate('buyer', 'name department studentId cuetId buyerType');
         res.status(201).json(populatedReview);
     } catch (error) {
         return res.status(500).json({ message: error.message });

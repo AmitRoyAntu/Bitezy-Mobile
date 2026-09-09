@@ -284,8 +284,10 @@ class HttpDataService {
       items: orderData.items,
       subtotal: orderData.subtotal,
       deliveryFee: orderData.deliveryFee,
+      discount: orderData.discount || 0,
+      couponCode: orderData.couponCode || null,
       total: orderData.total,
-      type: orderData.orderType || orderData.type,
+      type: (orderData.orderType || orderData.type || 'delivery').toLowerCase(),
       deliveryAddress: orderData.deliveryAddress,
       notes: orderData.notes,
     };

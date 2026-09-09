@@ -147,7 +147,14 @@ const updateOrderStatus = async (req, res) => {
 const getMyOrders = async (req, res) => {
     try {
         const orders = await Order.find({ customer: req.user._id })
-            .populate('provider', 'name location')
+            .populate({
+                path: 'provider',
+                select: 'name location type img seller rating deliveryTime',
+                populate: {
+                    path: 'seller',
+                    select: 'name phone email'
+                }
+            })
             .sort('-createdAt');
         res.json(orders);
     } catch (error) {

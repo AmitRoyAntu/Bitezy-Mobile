@@ -284,8 +284,8 @@ const OrderHistoryScreen = ({ navigation }) => {
 
   const renderOrderItem = ({ item }) => {
     const orderIdShort = item._id ? `#${item._id.slice(-6)}` : '#N/A';
-    const providerName = item.provider ? item.provider.name : item.providerName || 'CUET Canteen';
-    const providerPhone = item.provider?.phone || '01811112222';
+    const providerName = item.provider?.name || item.providerName || 'CUET Canteen';
+    const providerPhone = item.provider?.seller?.phone || item.provider?.phone;
     const isActive = ['PENDING', 'PREPARING', 'READY', 'ON_THE_WAY'].includes(item.status);
     const isCancelled = item.status === 'CANCELLED';
     const isDelivered = ['DELIVERED', 'PICKED_UP'].includes(item.status);
@@ -309,7 +309,7 @@ const OrderHistoryScreen = ({ navigation }) => {
 
     const itemsSummary = item.items
       ? item.items.map((i) => `${i.qty}x ${i.name}`).join('  •  ')
-      : 'Campus Meal';
+      : 'Order items';
 
     return (
       <View style={[styles.cozyCard, isActive && styles.cozyCardActive]}>

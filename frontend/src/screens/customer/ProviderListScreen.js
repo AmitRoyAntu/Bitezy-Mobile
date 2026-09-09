@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import ProviderCard from '../../components/ProviderCard';
 import Logo from '../../components/Logo';
 import { colors, spacing, fonts } from '../../theme/colors';
@@ -71,7 +71,7 @@ const FALLBACK_BANNERS = [
     provider: "Bitezy Campus",
     title: "Fresh Campus Dining",
     subtitle: "Order student meals and snacks from CUET canteens",
-    code: "CUET10",
+    code: "",
     ...BANNER_THEMES[0],
   },
 ];
@@ -191,10 +191,8 @@ const ProviderListScreen = ({ navigation }) => {
         DataService.getProviders(),
         DataService.getActiveCoupons(),
       ]);
-      setProviders(providersData || []);
-      if (couponsData && couponsData.length > 0) {
-        setCoupons(couponsData);
-      }
+      setProviders(Array.isArray(providersData) ? providersData : []);
+      setCoupons(Array.isArray(couponsData) ? couponsData : []);
     } catch (err) {
       showToast("Error loading campus data", "error");
     } finally {
@@ -206,6 +204,12 @@ const ProviderListScreen = ({ navigation }) => {
   useEffect(() => {
     loadProviders();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadProviders();
+    }, [])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -388,6 +392,7 @@ const ProviderListScreen = ({ navigation }) => {
                         </Text>
 
                         <View style={styles.heroActionsRow}>
+                          {Boolean(activeBanner.code) && (
                           <TouchableOpacity
                             style={[
                               styles.promoCodeBox,
@@ -414,6 +419,7 @@ const ProviderListScreen = ({ navigation }) => {
                               {activeBanner.code}
                             </Text>
                           </TouchableOpacity>
+                          )}
 
                           {/* Dots Pagination Indicator */}
                           {heroBanners.length > 1 && (

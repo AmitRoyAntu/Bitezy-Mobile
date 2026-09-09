@@ -50,6 +50,13 @@ const CartScreen = ({ navigation }) => {
   const [deliveryAddress, setDeliveryAddress] = useState(currentUser?.residence || '');
   const [orderNote, setOrderNote] = useState('');
   const [providerInfo, setProviderInfo] = useState(null);
+  const [activeCoupons, setActiveCoupons] = useState([]);
+
+  useEffect(() => {
+    if (currentUser?.residence && !deliveryAddress) {
+      setDeliveryAddress(currentUser.residence);
+    }
+  }, [currentUser]);
   const [loading, setLoading] = useState(false);
 
   // Coupon code state
@@ -155,6 +162,12 @@ const CartScreen = ({ navigation }) => {
         }
 
         setProviderInfo(match || providers[0] || null);
+
+        // Fetch active promo coupons from real database
+        const promoCoupons = await DataService.getActiveCoupons();
+        if (Array.isArray(promoCoupons)) {
+          setActiveCoupons(promoCoupons);
+        }
       } catch (e) {
         // ignore
       }
@@ -939,6 +952,33 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: 12,
     color: colors.white,
+  },
+  activePromoChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: spacing.sm,
+  },
+  activePromoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: spacing.borderRadiusFull,
+    borderWidth: 1,
+    borderColor: colors.primaryGlow,
+  },
+  activePromoChipCode: {
+    fontFamily: fonts.bold,
+    fontSize: 11,
+    color: colors.primary,
+    marginRight: 4,
+  },
+  activePromoChipDesc: {
+    fontFamily: fonts.medium,
+    fontSize: 10,
+    color: colors.textDark,
   },
   appliedCouponCard: {
     flexDirection: 'row',

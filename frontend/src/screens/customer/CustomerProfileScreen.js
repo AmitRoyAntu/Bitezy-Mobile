@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
   Image,
   Linking,
   Platform,
@@ -27,47 +28,66 @@ import { useCart } from '../../context/CartContext';
 import DataService from '../../api/DataService';
 import Logo from '../../components/Logo';
 
+const BUYER_TYPES = [
+  { label: 'Student', value: 'Student' },
+  { label: 'Teacher / Faculty', value: 'Teacher' },
+  { label: 'University Staff', value: 'Staff' },
+];
+
 const CustomerProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const { currentUser, logout, updateUser } = useAuth();
   const { showToast } = useToast();
   const { updateQty } = useCart();
 
+  const [profileUser, setProfileUser] = useState(currentUser);
   const [name, setName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [buyerType, setBuyerType] = useState(currentUser?.buyerType || 'Student');
   const [residence, setResidence] = useState(currentUser?.residence || '');
   const [department, setDepartment] = useState(currentUser?.department || '');
   const [cuetId, setCuetId] = useState(currentUser?.cuetId || '');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Statistics
+  // Real database activity metrics
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalSpent: 0,
     completedOrders: 0,
   });
 
+  const syncStateFromUser = (user) => {
+    if (!user) return;
+    setProfileUser(user);
+    setName(user.name || '');
+    setPhone(user.phone || '');
+    setBuyerType(user.buyerType || 'Student');
+    setResidence(user.residence || '');
+    setDepartment(user.department || '');
+    setCuetId(user.cuetId || '');
+  };
+
   useEffect(() => {
     if (currentUser) {
-      setName(currentUser.name || '');
-      setPhone(currentUser.phone || '');
-      setResidence(currentUser.residence || '');
-      setDepartment(currentUser.department || '');
-      setCuetId(currentUser.cuetId || '');
+      syncStateFromUser(currentUser);
     }
   }, [currentUser]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadUserStats();
-    }, [])
-  );
-
-  const loadUserStats = async () => {
+  const loadProfileData = async () => {
     try {
-      const orders = await DataService.getOrders();
-      if (orders && orders.length) {
+      const [freshUser, orders] = await Promise.all([
+        DataService.getCurrentUser(),
+        DataService.getOrders(),
+      ]);
+
+      if (freshUser) {
+        syncStateFromUser(freshUser);
+        updateUser(freshUser);
+      }
+
+      if (Array.isArray(orders)) {
         const completed = orders.filter((o) => ['DELIVERED', 'PICKED_UP'].includes(o.status));
         const spent = completed.reduce((sum, o) => sum + (o.total || 0), 0);
         setStats({
@@ -77,8 +97,21 @@ const CustomerProfileScreen = () => {
         });
       }
     } catch (err) {
-      // Keep defaults
+      // Keep existing
+    } finally {
+      setRefreshing(false);
     }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfileData();
+    }, [])
+  );
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadProfileData();
   };
 
   const handleSaveProfile = async () => {
@@ -96,12 +129,16 @@ const CustomerProfileScreen = () => {
       const updatePayload = {
         name: name.trim(),
         phone: phone.trim(),
+        buyerType,
         residence,
         department,
         cuetId: cuetId.trim(),
       };
+
       const updated = await DataService.updateProfile(updatePayload);
-      updateUser(updated || updatePayload);
+      const finalized = updated || { ...profileUser, ...updatePayload };
+      syncStateFromUser(finalized);
+      updateUser(finalized);
       setIsEditing(false);
       showToast('Profile updated successfully!');
     } catch (err) {
@@ -111,11 +148,22 @@ const CustomerProfileScreen = () => {
     }
   };
 
+  const activeUser = profileUser || currentUser;
+  const userInitial = activeUser?.name ? activeUser.name.charAt(0).toUpperCase() : 'U';
+
   return (
     <View style={styles.container}>
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: Math.max(insets.top + spacing.md, 36) }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
         {/* Header Hero Card */}
         <View style={styles.headerCard}>
@@ -123,13 +171,11 @@ const CustomerProfileScreen = () => {
           <View style={styles.headerTopRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.headerEyebrow}>Profile</Text>
-              <Text style={styles.userName}>{currentUser?.name || 'Student Buyer'}</Text>
-              <Text style={styles.userEmail}>{currentUser?.email}</Text>
+              <Text style={styles.userName}>{activeUser?.name || 'Customer'}</Text>
+              <Text style={styles.userEmail}>{activeUser?.email}</Text>
             </View>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
-              </Text>
+              <Text style={styles.avatarText}>{userInitial}</Text>
             </View>
           </View>
 
@@ -137,7 +183,7 @@ const CustomerProfileScreen = () => {
             <View style={styles.roleTag}>
               <Ionicons name="school" size={12} color={colors.primary} style={{ marginRight: 4 }} />
               <Text style={styles.roleTagText}>
-                {currentUser?.buyerType || 'Student'} • CUET
+                {activeUser?.buyerType || 'Student'} • CUET
               </Text>
             </View>
             <View style={styles.verifiedTag}>
@@ -147,7 +193,7 @@ const CustomerProfileScreen = () => {
           </View>
         </View>
 
-        {/* Stats Grid */}
+        {/* Real Stats Grid */}
         <View style={styles.statsCard}>
           <View style={styles.statsHeader}>
             <Text style={styles.statsEyebrow}>Snapshot</Text>
@@ -165,7 +211,7 @@ const CustomerProfileScreen = () => {
               <View style={[styles.statIconBadge, { backgroundColor: colors.successLight }]}>
                 <Ionicons name="wallet-outline" size={14} color={colors.success} />
               </View>
-              <Text style={styles.statNumber}>৳ {stats.totalSpent}</Text>
+              <Text style={styles.statNumber}>৳ {stats.totalSpent.toLocaleString()}</Text>
               <Text style={styles.statLabel}>Spent</Text>
             </View>
             <View style={styles.statCard}>
@@ -205,17 +251,25 @@ const CustomerProfileScreen = () => {
           {isEditing ? (
             <View style={styles.formContainer}>
               <Text style={styles.formSectionEyebrow}>Identity</Text>
+              <CustomSelect
+                label="Campus Role / Buyer Type"
+                value={buyerType}
+                options={BUYER_TYPES}
+                onSelect={setBuyerType}
+                onValueChange={setBuyerType}
+                placeholder="Select role..."
+              />
               <CustomInput
                 label="Full Name"
                 value={name}
                 onChangeText={setName}
-                placeholder="e.g. Amit Roy"
+                placeholder="Enter your name"
               />
               <CustomInput
                 label="Phone Number"
                 value={phone}
                 onChangeText={setPhone}
-                placeholder="e.g. 01812345678"
+                placeholder="e.g. 018XXXXXXXX"
                 keyboardType="phone-pad"
               />
               <View style={styles.formDivider} />
@@ -225,20 +279,22 @@ const CustomerProfileScreen = () => {
                 value={residence}
                 options={CUET_HALLS}
                 onSelect={setResidence}
-                placeholder="Select hall..."
+                onValueChange={setResidence}
+                placeholder="Select hall or residence..."
               />
               <CustomSelect
                 label="Academic Department"
                 value={department}
                 options={CUET_DEPARTMENTS}
                 onSelect={setDepartment}
+                onValueChange={setDepartment}
                 placeholder="Select department..."
               />
               <CustomInput
-                label="Student ID"
+                label={buyerType === 'Teacher' || buyerType === 'Staff' ? 'Staff / Teacher ID' : 'Student / CUET ID'}
                 value={cuetId}
                 onChangeText={setCuetId}
-                placeholder="e.g. 2204000"
+                placeholder={buyerType === 'Teacher' || buyerType === 'Staff' ? 'e.g. EMP-1024' : 'e.g. 2204000'}
               />
 
               <CustomButton
@@ -251,30 +307,37 @@ const CustomerProfileScreen = () => {
           ) : (
             <View style={styles.infoList}>
               <ProfileInfoRow
+                icon="school-outline"
+                label="Campus Role"
+                value={activeUser?.buyerType || 'Student'}
+                iconColor={colors.primary}
+                iconBg="rgba(255, 75, 38, 0.08)"
+              />
+              <ProfileInfoRow
                 icon="id-card-outline"
-                label="Student / CUET ID"
-                value={currentUser?.cuetId || '2204000'}
+                label={activeUser?.buyerType === 'Teacher' || activeUser?.buyerType === 'Staff' ? 'Staff / Teacher ID' : 'Student / CUET ID'}
+                value={activeUser?.cuetId || 'Not set'}
                 iconColor={colors.primary}
                 iconBg="rgba(255, 75, 38, 0.08)"
               />
               <ProfileInfoRow
                 icon="book-outline"
                 label="Department"
-                value={currentUser?.department || 'Computer Science & Engineering (CSE)'}
+                value={activeUser?.department || 'Not set'}
                 iconColor={colors.info}
                 iconBg={colors.infoLight}
               />
               <ProfileInfoRow
                 icon="business-outline"
                 label="Hall Residence / Address"
-                value={currentUser?.residence || 'Kabi Kazi Nazrul Islam Hall, Room 302'}
+                value={activeUser?.residence || 'Not set'}
                 iconColor={colors.success}
                 iconBg={colors.successLight}
               />
               <ProfileInfoRow
                 icon="call-outline"
                 label="Contact Number"
-                value={currentUser?.phone || '01812345678'}
+                value={activeUser?.phone || 'Not set'}
                 iconColor={colors.rating}
                 iconBg={colors.ratingBg}
               />
@@ -370,7 +433,6 @@ const CustomerProfileScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scrollContent: { padding: spacing.lg, paddingBottom: 140 },
-  bottomSpacer: { height: 60 },
 
   /* Hero */
   headerCard: {

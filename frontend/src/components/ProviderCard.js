@@ -48,7 +48,7 @@ const ProviderCard = ({ provider, onPress }) => {
           <Text style={styles.name} numberOfLines={1}>{provider.name}</Text>
           <View style={styles.ratingBadge}>
             <Ionicons name="star" size={12} color={colors.rating} style={{ marginRight: 3 }} />
-            <Text style={styles.ratingText}>{provider.rating || '4.5'}</Text>
+            <Text style={styles.ratingText}>{provider.rating && Number(provider.rating) > 0 ? Number(provider.rating).toFixed(1) : 'New'}</Text>
           </View>
 
         </View>
@@ -73,7 +73,7 @@ const ProviderCard = ({ provider, onPress }) => {
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
             <Ionicons name="time-outline" size={13} color={colors.textGray} style={{ marginRight: 4 }} />
-            <Text style={styles.metaText}>{provider.deliveryTime || '15-25 min'}</Text>
+            <Text style={styles.metaText}>{provider.deliveryTime || 'Campus Delivery'}</Text>
           </View>
           <Text style={styles.dot}>•</Text>
           <View style={styles.metaItem}>
