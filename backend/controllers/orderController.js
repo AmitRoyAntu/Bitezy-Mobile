@@ -30,7 +30,7 @@ const createOrder = async (req, res) => {
         }
 
         const calculatedSubtotal = Number(subtotal) || items.reduce((sum, item) => sum + (Number(item.price) * Number(item.qty || 1)), 0);
-        const orderType = (type || 'delivery').toLowerCase();
+        const orderType = (type || req.body.orderType || 'delivery').toLowerCase();
         const calculatedFee = Number(deliveryFee) !== undefined ? Number(deliveryFee) : (orderType === 'delivery' ? 30 : 0);
         const calculatedTotal = Number(total) || (calculatedSubtotal + calculatedFee);
 

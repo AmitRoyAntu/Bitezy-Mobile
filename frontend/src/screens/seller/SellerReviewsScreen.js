@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   StyleSheet,
   Text,
@@ -43,13 +44,21 @@ const SellerReviewsScreen = () => {
     loadReviewsData();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadReviewsData();
+    }, [])
+  );
+
   const handleRefresh = () => {
     setRefreshing(true);
     loadReviewsData();
   };
 
   const avgRating = useMemo(() => {
-    if (!reviews.length) return provider?.rating || '4.8';
+    if (!reviews.length) {
+      return provider?.rating && Number(provider.rating) > 0 ? Number(provider.rating).toFixed(1) : 'New';
+    }
     const sum = reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
     return (sum / reviews.length).toFixed(1);
   }, [reviews, provider]);
@@ -100,11 +109,11 @@ const SellerReviewsScreen = () => {
               <View style={styles.reviewTopRow}>
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>
-                    {item.user?.name ? item.user.name.charAt(0).toUpperCase() : 'S'}
+                    {(item.buyer?.name || item.user?.name || 'S').charAt(0).toUpperCase()}
                   </Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.reviewerName}>{item.user ? item.user.name : 'CUET Student'}</Text>
+                  <Text style={styles.reviewerName}>{item.buyer?.name || item.user?.name || 'Customer'}</Text>
                   <Text style={styles.reviewDate}>
                     {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Verified Buyer'}
                   </Text>

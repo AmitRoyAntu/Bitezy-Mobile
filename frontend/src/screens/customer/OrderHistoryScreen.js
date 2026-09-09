@@ -135,14 +135,21 @@ const OrderHistoryScreen = ({ navigation }) => {
   }, [orders, selectedTab]);
 
   const handleCall = (phoneNumber) => {
-    const phone = phoneNumber || '01811112222';
-    Linking.openURL(`tel:${phone}`).catch(() => {
-      showToast(`Dialer unavailable: ${phone}`, 'info');
+    if (!phoneNumber) {
+      showToast('No contact phone registered for this canteen', 'info');
+      return;
+    }
+    Linking.openURL(`tel:${phoneNumber}`).catch(() => {
+      showToast(`Dialer unavailable: ${phoneNumber}`, 'info');
     });
   };
 
   const handleWhatsApp = (phoneNumber, orderId, providerName) => {
-    let cleanPhone = (phoneNumber || '01811112222').replace(/[^0-9]/g, '');
+    if (!phoneNumber) {
+      showToast('No contact phone registered for this canteen', 'info');
+      return;
+    }
+    let cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
     if (cleanPhone.startsWith('0')) cleanPhone = '88' + cleanPhone;
     else if (!cleanPhone.startsWith('88')) cleanPhone = '88' + cleanPhone;
 

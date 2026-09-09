@@ -99,7 +99,7 @@ const createMenuItem = async (req, res) => {
                 type: 'Canteen',
                 deliveryTime: '15-20 min',
                 isOpen: true,
-                rating: 4.8
+                rating: 0
             });
         }
 

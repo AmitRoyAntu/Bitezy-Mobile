@@ -13,7 +13,7 @@ const { authorize } = require("../middleware/roleMiddleware");
 
 // Customer / All Users: Validate coupon during cart checkout
 router.post("/validate", protect, validateCoupon);
-router.get("/active", protect, getActiveCoupons);
+router.get("/active", getActiveCoupons);
 
 // Admin Only routes
 router.get("/", protect, authorize("admin"), getAllCoupons);
