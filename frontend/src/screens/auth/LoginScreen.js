@@ -8,6 +8,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../../components/CustomInput';
@@ -36,6 +37,23 @@ const LoginScreen = ({ navigation }) => {
 
   const { login } = useAuth();
   const { showToast } = useToast();
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => setKeyboardHeight(e.endCoordinates.height)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardHeight(0)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     let interval = null;
@@ -136,6 +154,8 @@ const LoginScreen = ({ navigation }) => {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        automaticallyAdjustKeyboardInsets={true}
+        keyboardDismissMode="on-drag"
       >
         <View style={styles.contentWrapper}>
           {/* Top Hero Section */}
@@ -217,6 +237,8 @@ const LoginScreen = ({ navigation }) => {
               <Text style={styles.signUpText}>Create an Account</Text>
             </TouchableOpacity>
           </View>
+          {/* Dynamic bottom spacer when keyboard is active */}
+          <View style={{ height: keyboardHeight > 0 ? keyboardHeight + 30 : 0 }} />
         </View>
       </ScrollView>
 
@@ -286,10 +308,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: spacing.lg,
-    paddingVertical: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
   contentWrapper: {
     width: '100%',

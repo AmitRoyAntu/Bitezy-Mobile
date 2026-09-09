@@ -13,9 +13,7 @@ import FloatingTabBar from '../components/FloatingTabBar';
 import { colors, fonts } from '../theme/colors';
 import DataService from '../api/DataService';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 const Tab = createBottomTabNavigator();
 const SettingsStack = createNativeStackNavigator();

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../../components/CustomInput';
@@ -52,6 +53,23 @@ const RegisterScreen = ({ navigation }) => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => setKeyboardHeight(e.endCoordinates.height)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardHeight(0)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const { login } = useAuth();
   const { showToast } = useToast();
@@ -139,6 +157,8 @@ const RegisterScreen = ({ navigation }) => {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        automaticallyAdjustKeyboardInsets={true}
+        keyboardDismissMode="on-drag"
       >
         <View style={styles.contentWrapper}>
           {/* Top Hero Section */}
@@ -416,6 +436,8 @@ const RegisterScreen = ({ navigation }) => {
               <Text style={styles.signInText}>Sign In</Text>
             </TouchableOpacity>
           </View>
+          {/* Dynamic bottom spacer when keyboard is active */}
+          <View style={{ height: keyboardHeight > 0 ? keyboardHeight + 30 : 0 }} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -426,10 +448,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: spacing.lg,
-    paddingVertical: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xxl,
   },
   contentWrapper: {
     width: '100%',

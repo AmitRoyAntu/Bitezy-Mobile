@@ -8,8 +8,13 @@
     "ios": {
       "supportsTablet": true
     },
+    "android": {
+      "softwareKeyboardLayoutMode": "resize",
+      "package": "com.anonymous.bitezymobile"
+    },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-status-bar"
     ]
   }
 }

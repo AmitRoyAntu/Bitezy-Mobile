@@ -22,9 +22,7 @@ import DataService from '../../api/DataService';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 const TIMELINE_STEPS = [
   { key: 'PLACED', label: 'Placed' },

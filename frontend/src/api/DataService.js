@@ -35,7 +35,7 @@ class HttpDataService {
   /**
    * Centralized HTTP client sending Bearer JWT headers with fast timeout
    */
-  async request(endpoint, method = 'GET', body = null, timeoutMs = 6000) {
+  async request(endpoint, method = 'GET', body = null, timeoutMs = 15000) {
     const token = await this.getAuthToken();
     const headers = {
       'Content-Type': 'application/json',

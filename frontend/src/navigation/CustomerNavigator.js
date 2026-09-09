@@ -14,9 +14,7 @@ import FloatingTabBar from '../components/FloatingTabBar';
 import { colors, fonts } from '../theme/colors';
 import { useCart } from '../context/CartContext';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();

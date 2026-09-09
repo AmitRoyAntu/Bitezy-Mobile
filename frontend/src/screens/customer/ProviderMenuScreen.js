@@ -25,9 +25,7 @@ import { useToast } from '../../context/ToastContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import { useFocusEffect } from '@react-navigation/native';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 const TABS = ['Menu', 'Reviews', 'About'];
 

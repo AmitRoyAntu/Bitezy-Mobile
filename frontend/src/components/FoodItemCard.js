@@ -14,9 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, fonts } from '../theme/colors';
 import { useFavorites } from '../context/FavoritesContext';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 const FoodItemCard = ({ item, providerName, quantity = 0, onUpdateQty }) => {
   const { isFavorite, toggleFavorite } = useFavorites();

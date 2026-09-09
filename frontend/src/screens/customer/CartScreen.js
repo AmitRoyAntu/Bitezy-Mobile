@@ -23,9 +23,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import DataService from '../../api/DataService';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 const CartScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();

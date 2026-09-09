@@ -36,12 +36,18 @@ app.get('/', (req, res) => {
     res.send('Bitezy API is running...');
 });
 
+// Request logger
+app.use((req, res, next) => {
+    console.log(`📡 [${req.method}] ${req.url}`);
+    next();
+});
+
 // Error handling
 app.use(errorHandler);
 
 if (process.env.VERCEL !== '1') {
-    app.listen(PORT, () => {
-        console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT} (0.0.0.0 IPv4)`);
     });
 }
 

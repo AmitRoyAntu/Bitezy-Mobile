@@ -8,7 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // bundle loader, and falls back to your current local Wi-Fi IP.
 // -------------------------------------------------------------
 
-export const DEFAULT_HOST = "192.168.0.101"; // Your current computer Wi-Fi IPv4 address
+export const DEFAULT_HOST = "[IP_ADDRESS]"; // Your current computer Wi-Fi IPv4 address
 export const DEFAULT_PORT = 8002;
 
 /**

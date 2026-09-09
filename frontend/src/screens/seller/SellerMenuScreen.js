@@ -27,9 +27,7 @@ import { colors, spacing, fonts } from '../../theme/colors';
 import { useToast } from '../../context/ToastContext';
 import DataService from '../../api/DataService';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 const CATEGORY_OPTIONS = [
   { label: 'Rice & Biryani', value: 'Rice' },
