@@ -5,7 +5,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8002;
 
 // Database connection
 connectDB(process.env.MONGODB_URI)

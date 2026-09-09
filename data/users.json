@@ -1,6 +1,18 @@
 {
   "users": [
     {
+      "id": 0,
+      "name": "Student Demo",
+      "email": "student@bitezy.com",
+      "phone": "01811223344",
+      "role": "buyer",
+      "buyerType": "Student",
+      "cuetId": "2104000",
+      "department": "CSE",
+      "residence": "Kabi Kazi Nazrul Islam Hall",
+      "password": "demo123"
+    },
+    {
       "id": 1,
       "name": "Amit Roy",
       "email": "amit@cuet.ac.bd",

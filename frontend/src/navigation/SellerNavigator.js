@@ -58,7 +58,7 @@ const SellerNavigator = () => {
     };
 
     fetchPendingOrders();
-    const interval = setInterval(fetchPendingOrders, 5000);
+    const interval = setInterval(fetchPendingOrders, 8002);
     return () => clearInterval(interval);
   }, []);
 
