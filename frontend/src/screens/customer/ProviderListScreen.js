@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -32,48 +32,47 @@ const CATEGORIES = [
   { name: 'Cart', icon: 'fast-food-outline', desc: 'Quick bites, tea & snacks' },
 ];
 
-const HERO_BANNERS = [
+const BANNER_THEMES = [
   {
-    id: 'welcome-50',
-    badge: '50% DISCOUNT',
-    badgeIcon: 'pricetag',
-    provider: 'Central Cafeteria',
-    title: 'Get 50% Off First Meal',
-    subtitle: 'Valid on student lunch & breakfast combo packages',
-    code: 'CUET50',
-    bgColor: '#181216',
-    borderColor: 'rgba(255, 75, 38, 0.35)',
+    bgColor: "#181216",
+    borderColor: "rgba(255, 75, 38, 0.35)",
     accentColor: colors.primary,
-    badgeBg: 'rgba(255, 75, 38, 0.15)',
-    bgIcon: 'restaurant',
+    badgeBg: "rgba(255, 75, 38, 0.15)",
+    bgIcon: "restaurant",
   },
   {
-    id: 'biryani-deal',
-    badge: 'SPECIAL PROMO',
-    badgeIcon: 'sparkles',
-    provider: 'Zia Hall Canteen',
-    title: 'Friday Biryani ৳30 Off',
-    subtitle: 'Special mutton & chicken kacchi parcels every weekend',
-    code: 'BIRYANI30',
-    bgColor: '#0C1816',
-    borderColor: 'rgba(16, 185, 129, 0.35)',
-    accentColor: '#10B981',
-    badgeBg: 'rgba(16, 185, 129, 0.15)',
-    bgIcon: 'flame',
+    bgColor: "#0C1816",
+    borderColor: "rgba(16, 185, 129, 0.35)",
+    accentColor: "#10B981",
+    badgeBg: "rgba(16, 185, 129, 0.15)",
+    bgIcon: "flame",
   },
   {
-    id: 'night-snack',
-    badge: 'MIDNIGHT SPECIAL',
-    badgeIcon: 'moon',
-    provider: 'Tareq Huda Cart',
-    title: 'Free Hall Room Delivery',
-    subtitle: 'Late night study chai, paratha & snack orders over ৳100',
-    code: 'NIGHTBITE',
-    bgColor: '#151120',
-    borderColor: 'rgba(167, 139, 250, 0.35)',
-    accentColor: '#A78BFA',
-    badgeBg: 'rgba(167, 139, 250, 0.15)',
-    bgIcon: 'cafe',
+    bgColor: "#151120",
+    borderColor: "rgba(167, 139, 250, 0.35)",
+    accentColor: "#A78BFA",
+    badgeBg: "rgba(167, 139, 250, 0.15)",
+    bgIcon: "bicycle",
+  },
+  {
+    bgColor: "#1A180E",
+    borderColor: "rgba(245, 158, 11, 0.35)",
+    accentColor: "#F59E0B",
+    badgeBg: "rgba(245, 158, 11, 0.15)",
+    bgIcon: "gift",
+  },
+];
+
+const FALLBACK_BANNERS = [
+  {
+    id: "default-welcome",
+    badge: "CAMPUS DINING",
+    badgeIcon: "restaurant",
+    provider: "Bitezy Campus",
+    title: "Fresh Campus Dining",
+    subtitle: "Order student meals and snacks from CUET canteens",
+    code: "CUET10",
+    ...BANNER_THEMES[0],
   },
 ];
 
@@ -88,6 +87,49 @@ const ProviderListScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [coupons, setCoupons] = useState([]);
+
+  // Generate dynamic banners based on active admin coupons from database
+  const heroBanners = useMemo(() => {
+    if (!coupons || coupons.length === 0) return FALLBACK_BANNERS;
+    return coupons.map((c, idx) => {
+      const theme = BANNER_THEMES[idx % BANNER_THEMES.length];
+      let badge = "SPECIAL OFFER";
+      let badgeIcon = "pricetag";
+      let title = `Get ${c.discountValue}% Off Order`;
+
+      if (c.discountType === "percent") {
+        badge = `${c.discountValue}% DISCOUNT`;
+        badgeIcon = "pricetag";
+        title = `Get ${c.discountValue}% Off Your Order`;
+      } else if (c.discountType === "delivery") {
+        badge = "FREE DELIVERY";
+        badgeIcon = "bicycle";
+        title = "Free Campus Hall Delivery";
+      } else if (c.discountType === "flat") {
+        badge = `৳${c.discountValue} FLAT OFF`;
+        badgeIcon = "sparkles";
+        title = `Save ৳${c.discountValue} On Your Meal`;
+      }
+
+      const subtitle =
+        c.description ||
+        (c.minOrderAmount > 0
+          ? `Valid on student orders over ৳${c.minOrderAmount}`
+          : "Valid across CUET campus dining canteens");
+
+      return {
+        id: c._id || c.code || String(idx),
+        badge,
+        badgeIcon,
+        provider: "Campus Promo",
+        title,
+        subtitle,
+        code: c.code,
+        ...theme,
+      };
+    });
+  }, [coupons]);
 
   const { favorites, toggleFavorite } = useFavorites();
   const { updateQty } = useCart();
@@ -131,24 +173,30 @@ const ProviderListScreen = ({ navigation }) => {
 
   // Auto-cycle through promotional banners only when screen is actively focused
   useEffect(() => {
-    if (!isFocused || activeCategory !== 'All' || searchQuery) return;
+    if (!isFocused || activeCategory !== "All" || searchQuery || heroBanners.length <= 1) return;
     const bannerTimer = setInterval(() => {
       setCurrentBannerIndex((prev) => {
-        const next = (prev + 1) % HERO_BANNERS.length;
+        const next = (prev + 1) % heroBanners.length;
         switchBanner(next);
-        return prev; // handled inside switchBanner
+        return prev;
       });
-    }, 3200);
+    }, 3500);
     return () => clearInterval(bannerTimer);
-  }, [isFocused, activeCategory, searchQuery]);
+  }, [isFocused, activeCategory, searchQuery, heroBanners]);
 
 
   const loadProviders = async () => {
     try {
-      const data = await DataService.getProviders();
-      setProviders(data || []);
+      const [providersData, couponsData] = await Promise.all([
+        DataService.getProviders(),
+        DataService.getActiveCoupons(),
+      ]);
+      setProviders(providersData || []);
+      if (couponsData && couponsData.length > 0) {
+        setCoupons(couponsData);
+      }
     } catch (err) {
-      showToast('Error loading providers list', 'error');
+      showToast("Error loading campus data", "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -165,6 +213,7 @@ const ProviderListScreen = ({ navigation }) => {
   };
 
   const filteredProviders = providers.filter((p) => {
+    if (p.isBlocked) return false;
     const providerType = (p.type || '').toLowerCase();
     const targetCategory = activeCategory.toLowerCase();
     
@@ -270,10 +319,10 @@ const ProviderListScreen = ({ navigation }) => {
           keyExtractor={(item) => item._id || item.id || item.name}
           ListHeaderComponent={
             <View style={styles.listHeaderWrapper}>
-              {/* Dynamic Auto-Cycling Themed Promo Hero Banner */}
-              {activeCategory === 'All' && !searchQuery && (
+              {/* Dynamic Auto-Cycling Promo Hero Banner Powered by Admin Coupons */}
+              {activeCategory === "All" && !searchQuery && heroBanners.length > 0 && (
                 (() => {
-                  const activeBanner = HERO_BANNERS[currentBannerIndex];
+                  const activeBanner = heroBanners[currentBannerIndex % heroBanners.length] || heroBanners[0];
                   return (
                     <View
                       style={[
@@ -293,7 +342,7 @@ const ProviderListScreen = ({ navigation }) => {
                           },
                         ]}
                       >
-                        {/* Top Row: Discount Badge & Offering Provider Tag */}
+                        {/* Top Row: Discount Badge & Offering Tag */}
                         <View style={styles.heroTopRow}>
                           <View
                             style={[
@@ -322,7 +371,7 @@ const ProviderListScreen = ({ navigation }) => {
 
                           <View style={styles.providerOfferPill}>
                             <Ionicons
-                              name="storefront-outline"
+                              name="pricetag-outline"
                               size={12}
                               color="rgba(255, 255, 255, 0.75)"
                               style={{ marginRight: 4 }}
@@ -339,11 +388,15 @@ const ProviderListScreen = ({ navigation }) => {
                         </Text>
 
                         <View style={styles.heroActionsRow}>
-                          <View
+                          <TouchableOpacity
                             style={[
                               styles.promoCodeBox,
                               { borderColor: activeBanner.borderColor },
                             ]}
+                            onPress={() => {
+                              showToast(`Code "${activeBanner.code}" copied! Apply at checkout 🎟️`, "success");
+                            }}
+                            activeOpacity={0.75}
                           >
                             <Ionicons
                               name="pricetag-outline"
@@ -360,25 +413,27 @@ const ProviderListScreen = ({ navigation }) => {
                             >
                               {activeBanner.code}
                             </Text>
-                          </View>
+                          </TouchableOpacity>
 
                           {/* Dots Pagination Indicator */}
-                          <View style={styles.bannerDotsContainer}>
-                            {HERO_BANNERS.map((banner, dotIndex) => (
-                              <TouchableOpacity
-                                key={banner.id}
-                                onPress={() => switchBanner(dotIndex)}
-                                activeOpacity={0.7}
-                                style={[
-                                  styles.bannerDot,
-                                  currentBannerIndex === dotIndex && [
-                                    styles.bannerDotActive,
-                                    { backgroundColor: activeBanner.accentColor },
-                                  ],
-                                ]}
-                              />
-                            ))}
-                          </View>
+                          {heroBanners.length > 1 && (
+                            <View style={styles.bannerDotsContainer}>
+                              {heroBanners.map((banner, dotIndex) => (
+                                <TouchableOpacity
+                                  key={banner.id}
+                                  onPress={() => switchBanner(dotIndex)}
+                                  activeOpacity={0.7}
+                                  style={[
+                                    styles.bannerDot,
+                                    (currentBannerIndex % heroBanners.length) === dotIndex && [
+                                      styles.bannerDotActive,
+                                      { backgroundColor: activeBanner.accentColor },
+                                    ],
+                                  ]}
+                                />
+                              ))}
+                            </View>
+                          )}
                         </View>
                       </Animated.View>
 

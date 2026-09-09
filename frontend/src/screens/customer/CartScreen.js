@@ -10,6 +10,7 @@ import {
   Platform,
   UIManager,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
@@ -25,14 +26,6 @@ import DataService from '../../api/DataService';
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-const PROMO_CODES = {
-  CUET10: { type: 'percent', val: 10, desc: '10% off subtotal' },
-  BITE10: { type: 'percent', val: 10, desc: '10% off subtotal' },
-  FREEDEL: { type: 'delivery', val: 30, desc: 'Free delivery' },
-  FREE30: { type: 'delivery', val: 30, desc: 'Free delivery' },
-  WELCOME: { type: 'flat', val: 20, desc: '৳20 off order' },
-};
 
 const CartScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -62,6 +55,7 @@ const CartScreen = ({ navigation }) => {
   // Coupon code state
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   const handleUpdateQty = (name, price, change, img, provider, desc) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
@@ -79,19 +73,33 @@ const CartScreen = ({ navigation }) => {
     setOrderNote((prev) => (prev ? `${prev}, ${cleanText}` : cleanText));
   };
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
     if (!code) {
       showToast('Please enter a coupon code', 'warning');
       return;
     }
-    if (PROMO_CODES[code]) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
-      setAppliedCoupon({ code, ...PROMO_CODES[code] });
-      showToast(`Coupon applied! ${PROMO_CODES[code].desc} 🎉`, 'success');
-      setCouponInput('');
-    } else {
-      showToast('Invalid coupon code. Try CUET10 or FREEDEL', 'error');
+    setApplyingCoupon(true);
+    try {
+      const response = await DataService.validateCoupon(code, subtotal, orderType);
+      if (response && response.valid) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+        setAppliedCoupon({
+          code: response.coupon.code,
+          discountType: response.coupon.discountType,
+          discountValue: response.coupon.discountValue,
+          desc: response.coupon.description,
+          serverDiscountAmount: response.discountAmount,
+        });
+        showToast(`Coupon ${response.coupon.code} applied! 🎉`, 'success');
+        setCouponInput('');
+      } else {
+        showToast(response?.message || 'Invalid coupon code', 'error');
+      }
+    } catch (err) {
+      showToast(err.message || 'Could not validate coupon', 'error');
+    } finally {
+      setApplyingCoupon(false);
     }
   };
 
@@ -104,16 +112,18 @@ const CartScreen = ({ navigation }) => {
   // Discount calculation
   const discountAmount = useMemo(() => {
     if (!appliedCoupon) return 0;
-    if (appliedCoupon.type === 'percent') {
-      return Math.round((subtotal * appliedCoupon.val) / 100);
+    const type = appliedCoupon.discountType || appliedCoupon.type;
+    const val = appliedCoupon.discountValue !== undefined ? appliedCoupon.discountValue : appliedCoupon.val;
+    if (type === 'percent') {
+      return Math.round((subtotal * val) / 100);
     }
-    if (appliedCoupon.type === 'delivery') {
-      return orderType === 'Delivery' ? Math.min(deliveryFee, appliedCoupon.val) : 0;
+    if (type === 'delivery') {
+      return orderType === 'Delivery' ? Math.min(deliveryFee, val || 30) : 0;
     }
-    if (appliedCoupon.type === 'flat') {
-      return Math.min(subtotal, appliedCoupon.val);
+    if (type === 'flat') {
+      return Math.min(subtotal, val);
     }
-    return 0;
+    return appliedCoupon.serverDiscountAmount || 0;
   }, [appliedCoupon, subtotal, deliveryFee, orderType]);
 
   const finalPayableTotal = Math.max(0, total - discountAmount);
@@ -544,9 +554,14 @@ const CartScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={styles.applyCouponBtn}
                 onPress={handleApplyCoupon}
+                disabled={applyingCoupon}
                 activeOpacity={0.85}
               >
-                <Text style={styles.applyCouponBtnText}>Apply</Text>
+                {applyingCoupon ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <Text style={styles.applyCouponBtnText}>Apply</Text>
+                )}
               </TouchableOpacity>
             </View>
           )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Linking,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,47 +35,72 @@ const SellerProfileScreen = ({ navigation }) => {
   const { showToast } = useToast();
 
   const [provider, setProvider] = useState(null);
+  const [activeUser, setActiveUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // Form State
+  // Form State - strictly initialized from database
   const [ownerName, setOwnerName] = useState('');
   const [ownerPhone, setOwnerPhone] = useState('');
   const [shopName, setShopName] = useState('');
   const [shopType, setShopType] = useState('Canteen');
   const [shopLocation, setShopLocation] = useState('');
   const [shopDescription, setShopDescription] = useState('');
-  const [openTime, setOpenTime] = useState('06:00');
-  const [closeTime, setCloseTime] = useState('22:00');
-  const [deliveryTime, setDeliveryTime] = useState('15-20 min');
+  const [openTime, setOpenTime] = useState('');
+  const [closeTime, setCloseTime] = useState('');
+  const [deliveryTime, setDeliveryTime] = useState('');
   const [shopImg, setShopImg] = useState('');
 
-  const loadProfileData = async () => {
+  const loadProfileData = useCallback(async () => {
     try {
-      const myProvider = await DataService.getMyProvider();
-      setProvider(myProvider);
+      const [myProvider, meData] = await Promise.all([
+        DataService.getMyProvider().catch(() => null),
+        DataService.getMe().catch(() => null),
+      ]);
 
-      setOwnerName(currentUser?.name || myProvider?.sellerName || '');
-      setOwnerPhone(currentUser?.phone || myProvider?.phone || '01811112222');
-      setShopName(myProvider?.name || '');
-      setShopType(myProvider?.type || 'Canteen');
-      setShopLocation(myProvider?.location || '');
-      setShopDescription(myProvider?.description || '');
-      setOpenTime(myProvider?.openTime || '06:00');
-      setCloseTime(myProvider?.closeTime || '22:00');
-      setDeliveryTime(myProvider?.deliveryTime || '15-20 min');
-      setShopImg(myProvider?.img || '');
+      const user = meData || currentUser;
+      setProvider(myProvider);
+      setActiveUser(user);
+
+      const resolvedOwnerName = user?.name || myProvider?.seller?.name || myProvider?.sellerName || '';
+      const resolvedOwnerPhone = user?.phone || myProvider?.seller?.phone || myProvider?.phone || '';
+      const resolvedShopName = myProvider?.name || user?.shopName || '';
+      const resolvedShopType = myProvider?.type || 'Canteen';
+      const resolvedShopLocation = myProvider?.location || user?.location || user?.residence || '';
+      const resolvedShopDesc = myProvider?.description || '';
+      const resolvedOpenTime = myProvider?.openTime || '';
+      const resolvedCloseTime = myProvider?.closeTime || '';
+      const resolvedDeliveryTime = myProvider?.deliveryTime || '';
+      const resolvedShopImg = myProvider?.img || '';
+
+      setOwnerName(resolvedOwnerName);
+      setOwnerPhone(resolvedOwnerPhone);
+      setShopName(resolvedShopName);
+      setShopType(resolvedShopType);
+      setShopLocation(resolvedShopLocation);
+      setShopDescription(resolvedShopDesc);
+      setOpenTime(resolvedOpenTime);
+      setCloseTime(resolvedCloseTime);
+      setDeliveryTime(resolvedDeliveryTime);
+      setShopImg(resolvedShopImg);
     } catch (err) {
       showToast('Error loading canteen settings', 'error');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [currentUser]);
 
   useEffect(() => {
     loadProfileData();
-  }, [currentUser]);
+  }, [loadProfileData]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadProfileData();
+  };
 
   const handleSaveProfile = async () => {
     if (!shopName.trim()) {
@@ -96,16 +122,18 @@ const SellerProfileScreen = ({ navigation }) => {
         phone: ownerPhone.trim(),
       };
 
-      if (provider?._id || provider?.id) {
-        await DataService.updateProvider(provider._id || provider.id, updateData);
+      const providerId = provider?._id || provider?.id;
+      if (providerId) {
+        await DataService.updateProvider(providerId, updateData);
       }
 
       await DataService.updateProfile({
         name: ownerName.trim(),
         phone: ownerPhone.trim(),
+        shopName: shopName.trim(),
       });
 
-      setProvider({ ...provider, ...updateData });
+      await loadProfileData();
       setIsEditing(false);
       showToast('Canteen details saved successfully!');
     } catch (err) {
@@ -129,6 +157,13 @@ const SellerProfileScreen = ({ navigation }) => {
     );
   }
 
+  const isBlocked = Boolean(provider?.isBlocked || activeUser?.isBlocked || currentUser?.isBlocked);
+  const avatarLetter = (ownerName || shopName || activeUser?.name || 'S').trim().charAt(0).toUpperCase();
+
+  const operatingHoursDisplay = openTime && closeTime
+    ? `${openTime} - ${closeTime}`
+    : openTime || closeTime || 'Not set';
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -137,6 +172,14 @@ const SellerProfileScreen = ({ navigation }) => {
           { paddingTop: Math.max(insets.top + spacing.sm, 36) },
         ]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
       >
         {/* Header Hero Card */}
         <View style={styles.heroCard}>
@@ -155,32 +198,32 @@ const SellerProfileScreen = ({ navigation }) => {
           <View style={styles.heroGlow} />
           <View style={styles.heroTopRow}>
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>
-                {ownerName ? ownerName.charAt(0).toUpperCase() : 'M'}
-              </Text>
+              <Text style={styles.avatarText}>{avatarLetter}</Text>
             </View>
-            <View style={styles.heroStatusChip}>
-              <View style={styles.heroStatusDot} />
-              <Text style={styles.heroStatusText}>Verified Seller</Text>
+            <View style={[styles.heroStatusChip, isBlocked && styles.heroStatusChipBlocked]}>
+              <View style={[styles.heroStatusDot, isBlocked && styles.heroStatusDotBlocked]} />
+              <Text style={[styles.heroStatusText, isBlocked && styles.heroStatusTextBlocked]}>
+                {isBlocked ? 'Account Blocked' : (provider?.isOpen ? 'Verified • Open' : 'Verified • Closed')}
+              </Text>
             </View>
           </View>
           <View style={styles.heroBottomBlock}>
             <Text style={styles.heroEyebrow}>Your Canteen</Text>
             <Text style={styles.heroShopName} numberOfLines={1}>
-              {shopName || 'Canteen Name'}
+              {shopName || 'Unnamed Canteen'}
             </Text>
             <View style={styles.heroMetaRow}>
               <View style={styles.heroMetaItem}>
                 <Ionicons name="person-circle-outline" size={13} color={colors.white} />
                 <Text style={styles.heroMetaText} numberOfLines={1}>
-                  {ownerName || 'Manager'}
+                  {ownerName || activeUser?.name || 'Owner'}
                 </Text>
               </View>
               <View style={styles.heroMetaDot} />
               <View style={styles.heroMetaItem}>
                 <Ionicons name="mail-outline" size={13} color={colors.white} />
                 <Text style={styles.heroMetaText} numberOfLines={1}>
-                  {currentUser?.email}
+                  {activeUser?.email || currentUser?.email || 'N/A'}
                 </Text>
               </View>
             </View>
@@ -223,14 +266,14 @@ const SellerProfileScreen = ({ navigation }) => {
                 label="Owner Name"
                 value={ownerName}
                 onChangeText={setOwnerName}
-                placeholder="Manager Name"
+                placeholder="e.g. Md. Rafique"
               />
 
               <CustomInput
                 label="Contact Phone"
                 value={ownerPhone}
                 onChangeText={setOwnerPhone}
-                placeholder="018XXXXXXXX"
+                placeholder="e.g. 018XXXXXXXX"
                 keyboardType="phone-pad"
               />
 
@@ -267,7 +310,7 @@ const SellerProfileScreen = ({ navigation }) => {
                     label="Opening Time"
                     value={openTime}
                     onChangeText={setOpenTime}
-                    placeholder="06:00"
+                    placeholder="e.g. 06:00"
                   />
                 </View>
                 <View style={{ flex: 1, marginLeft: spacing.xs }}>
@@ -275,7 +318,7 @@ const SellerProfileScreen = ({ navigation }) => {
                     label="Closing Time"
                     value={closeTime}
                     onChangeText={setCloseTime}
-                    placeholder="22:00"
+                    placeholder="e.g. 22:00"
                   />
                 </View>
               </View>
@@ -284,7 +327,7 @@ const SellerProfileScreen = ({ navigation }) => {
                 label="Delivery Time (Estimate)"
                 value={deliveryTime}
                 onChangeText={setDeliveryTime}
-                placeholder="15-20 min"
+                placeholder="e.g. 15-20 min"
               />
 
               <CustomInput
@@ -315,42 +358,42 @@ const SellerProfileScreen = ({ navigation }) => {
               <ProfileInfoRow
                 icon="storefront"
                 label="Shop Name"
-                value={shopName}
+                value={shopName || "Not set"}
                 iconColor={colors.primary}
                 iconBg="rgba(255, 75, 38, 0.08)"
               />
               <ProfileInfoRow
                 icon="grid-outline"
                 label="Canteen Type"
-                value={shopType}
+                value={shopType || "Not set"}
                 iconColor={colors.info}
                 iconBg={colors.infoLight}
               />
               <ProfileInfoRow
                 icon="location"
                 label="Campus Location"
-                value={shopLocation || 'CUET Campus'}
+                value={shopLocation || "Not set"}
                 iconColor={colors.success}
                 iconBg={colors.successLight}
               />
               <ProfileInfoRow
                 icon="time"
                 label="Operating Hours"
-                value={`${openTime} - ${closeTime}`}
+                value={operatingHoursDisplay}
                 iconColor={colors.rating}
                 iconBg={colors.ratingBg}
               />
               <ProfileInfoRow
                 icon="bicycle-outline"
                 label="Delivery Speed"
-                value={deliveryTime}
+                value={deliveryTime || "Not set"}
                 iconColor={colors.primary}
                 iconBg="rgba(255, 75, 38, 0.08)"
               />
               <ProfileInfoRow
                 icon="call"
                 label="Manager Phone"
-                value={ownerPhone}
+                value={ownerPhone || "Not set"}
                 iconColor={colors.info}
                 iconBg={colors.infoLight}
                 isLast={!shopDescription}
@@ -501,11 +544,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
     marginRight: 6,
   },
+  heroStatusDotBlocked: {
+    backgroundColor: colors.danger,
+  },
   heroStatusText: {
     fontFamily: fonts.bold,
     fontSize: 11,
     color: colors.white,
     letterSpacing: 0.3,
+  },
+  heroStatusTextBlocked: {
+    color: '#FFAAAA',
   },
   heroBottomBlock: {
     paddingHorizontal: spacing.md,

@@ -10,6 +10,7 @@ const Provider = require('../models/Provider');
 const MenuItem = require('../models/MenuItem');
 const Review = require('../models/Review');
 const Order = require('../models/Order');
+const Coupon = require('../models/Coupon');
 const connectDB = require('../config/db');
 
 const loadJSON = (filename) => {
@@ -28,6 +29,7 @@ const seedData = async () => {
         await MenuItem.deleteMany({});
         await Review.deleteMany({});
         await Order.deleteMany({});
+        await Coupon.deleteMany({});
 
         console.log('Cleared existing data.');
 
@@ -174,6 +176,36 @@ const seedData = async () => {
             await Provider.bulkWrite(ratingUpdates);
         }
         console.log('Updated provider ratings from reviews.');
+
+                // Seed Coupons
+        const defaultCoupons = [
+            {
+                code: "CUET10",
+                discountType: "percent",
+                discountValue: 10,
+                minOrderAmount: 100,
+                description: "10% off campus dining orders over ৳100",
+                isActive: true,
+            },
+            {
+                code: "FREEDEL",
+                discountType: "delivery",
+                discountValue: 30,
+                minOrderAmount: 150,
+                description: "Free hall delivery on orders over ৳150",
+                isActive: true,
+            },
+            {
+                code: "WELCOME",
+                discountType: "flat",
+                discountValue: 20,
+                minOrderAmount: 80,
+                description: "৳20 flat discount on orders over ৳80",
+                isActive: true,
+            },
+        ];
+        await Coupon.insertMany(defaultCoupons);
+        console.log("Seeded 3 default coupons.");
 
         console.log('🎉 Seeding completed successfully! All accounts and providers are live.');
         process.exit(0);

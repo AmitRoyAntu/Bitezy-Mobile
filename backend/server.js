@@ -30,6 +30,7 @@ app.use('/api/menu', require('./routes/menuRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/coupons', require('./routes/couponRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Bitezy API is running...');

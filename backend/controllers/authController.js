@@ -186,6 +186,8 @@ const updateProfile = async (req, res) => {
             user.cuetId = req.body.cuetId || user.cuetId;
             user.department = req.body.department || user.department;
             user.residence = req.body.residence || user.residence;
+        } else if (user.role === 'seller') {
+            if (req.body.shopName) user.shopName = req.body.shopName;
         }
 
         if (req.body.password) {

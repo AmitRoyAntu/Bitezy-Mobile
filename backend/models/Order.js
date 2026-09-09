@@ -12,6 +12,8 @@ const orderSchema = new mongoose.Schema({
   }],
   subtotal: { type: Number, required: true, min: [0, 'Subtotal cannot be negative'] },
   deliveryFee: { type: Number, default: 0, min: [0, 'Delivery fee cannot be negative'] },
+  discount: { type: Number, default: 0 },
+  couponCode: { type: String, default: null },
   total: { type: Number, required: true, min: [0, 'Total cannot be negative'] },
   type: { type: String, enum: ['pickup', 'delivery'], default: 'pickup' },
   status: { 

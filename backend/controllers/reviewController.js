@@ -1,3 +1,4 @@
+const { User } = require('../models/User');
 const mongoose = require('mongoose');
 const Review = require('../models/Review');
 const Provider = require('../models/Provider');
@@ -89,8 +90,8 @@ const createReview = async (req, res) => {
 const getAllReviews = async (req, res) => {
     try {
         const reviews = await Review.find({})
-            .populate('buyer', 'name')
-            .populate('provider', 'name location')
+            .populate('buyer', 'name email phone department cuetId')
+            .populate('provider', 'name location type img')
             .sort('-createdAt');
         res.json(reviews);
     } catch (error) {

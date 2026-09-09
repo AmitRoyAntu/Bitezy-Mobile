@@ -194,6 +194,9 @@ class HttpDataService {
   }
 
   async updateProvider(providerId, updateData) {
+    if (providerId) {
+      return await this.request(`/providers/${providerId}`, 'PUT', updateData);
+    }
     return await this.request('/auth/profile', 'PUT', updateData);
   }
 
@@ -336,12 +339,260 @@ class HttpDataService {
     }
   }
 
+  
+  async getAdminOrders() {
+    try {
+      const [orders, users, providers] = await Promise.all([
+        this.getAllOrders(),
+        this.getUsers(),
+        this.getProviders(),
+      ]);
+
+      return (orders || []).map((o) => {
+        let customerObj = o.customer;
+        if (!customerObj || typeof customerObj !== "object" || !customerObj.name) {
+          const custId = String(customerObj?._id || customerObj || "");
+          const matchUser = (users || []).find((u) => String(u._id || u.id) === custId);
+          if (matchUser) {
+            customerObj = {
+              _id: matchUser._id || matchUser.id,
+              name: matchUser.name,
+              email: matchUser.email,
+              phone: matchUser.phone,
+              residence: matchUser.residence || matchUser.deliveryAddress,
+              department: matchUser.department,
+              cuetId: matchUser.cuetId,
+              buyerType: matchUser.buyerType,
+            };
+          }
+        }
+
+        let providerObj = o.provider;
+        if (!providerObj || typeof providerObj !== "object" || !providerObj.name) {
+          const provId = String(providerObj?._id || providerObj || "");
+          const matchProv = (providers || []).find((p) => String(p._id || p.id) === provId);
+          if (matchProv) {
+            providerObj = {
+              _id: matchProv._id || matchProv.id,
+              name: matchProv.name,
+              location: matchProv.location,
+              type: matchProv.type,
+              img: matchProv.img,
+            };
+          }
+        }
+
+        return {
+          ...o,
+          customer: customerObj || { name: o.customerName || "Campus Customer" },
+          provider: providerObj || { name: o.providerName || "Campus Canteen" },
+        };
+      });
+    } catch (err) {
+      console.warn("Failed to load admin orders:", err);
+      return this.getAllOrders();
+    }
+  }
+
+  async getAdminReviews() {
+    try {
+      const [reviews, users, providers] = await Promise.all([
+        this.getAllReviews(),
+        this.getUsers(),
+        this.getProviders(),
+      ]);
+
+      return (reviews || []).map((r) => {
+        let buyerObj = r.buyer || r.user;
+        if (!buyerObj || typeof buyerObj !== "object" || !buyerObj.name) {
+          const buyerId = String(buyerObj?._id || buyerObj || "");
+          const matchUser = (users || []).find((u) => String(u._id || u.id) === buyerId);
+          if (matchUser) {
+            buyerObj = {
+              _id: matchUser._id || matchUser.id,
+              name: matchUser.name,
+              email: matchUser.email,
+              phone: matchUser.phone,
+              department: matchUser.department,
+            };
+          }
+        }
+
+        let providerObj = r.provider;
+        if (!providerObj || typeof providerObj !== "object" || !providerObj.name) {
+          const provId = String(providerObj?._id || providerObj || "");
+          const matchProv = (providers || []).find((p) => String(p._id || p.id) === provId);
+          if (matchProv) {
+            providerObj = {
+              _id: matchProv._id || matchProv.id,
+              name: matchProv.name,
+              location: matchProv.location,
+            };
+          }
+        }
+
+        return {
+          ...r,
+          buyer: buyerObj || { name: r.userName || "Campus Customer" },
+          provider: providerObj || { name: r.providerName || "Campus Seller" },
+        };
+      });
+    } catch (e) {
+      console.warn("Failed to load admin reviews:", e);
+      return this.getAllReviews();
+    }
+  }
+
+  async getAdminUsers() {
+    try {
+      const [users, orders] = await Promise.all([
+        this.getUsers(),
+        this.getAllOrders(),
+      ]);
+
+      return (users || []).map((u) => {
+        const userIdStr = String(u._id || u.id);
+        const userOrders = (orders || []).filter(
+          (o) => String(o.customer?._id || o.customer) === userIdStr
+        );
+        const totalSpent = userOrders.reduce((s, o) => s + (o.total || 0), 0);
+
+        return {
+          ...u,
+          ordersCount: u.ordersCount !== undefined ? u.ordersCount : userOrders.length,
+          totalSpent: u.totalSpent !== undefined ? u.totalSpent : totalSpent,
+        };
+      });
+    } catch (e) {
+      console.warn("Failed to load admin users:", e);
+      return [];
+    }
+  }
+
   async blockUser(userId, isBlocked) {
     return await this.request(`/users/${userId}/block`, 'PUT', { isBlocked });
   }
 
-  async blockSeller(sellerId, isBlocked) {
-    return await this.request(`/users/${sellerId}/block`, 'PUT', { isBlocked });
+    async getAdminSellers() {
+    try {
+      const [providers, orders, users] = await Promise.all([
+        this.getProviders(),
+        this.getAllOrders(),
+        this.getUsers(),
+      ]);
+
+      const sellers = (users || []).filter((u) => u.role === "seller");
+
+      return (providers || []).map((p) => {
+        const provId = String(p._id || p.id);
+        const pOrders = (orders || []).filter(
+          (o) => String(o.provider?._id || o.provider) === provId
+        );
+        const totalRev = pOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        const sellerIdStr = String(
+          typeof p.seller === "object" && p.seller !== null
+            ? (p.seller._id || p.seller.id)
+            : p.seller
+        );
+        const liveUser = sellers.find(
+          (s) =>
+            String(s._id || s.id) === sellerIdStr ||
+            (s.email && p.seller?.email && s.email.toLowerCase() === p.seller.email.toLowerCase())
+        );
+
+        const isBlocked = !!(liveUser?.isBlocked || p.isBlocked || p.seller?.isBlocked);
+        const sellerObj = liveUser || (typeof p.seller === "object" ? p.seller : null) || {};
+
+        return {
+          _id: p._id || p.id,
+          id: p._id || p.id,
+          name: p.name,
+          type: p.type || "Canteen",
+          location: p.location || "CUET Campus",
+          deliveryTime: p.deliveryTime || null,
+          openTime: p.openTime || null,
+          closeTime: p.closeTime || null,
+          isOpen: p.isOpen !== false && !isBlocked,
+          isBlocked: isBlocked,
+          img: p.img,
+          seller: {
+            _id: sellerObj._id || sellerObj.id || sellerIdStr,
+            name: sellerObj.name || "Unassigned",
+            email: sellerObj.email || "N/A",
+            phone: sellerObj.phone || (typeof p.seller === "object" ? p.seller?.phone : null) || "N/A",
+            isBlocked: isBlocked,
+          },
+          stats: {
+            totalOrders: pOrders.length,
+            totalRevenue: totalRev,
+            rating: p.rating || 0,
+          },
+        };
+      });
+    } catch (e) {
+      console.warn("Failed to load admin sellers:", e);
+      return [];
+    }
+  }
+
+  async blockSeller(params, fallbackIsBlocked) {
+    let sellerUserId = null;
+    let isBlocked = false;
+
+    if (typeof params === "object" && params !== null) {
+      sellerUserId = params.sellerUserId || params.providerId;
+      isBlocked = !!params.isBlocked;
+    } else {
+      sellerUserId = params;
+      isBlocked = !!fallbackIsBlocked;
+    }
+
+    if (sellerUserId) {
+      return await this.request(`/users/${sellerUserId}/block`, "PUT", { isBlocked });
+    }
+  }
+
+  // -------------------------------------------------------------
+  // COUPONS
+  // -------------------------------------------------------------
+
+  async validateCoupon(code, subtotal, orderType) {
+    return await this.request("/coupons/validate", "POST", {
+      code,
+      subtotal,
+      orderType,
+    });
+  }
+
+  async getActiveCoupons() {
+    try {
+      const coupons = await this.request("/coupons/active", "GET");
+      return Array.isArray(coupons) ? coupons : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  async getCoupons() {
+    try {
+      const coupons = await this.request("/coupons", "GET");
+      return Array.isArray(coupons) ? coupons : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  async createCoupon(couponData) {
+    return await this.request("/coupons", "POST", couponData);
+  }
+
+  async toggleCoupon(couponId) {
+    return await this.request(`/coupons/${couponId}/toggle`, "PATCH");
+  }
+
+  async deleteCoupon(couponId) {
+    return await this.request(`/coupons/${couponId}`, "DELETE");
   }
 }
 

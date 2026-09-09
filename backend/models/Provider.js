@@ -9,6 +9,7 @@ const providerSchema = new mongoose.Schema({
   rating: { type: Number, default: 0 },
   deliveryTime: { type: String },
   isOpen: { type: Boolean, default: true },
+  isBlocked: { type: Boolean, default: false },
   description: { type: String },
   openTime: { type: String },
   closeTime: { type: String },

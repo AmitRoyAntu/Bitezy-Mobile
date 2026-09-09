@@ -1,3 +1,4 @@
+const { User } = require('../models/User');
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Provider = require('../models/Provider');
@@ -44,6 +45,8 @@ const createOrder = async (req, res) => {
             })),
             subtotal: calculatedSubtotal,
             deliveryFee: calculatedFee,
+            discount: Number(req.body.discount) || 0,
+            couponCode: req.body.couponCode || null,
             total: calculatedTotal,
             type: orderType,
             deliveryAddress: deliveryAddress || (orderType === 'delivery' ? (req.user.residence || 'Campus Hall Room') : 'Pickup at counter')
@@ -51,8 +54,8 @@ const createOrder = async (req, res) => {
 
         const createdOrder = await order.save();
         const populatedOrder = await Order.findById(createdOrder._id)
-            .populate('provider', 'name location')
-            .populate('customer', 'name phone residence');
+            .populate('provider', 'name location type img')
+            .populate('customer', 'name email phone residence department cuetId');
 
         res.status(201).json(populatedOrder);
     } catch (error) {
@@ -176,8 +179,8 @@ const getSellerOrders = async (req, res) => {
 const getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find({})
-            .populate('customer', 'name phone residence')
-            .populate('provider', 'name location')
+            .populate('customer', 'name email phone residence department cuetId')
+            .populate('provider', 'name location type img')
             .sort('-createdAt');
         res.json(orders);
     } catch (error) {
