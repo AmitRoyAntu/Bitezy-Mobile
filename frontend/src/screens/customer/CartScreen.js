@@ -26,14 +26,6 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const QUICK_INSTRUCTION_CHIPS = [
-  '🌶️ Less Spicy',
-  '🧅 No Onions',
-  '🥄 Extra Cutlery',
-  '📦 Separate Parcel',
-  '🍲 Hot Curry',
-];
-
 const PROMO_CODES = {
   CUET10: { type: 'percent', val: 10, desc: '10% off subtotal' },
   BITE10: { type: 'percent', val: 10, desc: '10% off subtotal' },
@@ -214,12 +206,15 @@ const CartScreen = ({ navigation }) => {
   // EMPTY CART SCREEN
   // -------------------------------------------------------------
   if (cart.length === 0) {
+    const hasFavorites = favorites && favorites.length > 0;
     return (
       <View style={styles.emptyContainer}>
         <ScrollView
           contentContainerStyle={[
             styles.emptyScrollContent,
-            { paddingTop: Math.max(insets.top + spacing.lg, 48), paddingBottom: 100 },
+            hasFavorites
+              ? { paddingTop: Math.max(insets.top + spacing.lg, 48), paddingBottom: 100 }
+              : { justifyContent: "center", paddingBottom: Math.max(insets.bottom, 16) + 84, paddingTop: insets.top },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -555,40 +550,6 @@ const CartScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
           )}
-        </View>
-
-        {/* Special Instructions / Quick Cooking Notes */}
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.cardHeaderTextCol}>
-              <Text style={styles.cardEyebrow}>For the Cook</Text>
-              <Text style={styles.cardTitle}>Special Cooking Instructions</Text>
-            </View>
-            <View style={styles.cardHeaderIcon}>
-              <Ionicons name="chatbox-ellipses" size={15} color={colors.primary} />
-            </View>
-          </View>
-          <View style={styles.quickChipsContainer}>
-            {QUICK_INSTRUCTION_CHIPS.map((chip, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.instructionChip}
-                onPress={() => handleAddChipToNote(chip)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.instructionChipText}>{chip}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <TextInput
-            style={styles.customNoteInput}
-            value={orderNote}
-            onChangeText={setOrderNote}
-            placeholder="Add specific instructions for the canteen cook..."
-            placeholderTextColor={colors.textLight}
-            multiline={true}
-            numberOfLines={2}
-          />
         </View>
 
         {/* Payment Summary */}
@@ -1120,6 +1081,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   emptyScrollContent: {
+    flexGrow: 1,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
   },

@@ -77,18 +77,24 @@ const SellerOrdersScreen = () => {
   };
 
   const handleRejectOrder = (orderId) => {
-    Alert.alert(
-      'Reject Order',
-      'Are you sure you want to reject and cancel this customer order?',
-      [
-        { text: 'Back', style: 'cancel' },
-        {
-          text: 'Reject Order',
-          style: 'destructive',
-          onPress: () => handleUpdateStatus(orderId, 'CANCELLED'),
-        },
-      ]
-    );
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      if (window.confirm('Are you sure you want to reject and cancel this customer order?')) {
+        handleUpdateStatus(orderId, 'CANCELLED');
+      }
+    } else {
+      Alert.alert(
+        'Reject Order',
+        'Are you sure you want to reject and cancel this customer order?',
+        [
+          { text: 'Back', style: 'cancel' },
+          {
+            text: 'Reject Order',
+            style: 'destructive',
+            onPress: () => handleUpdateStatus(orderId, 'CANCELLED'),
+          },
+        ]
+      );
+    }
   };
 
   const handleWhatsAppCustomer = (order) => {
@@ -533,7 +539,7 @@ const styles = StyleSheet.create({
 
   listContent: {
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 120,
     flexGrow: 1,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },

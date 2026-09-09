@@ -288,7 +288,7 @@ const WelcomeScreen = ({ navigation }) => {
           >
             <TouchableOpacity
               style={styles.getStartedBtn}
-              onPress={() => navigation.navigate("Register")}
+              onPress={() => navigation.navigate("Login")}
               activeOpacity={0.85}
             >
               <Text style={styles.getStartedText}>Let's Eat !!!</Text>
@@ -308,12 +308,12 @@ const WelcomeScreen = ({ navigation }) => {
 
             <TouchableOpacity
               style={styles.signInBtn}
-              onPress={() => navigation.navigate("Login")}
+              onPress={() => navigation.navigate("Register")}
               activeOpacity={0.8}
             >
               <Text style={styles.signInText}>
-                Already have an account?{" "}
-                <Text style={styles.signInLink}>Sign In</Text>
+                New to Bitezy?{" "}
+                <Text style={styles.signInLink}>Create Account</Text>
               </Text>
             </TouchableOpacity>
           </Animated.View>

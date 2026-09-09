@@ -95,10 +95,24 @@ const updateOrderStatus = async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        if (req.user.role === 'seller') {
+        const { status } = req.body;
+
+        if (req.user.role === 'buyer') {
+            // Buyer can only cancel their own order
+            if (order.customer.toString() !== req.user._id.toString()) {
+                return res.status(403).json({ message: 'You are not authorized to cancel this order' });
+            }
+            // Buyer can only set status to CANCELLED
+            if (status !== 'CANCELLED') {
+                return res.status(400).json({ message: 'Buyers can only cancel orders' });
+            }
+            // Buyer can only cancel before seller accepts (must be in PENDING state)
+            if (order.status !== 'PENDING') {
+                return res.status(400).json({ message: 'Order cannot be cancelled once accepted by the canteen' });
+            }
+        } else if (req.user.role === 'seller') {
             const provider = await Provider.findOne({ seller: req.user._id });
             if (provider && order.provider && order.provider.toString() !== provider._id.toString()) {
-                // allow admin or matching seller
                 if (req.user.role !== 'admin') {
                     return res.status(403).json({ message: 'You are not authorized to update this order' });
                 }

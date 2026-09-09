@@ -11,6 +11,6 @@ router.get('/myorders', protect, authorize('buyer'), getMyOrders);
 router.get('/seller', protect, authorize('seller'), getSellerOrders);
 router.get('/:id', protect, getOrderById);
 
-router.put('/:id/status', protect, authorize('seller'), updateOrderStatus);
+router.put('/:id/status', protect, authorize('seller', 'buyer', 'admin'), updateOrderStatus);
 
 module.exports = router;
