@@ -483,7 +483,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
             <View style={styles.aboutCardHeaderRow}>
               <Text style={styles.aboutSectionTitle}>About the Canteen</Text>
               <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark-seal" size={13} color={colors.primary} style={{ marginRight: 3 }} />
+                <Ionicons name="shield-checkmark" size={13} color={colors.primary} style={{ marginRight: 3 }} />
                 <Text style={styles.verifiedBadgeText}>Verified</Text>
               </View>
             </View>
