@@ -284,6 +284,7 @@ const CartScreen = ({ navigation }) => {
                   <Image
                     source={{ uri: favItem.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100' }}
                     style={styles.savedItemImg}
+                    resizeMode="cover"
                   />
                   <View style={styles.savedItemInfo}>
                     <Text style={styles.savedItemName} numberOfLines={1}>
@@ -480,6 +481,7 @@ const CartScreen = ({ navigation }) => {
               <Image
                 source={{ uri: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100' }}
                 style={styles.itemImg}
+                resizeMode="cover"
               />
               <View style={styles.itemMeta}>
                 <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
@@ -849,6 +851,8 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: spacing.borderRadiusMd,
     backgroundColor: colors.surfaceSubtle,
+    resizeMode: 'cover',
+    overflow: 'hidden',
   },
   itemMeta: {
     flex: 1,
@@ -1304,6 +1308,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: spacing.borderRadiusSm,
     backgroundColor: colors.surfaceSubtle,
+    resizeMode: 'cover',
+    overflow: 'hidden',
   },
   savedItemInfo: {
     flex: 1,

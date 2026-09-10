@@ -110,14 +110,16 @@ const styles = StyleSheet.create({
     }),
   },
   imageBox: {
-    height: 148,
+    height: 160,
     width: '100%',
     position: 'relative',
     backgroundColor: colors.border,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   typeTag: {
     position: 'absolute',

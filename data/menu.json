@@ -7,7 +7,7 @@
       "category": "Rice",
       "price": 130,
       "desc": "Famous spicy beef curry with tender pieces, slow-cooked to perfection.",
-      "img": "https://placehold.co/150x150/E89993/FFFFFF?text=Beef+Curry",
+      "img": "https://images.unsplash.com/photo-1574484284002-952d92456975?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -17,7 +17,7 @@
       "category": "Rice",
       "price": 150,
       "desc": "Traditional chicken roast served with aromatic chinigura polau.",
-      "img": "https://placehold.co/150x150/E89993/FFFFFF?text=Polau+Roast",
+      "img": "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -27,7 +27,7 @@
       "category": "Drinks",
       "price": 35,
       "desc": "Chilled refreshing beverage.",
-      "img": "https://placehold.co/150x150/E89993/FFFFFF?text=Coke",
+      "img": "https://images.unsplash.com/photo-1554866585-cd94860890b7?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -37,7 +37,7 @@
       "category": "Rice",
       "price": 120,
       "desc": "Old Dhaka style beef tehari with small chunks of beef.",
-      "img": "https://placehold.co/150x150/FF6B6B/FFFFFF?text=Tehari",
+      "img": "https://images.unsplash.com/photo-1701579231305-d84d8af9a3fd?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -47,7 +47,7 @@
       "category": "Rice",
       "price": 90,
       "desc": "Yellow bhuna khichuri with roasted chicken.",
-      "img": "https://placehold.co/150x150/FF6B6B/FFFFFF?text=Khichuri",
+      "img": "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -57,7 +57,7 @@
       "category": "Drinks",
       "price": 25,
       "desc": "Refreshing homemade iced tea.",
-      "img": "https://placehold.co/150x150/FF6B6B/FFFFFF?text=Iced+Tea",
+      "img": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -67,7 +67,7 @@
       "category": "Rice",
       "price": 180,
       "desc": "Rich and aromatic mutton layered biriani.",
-      "img": "https://placehold.co/150x150/48DBFB/FFFFFF?text=Biriani",
+      "img": "https://images.unsplash.com/photo-1563379091339-03246963d29a?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -77,7 +77,7 @@
       "category": "Rice",
       "price": 140,
       "desc": "Lightly spiced chicken biriani.",
-      "img": "https://placehold.co/150x150/48DBFB/FFFFFF?text=CBiriani",
+      "img": "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -87,7 +87,7 @@
       "category": "Rice",
       "price": 110,
       "desc": "Steamed rice with seasonal fish curry and lentils.",
-      "img": "https://placehold.co/150x150/FF9F43/FFFFFF?text=Fish+Rice",
+      "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -97,7 +97,7 @@
       "category": "Rice",
       "price": 80,
       "desc": "Healthy mix of vegetables and lentils.",
-      "img": "https://placehold.co/150x150/FF6B35/FFFFFF?text=Veg+Khichuri",
+      "img": "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -107,7 +107,7 @@
       "category": "Fast Food",
       "price": 85,
       "desc": "Spicy chicken patty with fresh lettuce and mayo.",
-      "img": "https://placehold.co/150x150/1DD1A1/FFFFFF?text=Burger",
+      "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -117,7 +117,7 @@
       "category": "Snacks",
       "price": 50,
       "desc": "Golden fried potato strips with seasoning.",
-      "img": "https://placehold.co/150x150/1DD1A1/FFFFFF?text=Fries",
+      "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -127,7 +127,7 @@
       "category": "Drinks",
       "price": 60,
       "desc": "Creamy blend of coffee and milk.",
-      "img": "https://placehold.co/150x150/1DD1A1/FFFFFF?text=Coffee",
+      "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -137,7 +137,7 @@
       "category": "Fast Food",
       "price": 55,
       "desc": "Classic egg burger with secret sauce.",
-      "img": "https://placehold.co/150x150/5F27CD/FFFFFF?text=Egg+Burger",
+      "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=300&auto=format&fit=crop&q=80",
       "available": true
     },
     {
@@ -147,7 +147,7 @@
       "category": "Snacks",
       "price": 40,
       "desc": "Crispy fuchka with spicy potato filling and tamarind water.",
-      "img": "https://placehold.co/150x150/5F27CD/FFFFFF?text=Fuchka",
+      "img": "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=300&auto=format&fit=crop&q=80",
       "available": true
     }
   ]

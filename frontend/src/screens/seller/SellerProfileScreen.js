@@ -183,48 +183,51 @@ const SellerProfileScreen = ({ navigation }) => {
       >
         {/* Header Hero Card */}
         <View style={styles.heroCard}>
-          <View style={styles.heroBgWrap}>
-            <Image
-              source={{
-                uri:
-                  shopImg ||
-                  provider?.img ||
-                  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80',
-              }}
-              style={styles.heroBg}
-            />
-            <View style={styles.heroScrim} />
-          </View>
+          <Image
+            source={{
+              uri:
+                (shopImg && shopImg.trim()) ||
+                (provider?.img && provider.img.trim()) ||
+                'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80',
+            }}
+            style={styles.heroBg}
+            resizeMode="cover"
+          />
+          <View style={styles.heroScrim} />
           <View style={styles.heroGlow} />
-          <View style={styles.heroTopRow}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{avatarLetter}</Text>
-            </View>
-            <View style={[styles.heroStatusChip, isBlocked && styles.heroStatusChipBlocked]}>
-              <View style={[styles.heroStatusDot, isBlocked && styles.heroStatusDotBlocked]} />
-              <Text style={[styles.heroStatusText, isBlocked && styles.heroStatusTextBlocked]}>
-                {isBlocked ? 'Account Blocked' : (provider?.isOpen ? 'Verified • Open' : 'Verified • Closed')}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.heroBottomBlock}>
-            <Text style={styles.heroEyebrow}>Your Canteen</Text>
-            <Text style={styles.heroShopName} numberOfLines={1}>
-              {shopName || 'Unnamed Canteen'}
-            </Text>
-            <View style={styles.heroMetaRow}>
-              <View style={styles.heroMetaItem}>
-                <Ionicons name="person-circle-outline" size={13} color={colors.white} />
-                <Text style={styles.heroMetaText} numberOfLines={1}>
-                  {ownerName || activeUser?.name || 'Owner'}
+
+          <View style={styles.heroContent}>
+            <View style={styles.heroTopRow}>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarText}>{avatarLetter}</Text>
+              </View>
+              <View style={[styles.heroStatusChip, isBlocked && styles.heroStatusChipBlocked]}>
+                <View style={[styles.heroStatusDot, isBlocked && styles.heroStatusDotBlocked]} />
+                <Text style={[styles.heroStatusText, isBlocked && styles.heroStatusTextBlocked]}>
+                  {isBlocked ? 'Account Blocked' : (provider?.isOpen ? 'Verified • Open' : 'Verified • Closed')}
                 </Text>
               </View>
-              <View style={styles.heroMetaDot} />
-              <View style={styles.heroMetaItem}>
-                <Ionicons name="mail-outline" size={13} color={colors.white} />
-                <Text style={styles.heroMetaText} numberOfLines={1}>
-                  {activeUser?.email || currentUser?.email || 'N/A'}
-                </Text>
+            </View>
+
+            <View style={styles.heroBottomBlock}>
+              <Text style={styles.heroEyebrow}>Your Canteen</Text>
+              <Text style={styles.heroShopName} numberOfLines={1}>
+                {shopName || 'Unnamed Canteen'}
+              </Text>
+              <View style={styles.heroMetaRow}>
+                <View style={styles.heroMetaItem}>
+                  <Ionicons name="person-circle-outline" size={13} color={colors.white} />
+                  <Text style={styles.heroMetaText} numberOfLines={1}>
+                    {ownerName || activeUser?.name || 'Owner'}
+                  </Text>
+                </View>
+                <View style={styles.heroMetaDot} />
+                <View style={styles.heroMetaItem}>
+                  <Ionicons name="mail-outline" size={13} color={colors.white} />
+                  <Text style={styles.heroMetaText} numberOfLines={1}>
+                    {activeUser?.email || currentUser?.email || 'N/A'}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -471,6 +474,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   heroCard: {
+    height: 195,
     borderRadius: spacing.borderRadiusLg,
     overflow: 'hidden',
     marginBottom: spacing.md,
@@ -482,10 +486,8 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 8,
   },
-  heroBgWrap: {
-    ...StyleSheet.absoluteFillObject,
-  },
   heroBg: {
+    ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
   },
@@ -502,12 +504,16 @@ const styles = StyleSheet.create({
     borderRadius: 90,
     backgroundColor: colors.primaryGlow,
   },
+  heroContent: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    zIndex: 2,
+  },
   heroTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
   },
   avatarCircle: {
     width: 56,
@@ -557,9 +563,7 @@ const styles = StyleSheet.create({
     color: '#FFAAAA',
   },
   heroBottomBlock: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.xs,
   },
   heroEyebrow: {
     fontFamily: fonts.bold,

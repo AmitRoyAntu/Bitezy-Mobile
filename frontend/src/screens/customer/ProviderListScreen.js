@@ -677,6 +677,7 @@ const ProviderListScreen = ({ navigation }) => {
                     <Image
                       source={{ uri: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120' }}
                       style={styles.savedModalItemImg}
+                      resizeMode="cover"
                     />
                     <View style={styles.savedModalItemInfo}>
                       <Text style={styles.savedModalItemName} numberOfLines={1}>{item.name}</Text>
@@ -1377,10 +1378,12 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   savedModalItemImg: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: spacing.borderRadiusSm,
     backgroundColor: colors.border,
+    resizeMode: 'cover',
+    overflow: 'hidden',
   },
   savedModalItemInfo: {
     flex: 1,

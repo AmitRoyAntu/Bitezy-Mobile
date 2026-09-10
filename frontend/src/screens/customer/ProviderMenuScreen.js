@@ -224,6 +224,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
         <Image
           source={{ uri: provider.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80' }}
           style={styles.bannerImage}
+          resizeMode="cover"
         />
         <View style={styles.bannerOverlay}>
           <Text style={styles.providerName}>{provider.name}</Text>
@@ -691,13 +692,15 @@ const ProviderMenuScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   bannerContainer: {
-    height: 180,
+    height: 200,
     width: '100%',
     position: 'relative',
+    overflow: 'hidden',
   },
   bannerImage: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   bannerOverlay: {
     ...StyleSheet.absoluteFillObject,

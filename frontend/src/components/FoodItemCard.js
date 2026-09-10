@@ -155,12 +155,15 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
+    overflow: 'hidden',
+    borderRadius: spacing.borderRadiusMd - 2,
   },
   image: {
-    width: 84,
-    height: 84,
+    width: 90,
+    height: 90,
     borderRadius: spacing.borderRadiusMd - 2,
     backgroundColor: colors.border,
+    resizeMode: 'cover',
   },
   favBtn: {
     position: 'absolute',

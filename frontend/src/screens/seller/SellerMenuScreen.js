@@ -288,6 +288,7 @@ const SellerMenuScreen = () => {
                   uri: item.img || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&auto=format&fit=crop&q=80',
                 }}
                 style={styles.itemThumb}
+                resizeMode="cover"
               />
 
               <View style={styles.itemInfo}>
@@ -603,11 +604,13 @@ const styles = StyleSheet.create({
     opacity: 0.78,
   },
   itemThumb: {
-    width: 84,
-    height: 84,
+    width: 90,
+    height: 90,
     borderRadius: spacing.borderRadiusMd,
     backgroundColor: colors.surfaceSubtle,
     marginRight: spacing.md,
+    resizeMode: 'cover',
+    overflow: 'hidden',
   },
   itemInfo: {
     flex: 1,
