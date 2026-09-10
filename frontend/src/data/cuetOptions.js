@@ -8,7 +8,7 @@ export const CUET_HALLS = [
   'Tareq Huda Hall',
   'Teachers / Officers Quarters',
   'Staff Quarters',
-  'Day Scholar / Non-Resident',
+  'Non-Resident',
 ];
 
 export const CUET_DEPARTMENTS = [
