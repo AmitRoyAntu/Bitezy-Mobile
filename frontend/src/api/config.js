@@ -4,15 +4,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // -------------------------------------------------------------
 // Bitezy Mobile Backend API Configuration
 // -------------------------------------------------------------
-// Auto-detects the development machine's IP address from React Native's
-// bundle loader, and falls back to your current local Wi-Fi IP.
-// -------------------------------------------------------------
 
-export const DEFAULT_HOST = "[IP_ADDRESS]"; // Your current computer Wi-Fi IPv4 address
+export const DEFAULT_HOST = "[IP_ADDRESS]"; // Mac's current Wi-Fi IP
 export const DEFAULT_PORT = 8002;
 
 /**
  * Automatically extracts the Metro host IP from NativeModules.SourceCode.scriptURL
+ * Falls back to DEFAULT_HOST when running via tunnel.
  */
 const getAutoDetectedHost = () => {
   if (Platform.OS === "web") {
@@ -21,13 +19,10 @@ const getAutoDetectedHost = () => {
   try {
     const scriptURL = NativeModules?.SourceCode?.scriptURL;
     if (scriptURL) {
-      const match = scriptURL.match(/^https?:\/\/([^:/]+)/);
+      // Match plain IPv4 addresses only (not tunnel domains like exp.direct)
+      const match = scriptURL.match(/^https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/);
       if (match && match[1]) {
-        const host = match[1];
-        // If loaded over LAN IP (e.g. 192.168.x.x or 10.x.x.x)
-        if (host !== "localhost" && host !== "127.0.0.1") {
-          return host;
-        }
+        return match[1];
       }
     }
   } catch (e) {
@@ -55,13 +50,10 @@ export const API_CONFIG = {
   },
   async loadCustomBaseUrl() {
     try {
-      const saved = await AsyncStorage.getItem("bitezy_custom_api_url");
-      if (saved) {
-        currentBaseUrl = saved;
-        return currentBaseUrl;
-      }
+      // Always clear stale cached URLs — use fresh auto-detected URL on every launch
+      await AsyncStorage.removeItem("bitezy_custom_api_url");
     } catch (e) {
-      console.warn("Could not load custom API URL:", e);
+      // ignore
     }
     currentBaseUrl = getBaseUrl();
     return currentBaseUrl;
