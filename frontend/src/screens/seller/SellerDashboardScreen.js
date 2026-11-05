@@ -79,24 +79,32 @@ const SellerDashboardScreen = ({ navigation }) => {
     }
   };
 
+  // Helper to extract the effective date of an order (completion date if updated/delivered, fallback to createdAt)
+  const getOrderEffectiveDate = (order) => {
+    const rawDate = order.updatedAt || order.createdAt;
+    if (!rawDate) return null;
+    const d = new Date(rawDate);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
   // KPIs Calculations from real database orders
   const todayStr = new Date().toDateString();
   const completedOrders = orders.filter((o) =>
-    ['DELIVERED', 'PICKED_UP'].includes(o.status)
+    ['DELIVERED', 'PICKED_UP', 'COMPLETED'].includes(String(o.status || '').toUpperCase())
   );
 
-  const todayCompletedOrders = orders.filter(
-    (o) =>
-      new Date(o.createdAt).toDateString() === todayStr &&
-      ['DELIVERED', 'PICKED_UP'].includes(o.status)
-  );
+  const todayCompletedOrders = completedOrders.filter((o) => {
+    const d = getOrderEffectiveDate(o);
+    return d && d.toDateString() === todayStr;
+  });
 
-  const todayRevenue = todayCompletedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-  const totalRevenue = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const todayRevenue = todayCompletedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const totalRevenue = completedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
   const totalOrdersCount = orders.length;
-  const pendingOrdersCount = orders.filter(
-    (o) => !['DELIVERED', 'PICKED_UP', 'CANCELLED'].includes(o.status)
-  ).length;
+  const pendingOrdersCount = orders.filter((o) => {
+    const s = String(o.status || '').toUpperCase();
+    return !['DELIVERED', 'PICKED_UP', 'COMPLETED', 'CANCELLED'].includes(s);
+  }).length;
 
   const avgRating = reviews.length
     ? (reviews.reduce((acc, r) => acc + (r.rating || 5), 0) / reviews.length).toFixed(1)
@@ -133,10 +141,11 @@ const SellerDashboardScreen = ({ navigation }) => {
   }
 
   completedOrders.forEach((o) => {
-    if (o.createdAt) {
-      const key = getLocalDateKey(new Date(o.createdAt));
+    const d = getOrderEffectiveDate(o);
+    if (d) {
+      const key = getLocalDateKey(d);
       if (salesMap[key] !== undefined) {
-        salesMap[key] += o.total || 0;
+        salesMap[key] += Number(o.total) || 0;
       }
     }
   });
@@ -145,6 +154,7 @@ const SellerDashboardScreen = ({ navigation }) => {
     sd.sales = salesMap[sd.key] || 0;
   });
 
+  const weeklyTotalSales = salesDays.reduce((sum, d) => sum + d.sales, 0);
   const maxSales = Math.max(...salesDays.map((d) => d.sales), 100);
 
   // Top Selling Items Ranking from Database

@@ -20,6 +20,7 @@ import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 import { colors, spacing, fonts } from '../../theme/colors';
 import DataService from '../../api/DataService';
+import aiService from '../../api/AiService';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { useFavorites } from '../../context/FavoritesContext';
@@ -43,6 +44,7 @@ const ProviderMenuScreen = ({ route, navigation }) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState(null);
 
   const { cart, updateQty, totalItems, subtotal, total } = useCart();
   const { isFavorite } = useFavorites();
@@ -61,6 +63,12 @@ const ProviderMenuScreen = ({ route, navigation }) => {
       }
       setMenuItems(items || []);
       setReviews(revs || []);
+
+      if (provId) {
+        aiService.getReviewSummary(provId, 'buyer')
+          .then((sum) => setAiSummary(sum))
+          .catch(() => {});
+      }
     } catch (err) {
       showToast('Error loading canteen details', 'error');
     } finally {
@@ -403,6 +411,33 @@ const ProviderMenuScreen = ({ route, navigation }) => {
                   <Ionicons name="create-outline" size={16} color={colors.white} style={{ marginRight: 6 }} />
                   <Text style={styles.writeReviewBtnText}>Share Your Review</Text>
                 </TouchableOpacity>
+
+                {/* AI Review Summary Card for Students */}
+                {aiSummary && (
+                  <View style={styles.aiSummaryCard}>
+                    <View style={styles.aiSummaryHeader}>
+                      <View style={styles.aiBadge}>
+                        <Ionicons name="sparkles" size={13} color="#FFF" />
+                        <Text style={styles.aiBadgeText}>AI Review Summary</Text>
+                      </View>
+                      {aiSummary.average_rating ? (
+                        <Text style={styles.aiRatingText}>★ {aiSummary.average_rating} avg</Text>
+                      ) : null}
+                    </View>
+                    <Text style={styles.aiSummaryText}>{aiSummary.summary}</Text>
+
+                    {aiSummary.top_dishes && aiSummary.top_dishes.length > 0 && (
+                      <View style={styles.aiTagsRow}>
+                        <Text style={styles.aiTagsLabel}>Students love:</Text>
+                        {aiSummary.top_dishes.map((dish, i) => (
+                          <View key={i} style={styles.dishPill}>
+                            <Text style={styles.dishPillText}>{dish}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
             </View>
           }
@@ -1528,6 +1563,70 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.white,
     letterSpacing: -0.3,
+  },
+  aiSummaryCard: {
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1.5,
+    borderColor: '#FED7AA',
+    borderRadius: spacing.borderRadiusMd,
+    padding: spacing.md,
+    marginTop: spacing.md,
+  },
+  aiSummaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 4,
+  },
+  aiBadgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontFamily: fonts.bold,
+  },
+  aiRatingText: {
+    fontSize: 12,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
+  aiSummaryText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: fonts.regular,
+    color: colors.textDark,
+  },
+  aiTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+  },
+  aiTagsLabel: {
+    fontSize: 11,
+    fontFamily: fonts.bold,
+    color: colors.textGray,
+  },
+  dishPill: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  dishPillText: {
+    fontSize: 11,
+    color: colors.textDark,
+    fontFamily: fonts.semiBold,
   },
 });
 

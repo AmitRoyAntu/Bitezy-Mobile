@@ -1,7 +1,9 @@
 import json
 import logging
 import os
+import re
 from typing import Dict, Any, List
+from bson import ObjectId
 from database import get_db
 from services.llm_client import generate_chat_completion
 
@@ -36,41 +38,51 @@ async def summarize_reviews(provider_id: str, audience: str = "buyer") -> Dict[s
     """
     reviews = []
     canteen_name = "Campus Canteen"
+
+    # Build target identifiers (ObjectId, string, integer)
+    target_ids = []
+    if ObjectId.is_valid(provider_id):
+        target_ids.append(ObjectId(provider_id))
+    target_ids.append(str(provider_id))
+    if str(provider_id).isdigit():
+        target_ids.append(int(provider_id))
+
     try:
         db = get_db()
-        # Query reviews matching provider
-        reviews_cursor = db.reviews.find({
-            "$or": [
-                {"provider": provider_id},
-                {"provider": int(provider_id) if provider_id.isdigit() else provider_id}
-            ]
-        }).sort("createdAt", -1).limit(40)
-        
-        reviews = await reviews_cursor.to_list(length=40)
-        
-        # Also fetch provider details for name
+        # Find provider details
         prov = await db.providers.find_one({
             "$or": [
-                {"_id": provider_id},
-                {"id": int(provider_id) if provider_id.isdigit() else provider_id}
+                {"_id": {"$in": target_ids}},
+                {"id": {"$in": target_ids}}
             ]
         })
         if prov:
-            canteen_name = prov.get("name", "Canteen")
+            canteen_name = prov.get("name", canteen_name)
+            if prov.get("_id") not in target_ids:
+                target_ids.append(prov["_id"])
+            if prov.get("id") is not None and prov.get("id") not in target_ids:
+                target_ids.append(prov["id"])
+
+        # Query reviews matching any target_id
+        reviews_cursor = db.reviews.find({
+            "provider": {"$in": target_ids}
+        }).sort("createdAt", -1).limit(40)
+        
+        reviews = await reviews_cursor.to_list(length=40)
     except Exception as e:
         logger.warning(f"Failed to query MongoDB reviews, using fallback: {e}")
 
     if not reviews:
         fb_reviews, fb_provs = load_fallback_reviews_and_providers()
-        # Find provider name
+        # Find provider name in fallback
         for p in fb_provs:
-            if str(p.get("id")) == str(provider_id) or str(p.get("_id")) == str(provider_id):
+            if str(p.get("id")) in [str(t) for t in target_ids] or str(p.get("_id")) in [str(t) for t in target_ids]:
                 canteen_name = p.get("name", canteen_name)
                 break
-        # Filter matching reviews
+        # Filter matching reviews in fallback
         reviews = [
             r for r in fb_reviews
-            if str(r.get("provider")) == str(provider_id)
+            if str(r.get("provider")) in [str(t) for t in target_ids]
         ]
 
     if not reviews:
