@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { useToast } from '../../context/ToastContext';
 import DataService from '../../api/DataService';
+import aiService from '../../api/AiService';
 
 const SellerReviewsScreen = () => {
   const insets = useSafeAreaInsets();
@@ -23,14 +24,20 @@ const SellerReviewsScreen = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [aiSummary, setAiSummary] = useState(null);
 
   const loadReviewsData = async () => {
     try {
       const myProvider = await DataService.getMyProvider();
       setProvider(myProvider);
       if (myProvider?._id || myProvider?.id) {
-        const revs = await DataService.getReviewsByProvider(myProvider._id || myProvider.id);
+        const provId = myProvider._id || myProvider.id;
+        const revs = await DataService.getReviewsByProvider(provId);
         setReviews(revs || []);
+
+        aiService.getReviewSummary(provId, 'seller')
+          .then((sum) => setAiSummary(sum))
+          .catch(() => setAiSummary(null));
       }
     } catch (err) {
       showToast('Error loading reviews', 'error');
@@ -80,26 +87,78 @@ const SellerReviewsScreen = () => {
       ) : (
         <FlatList
           ListHeaderComponent={
-            <View style={styles.summaryCard}>
-              <View style={styles.scoreCol}>
-                <Text style={styles.scoreNum}>{avgRating}</Text>
-                <View style={styles.starsRow}>
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Ionicons
-                      key={s}
-                      name={s <= Math.round(Number(avgRating)) ? 'star' : 'star-outline'}
-                      size={15}
-                      color="#FF9F43"
-                    />
-                  ))}
+            <View>
+              <View style={styles.summaryCard}>
+                <View style={styles.scoreCol}>
+                  <Text style={styles.scoreNum}>{avgRating}</Text>
+                  <View style={styles.starsRow}>
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Ionicons
+                        key={s}
+                        name={s <= Math.round(Number(avgRating)) ? 'star' : 'star-outline'}
+                        size={15}
+                        color="#FF9F43"
+                      />
+                    ))}
+                  </View>
+                  <Text style={styles.reviewCountText}>{reviews.length} Verified Reviews</Text>
                 </View>
-                <Text style={styles.reviewCountText}>{reviews.length} Verified Reviews</Text>
+
+                <View style={styles.summaryBadgeBox}>
+                  <Ionicons name="ribbon" size={28} color={colors.primary} />
+                  <Text style={styles.badgeLabel}>Campus Dining</Text>
+                </View>
               </View>
 
-              <View style={styles.summaryBadgeBox}>
-                <Ionicons name="ribbon" size={28} color={colors.primary} />
-                <Text style={styles.badgeLabel}>Campus Dining</Text>
-              </View>
+              {aiSummary && (
+                <View style={styles.aiDigestCard}>
+                  <View style={styles.aiDigestHeader}>
+                    <View style={styles.aiBadge}>
+                      <Ionicons name="sparkles" size={13} color="#FFF" />
+                      <Text style={styles.aiBadgeText}>AI Health Digest</Text>
+                    </View>
+                    <View style={styles.sentimentBadge}>
+                      <Text style={styles.sentimentText}>{aiSummary.overall_sentiment || 'Positive'}</Text>
+                    </View>
+                  </View>
+
+                  {aiSummary.strengths && aiSummary.strengths.length > 0 && (
+                    <View style={styles.digestSection}>
+                      <Text style={styles.sectionHeading}>🌟 Key Strengths</Text>
+                      {aiSummary.strengths.map((str, idx) => (
+                        <View key={idx} style={styles.bulletRow}>
+                          <Ionicons name="checkmark-circle" size={14} color={colors.success} style={{ marginTop: 2 }} />
+                          <Text style={styles.bulletText}>{str}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {aiSummary.complaints && aiSummary.complaints.length > 0 && (
+                    <View style={styles.digestSection}>
+                      <Text style={styles.sectionHeading}>⚠️ Areas to Improve</Text>
+                      {aiSummary.complaints.map((c, idx) => (
+                        <View key={idx} style={styles.bulletRow}>
+                          <Ionicons name="alert-circle" size={14} color={colors.warning || '#F59E0B'} style={{ marginTop: 2 }} />
+                          <Text style={styles.bulletText}>{c}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {aiSummary.actionable_tips && aiSummary.actionable_tips.length > 0 && (
+                    <View style={styles.digestSection}>
+                      <Text style={styles.sectionHeading}>💡 AI Actionable Tips</Text>
+                      {aiSummary.actionable_tips.map((tip, idx) => (
+                        <View key={idx} style={styles.bulletRow}>
+                          <Ionicons name="bulb" size={14} color={colors.primary} style={{ marginTop: 2 }} />
+                          <Text style={styles.bulletText}>{tip}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           }
           data={reviews}
@@ -310,6 +369,69 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
     maxWidth: 240,
+  },
+  aiDigestCard: {
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1.5,
+    borderColor: '#FED7AA',
+    borderRadius: spacing.borderRadiusMd,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  aiDigestHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 4,
+  },
+  aiBadgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontFamily: fonts.bold,
+  },
+  sentimentBadge: {
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  sentimentText: {
+    fontSize: 11,
+    fontFamily: fonts.bold,
+    color: colors.textDark,
+  },
+  digestSection: {
+    marginTop: spacing.xs + 2,
+  },
+  sectionHeading: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.textDark,
+    marginBottom: 4,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginVertical: 2,
+  },
+  bulletText: {
+    flex: 1,
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: colors.textDark,
+    lineHeight: 16,
   },
 });
 

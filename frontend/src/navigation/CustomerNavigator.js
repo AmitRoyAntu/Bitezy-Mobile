@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ProviderListScreen from '../screens/customer/ProviderListScreen';
 import ProviderMenuScreen from '../screens/customer/ProviderMenuScreen';
 import ProviderReviewsScreen from '../screens/customer/ProviderReviewsScreen';
+import BitezyBotScreen from '../screens/customer/BitezyBotScreen';
 import CartScreen from '../screens/customer/CartScreen';
 import OrderHistoryScreen from '../screens/customer/OrderHistoryScreen';
 import CustomerProfileScreen from '../screens/customer/CustomerProfileScreen';
@@ -42,6 +43,11 @@ const ExploreStack = () => (
       component={ProviderReviewsScreen}
       options={{ title: 'Student Reviews' }}
     />
+    <Stack.Screen
+      name="BitezyBot"
+      component={BitezyBotScreen}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -52,6 +58,8 @@ const CustomerNavigator = () => {
     switch (routeName) {
       case 'ExploreStack':
         return isFocused ? 'restaurant' : 'restaurant-outline';
+      case 'BitezyBot':
+        return isFocused ? 'sparkles' : 'sparkles-outline';
       case 'Cart':
         return isFocused ? 'bag-handle' : 'bag-handle-outline';
       case 'Orders':
@@ -70,9 +78,10 @@ const CustomerNavigator = () => {
 
   const shouldHideTabBar = (currentRoute, focusedChildName) => {
     return (
-      currentRoute.name === 'ExploreStack' &&
-      !!focusedChildName &&
-      focusedChildName !== 'ProviderList'
+      (currentRoute.name === 'ExploreStack' &&
+        !!focusedChildName &&
+        focusedChildName !== 'ProviderList') ||
+      currentRoute.name === 'BitezyBot'
     );
   };
 
@@ -94,6 +103,11 @@ const CustomerNavigator = () => {
         name="ExploreStack"
         component={ExploreStack}
         options={{ tabBarLabel: 'Explore' }}
+      />
+      <Tab.Screen
+        name="BitezyBot"
+        component={BitezyBotScreen}
+        options={{ tabBarLabel: 'AI Bot' }}
       />
       <Tab.Screen
         name="Cart"

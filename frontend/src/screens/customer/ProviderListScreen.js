@@ -456,6 +456,27 @@ const ProviderListScreen = ({ navigation }) => {
                 })()
               )}
 
+              {/* AI Meal Assistant Quick Launcher */}
+              <TouchableOpacity
+                style={styles.aiQuickCard}
+                onPress={() => navigation.navigate('BitezyBot')}
+                activeOpacity={0.88}
+              >
+                <View style={styles.aiQuickIconBox}>
+                  <Ionicons name="sparkles" size={18} color="#FFF" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.aiQuickTitle}>AI Smart Meal Assistant</Text>
+                    <View style={styles.aiNewBadge}>
+                      <Text style={styles.aiNewBadgeText}>AI</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.aiQuickSubtitle}>Budget meals under 80 BDT & custom combos</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+              </TouchableOpacity>
+
               {/* Section Header with Count */}
               <View style={styles.sectionHeaderBlock}>
                 <Text style={styles.sectionEyebrow}>
@@ -1426,6 +1447,57 @@ const styles = StyleSheet.create({
   },
   savedModalDeleteBtn: {
     padding: 6,
+  },
+  aiQuickCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF7ED',
+    borderRadius: 16,
+    padding: 14,
+    marginVertical: 12,
+    borderWidth: 1.5,
+    borderColor: '#FED7AA',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#EA580C',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  aiQuickIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aiQuickTitle: {
+    fontFamily: fonts.headingBold,
+    fontSize: 14,
+    color: colors.textDark,
+  },
+  aiNewBadge: {
+    backgroundColor: '#EA580C',
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  aiNewBadgeText: {
+    fontFamily: fonts.bold,
+    fontSize: 9,
+    color: '#FFF',
+  },
+  aiQuickSubtitle: {
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    color: colors.textMuted || colors.textGray,
+    marginTop: 2,
   },
 });
 

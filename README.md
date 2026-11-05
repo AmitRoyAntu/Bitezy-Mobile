@@ -143,10 +143,13 @@ npx expo start -c
 You can also start either service directly from the project root:
 
 ```
-# Start backend
+# Start backend (Port 8002)
 npm run start:backend
 
-# Start frontend
+# Start AI service (FastAPI on Port 8001)
+npm run start:ai
+
+# Start frontend (Expo)
 npm run start:frontend
 
 # Re-seed database

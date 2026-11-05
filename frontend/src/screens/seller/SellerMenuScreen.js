@@ -26,6 +26,7 @@ import CustomSelect from '../../components/CustomSelect';
 import { colors, spacing, fonts } from '../../theme/colors';
 import { useToast } from '../../context/ToastContext';
 import DataService from '../../api/DataService';
+import aiService from '../../api/AiService';
 
 
 
@@ -58,6 +59,29 @@ const SellerMenuScreen = () => {
   const [itemImg, setItemImg] = useState('');
   const [itemDesc, setItemDesc] = useState('');
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleAiQuickFill = async () => {
+    if (!aiPrompt.trim()) return;
+    setAiLoading(true);
+    try {
+      const res = await aiService.quickMenuItem(aiPrompt);
+      if (res) {
+        if (res.name) setItemName(res.name);
+        if (res.category) setItemCategory(res.category);
+        if (res.price !== undefined) setItemPrice(String(res.price));
+        if (res.desc) setItemDesc(res.desc);
+        if (res.img) setItemImg(res.img);
+        showToast('Fields auto-filled by AI! Review and save.', 'success');
+        setAiPrompt('');
+      }
+    } catch (err) {
+      showToast('AI auto-fill failed. Please fill manually.', 'error');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const loadMenuData = async () => {
     try {
@@ -390,6 +414,36 @@ const SellerMenuScreen = () => {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
+              {!editingItem && (
+                <View style={styles.aiQuickBox}>
+                  <View style={styles.aiQuickHeader}>
+                    <Ionicons name="sparkles" size={15} color={colors.primary} />
+                    <Text style={styles.aiQuickTitle}>AI Auto-Fill Shortcut</Text>
+                  </View>
+                  <View style={styles.aiQuickRow}>
+                    <TextInput
+                      style={styles.aiQuickInput}
+                      placeholder="e.g. Rice 50 or Spicy Singara 15"
+                      placeholderTextColor={colors.textGray}
+                      value={aiPrompt}
+                      onChangeText={setAiPrompt}
+                    />
+                    <TouchableOpacity
+                      style={[styles.aiQuickBtn, (!aiPrompt.trim() || aiLoading) && styles.aiQuickBtnDisabled]}
+                      onPress={handleAiQuickFill}
+                      disabled={!aiPrompt.trim() || aiLoading}
+                      activeOpacity={0.8}
+                    >
+                      {aiLoading ? (
+                        <ActivityIndicator size="small" color="#FFF" />
+                      ) : (
+                        <Text style={styles.aiQuickBtnText}>Auto-Fill</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
               <CustomInput
                 label="Item Name"
                 value={itemName}
@@ -775,6 +829,58 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semiBold,
     color: colors.textGray,
     fontSize: 13,
+  },
+  aiQuickBox: {
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1.5,
+    borderColor: '#FED7AA',
+    borderRadius: spacing.borderRadiusMd,
+    padding: spacing.sm + 2,
+    marginBottom: spacing.md,
+  },
+  aiQuickHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: spacing.xs,
+  },
+  aiQuickTitle: {
+    fontFamily: fonts.headingSemiBold,
+    fontSize: 13,
+    color: colors.textDark,
+  },
+  aiQuickRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  aiQuickInput: {
+    flex: 1,
+    height: 40,
+    backgroundColor: colors.card,
+    borderRadius: spacing.borderRadiusSm,
+    paddingHorizontal: spacing.sm,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    color: colors.textDark,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  aiQuickBtn: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    height: 40,
+    borderRadius: spacing.borderRadiusSm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  aiQuickBtnDisabled: {
+    backgroundColor: colors.borderDark,
+  },
+  aiQuickBtnText: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: colors.white,
   },
 });
 

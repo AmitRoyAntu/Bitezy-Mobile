@@ -14,11 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '../../theme/colors';
 import DataService from '../../api/DataService';
 import { useToast } from '../../context/ToastContext';
+import aiService from '../../api/AiService';
 
 const ProviderReviewsScreen = ({ route }) => {
   const { provider } = route.params;
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [aiSummary, setAiSummary] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Add Review Modal State
   const [modalVisible, setModalVisible] = useState(false);
@@ -32,6 +35,13 @@ const ProviderReviewsScreen = ({ route }) => {
     try {
       const data = await DataService.getReviewsByProvider(provider._id || provider.id);
       setReviews(data || []);
+      
+      // Load AI summary in background
+      setAiLoading(true);
+      aiService.getReviewSummary(provider._id || provider.id, 'buyer')
+        .then((summary) => setAiSummary(summary))
+        .catch(() => setAiSummary(null))
+        .finally(() => setAiLoading(false));
     } catch (err) {
       showToast('Error loading reviews', 'error');
     } finally {
@@ -88,6 +98,33 @@ const ProviderReviewsScreen = ({ route }) => {
         <FlatList
           data={reviews}
           keyExtractor={(item) => item._id || item.id || Math.random().toString()}
+          ListHeaderComponent={
+            aiSummary ? (
+              <View style={styles.aiSummaryCard}>
+                <View style={styles.aiSummaryHeader}>
+                  <View style={styles.aiBadge}>
+                    <Ionicons name="sparkles" size={13} color="#FFF" />
+                    <Text style={styles.aiBadgeText}>AI Review Summary</Text>
+                  </View>
+                  {aiSummary.average_rating ? (
+                    <Text style={styles.aiRatingText}>★ {aiSummary.average_rating} avg</Text>
+                  ) : null}
+                </View>
+                <Text style={styles.aiSummaryText}>{aiSummary.summary}</Text>
+
+                {aiSummary.top_dishes && aiSummary.top_dishes.length > 0 && (
+                  <View style={styles.aiTagsRow}>
+                    <Text style={styles.aiTagsLabel}>Students love:</Text>
+                    {aiSummary.top_dishes.map((dish, i) => (
+                      <View key={i} style={styles.dishPill}>
+                        <Text style={styles.dishPillText}>{dish}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ) : null
+          }
           renderItem={({ item }) => (
             <View style={styles.reviewCard}>
               <View style={styles.rowBetween}>
@@ -222,6 +259,69 @@ const styles = StyleSheet.create({
   starInactive: { color: colors.border },
   cancelBtn: { alignItems: 'center', marginTop: spacing.md },
   cancelText: { color: colors.textGray, fontSize: 13 },
+  aiSummaryCard: {
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1.5,
+    borderColor: '#FED7AA',
+    borderRadius: spacing.borderRadiusMd,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  aiSummaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 4,
+  },
+  aiBadgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  aiRatingText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  aiSummaryText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textDark,
+  },
+  aiTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+  },
+  aiTagsLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textGray,
+  },
+  dishPill: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  dishPillText: {
+    fontSize: 11,
+    color: colors.textDark,
+    fontWeight: '600',
+  },
 });
 
 export default ProviderReviewsScreen;

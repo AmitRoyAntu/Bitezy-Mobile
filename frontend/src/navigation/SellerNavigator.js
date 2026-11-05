@@ -17,6 +17,28 @@ import DataService from '../api/DataService';
 
 const Tab = createBottomTabNavigator();
 const SettingsStack = createNativeStackNavigator();
+const DashboardStack = createNativeStackNavigator();
+
+const DashboardStackNavigator = () => (
+  <DashboardStack.Navigator
+    screenOptions={{
+      headerStyle: { backgroundColor: colors.card },
+      headerTitleStyle: { fontFamily: fonts.headingBold, fontSize: 16, color: colors.textDark },
+      headerTintColor: colors.primary,
+    }}
+  >
+    <DashboardStack.Screen
+      name="SellerDashboard"
+      component={SellerDashboardScreen}
+      options={{ headerShown: false }}
+    />
+    <DashboardStack.Screen
+      name="Reviews"
+      component={SellerReviewsScreen}
+      options={{ title: 'Customer Reviews' }}
+    />
+  </DashboardStack.Navigator>
+);
 
 const SettingsStackNavigator = () => (
   <SettingsStack.Navigator
@@ -82,9 +104,12 @@ const SellerNavigator = () => {
 
   const shouldHideTabBar = (currentRoute, focusedChildName) => {
     return (
-      currentRoute.name === 'Settings' &&
-      !!focusedChildName &&
-      focusedChildName !== 'SellerProfile'
+      (currentRoute.name === 'Settings' &&
+        !!focusedChildName &&
+        focusedChildName !== 'SellerProfile') ||
+      (currentRoute.name === 'Dashboard' &&
+        !!focusedChildName &&
+        focusedChildName !== 'SellerDashboard')
     );
   };
 
@@ -105,7 +130,7 @@ const SellerNavigator = () => {
     >
       <Tab.Screen
         name="Dashboard"
-        component={SellerDashboardScreen}
+        component={DashboardStackNavigator}
         options={{ tabBarLabel: 'Dashboard' }}
       />
       <Tab.Screen

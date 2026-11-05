@@ -5,12 +5,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Bitezy Mobile Backend API Configuration
 // -------------------------------------------------------------
 
-export const DEFAULT_HOST = "[IP_ADDRESS]"; // Mac's current Wi-Fi IP
+export const DEFAULT_HOST = "10.19.90.65"; // Mac's current Wi-Fi IP
 export const DEFAULT_PORT = 8002;
+export const AI_PORT = 8001;
 
 /**
  * Automatically extracts the Metro host IP from NativeModules.SourceCode.scriptURL
- * Falls back to DEFAULT_HOST when running via tunnel.
+ * Falls back to DEFAULT_HOST when running via tunnel or when scriptURL is not an IP.
  */
 const getAutoDetectedHost = () => {
   if (Platform.OS === "web") {
@@ -19,8 +20,8 @@ const getAutoDetectedHost = () => {
   try {
     const scriptURL = NativeModules?.SourceCode?.scriptURL;
     if (scriptURL) {
-      // Match plain IPv4 addresses only (not tunnel domains like exp.direct)
-      const match = scriptURL.match(/^https?:\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/);
+      // Match plain IPv4 addresses across http, https, exp, or custom schemes
+      const match = scriptURL.match(/(?:https?|exp|exps):\/\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/i);
       if (match && match[1]) {
         return match[1];
       }
@@ -37,6 +38,14 @@ export const getBaseUrl = () => {
   }
   const host = getAutoDetectedHost();
   return `http://${host}:${DEFAULT_PORT}/api`;
+};
+
+export const getAiBaseUrl = () => {
+  if (Platform.OS === "web") {
+    return `http://localhost:${AI_PORT}/api/ai`;
+  }
+  const host = getAutoDetectedHost();
+  return `http://${host}:${AI_PORT}/api/ai`;
 };
 
 let currentBaseUrl = getBaseUrl();
