@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const { protect } = require('../middleware/authMiddleware');
 const { authorize } = require('../middleware/roleMiddleware');
 
-const TEST_SECRET = 'bitezy-development-secret-change-in-production';
+const TEST_SECRET = process.env.JWT_SECRET || 'bitezy-development-secret-change-in-production';
 
 // ==============================================================
 // Security & VAPT Suite 1: Authentication & JWT Vulnerabilities

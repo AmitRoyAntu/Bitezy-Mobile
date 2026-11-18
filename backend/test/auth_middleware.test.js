@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const { protect } = require('../middleware/authMiddleware');
 const { User } = require('../models/User');
 
-const TEST_SECRET = 'bitezy-development-secret-change-in-production';
+const TEST_SECRET = process.env.JWT_SECRET || 'bitezy-development-secret-change-in-production';
 
 test('Auth Middleware: rejects requests with no Authorization header (401)', async () => {
     let statusCode = null;

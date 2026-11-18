@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const jwt = require('jsonwebtoken');
 
-const TEST_SECRET = 'bitezy-development-secret-change-in-production';
+const TEST_SECRET = process.env.JWT_SECRET || 'bitezy-development-secret-change-in-production';
 
 test('Performance Benchmark: processes 500 concurrent cart calculations under 25ms', () => {
     const cart = [
