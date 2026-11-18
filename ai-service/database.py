@@ -26,7 +26,9 @@ async def connect_db():
         logger.warning(f"MongoDB connection failed (will use fallback data if needed): {e}")
 
 async def close_db():
-    global client
+    global client, db
     if client:
         client.close()
+        client = None
+        db = None
         logger.info("MongoDB connection closed.")
