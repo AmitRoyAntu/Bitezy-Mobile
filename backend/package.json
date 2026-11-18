@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "watch": "nodemon server.js",
-    "seed": "node utils/seedData.js"
+    "seed": "node utils/seedData.js",
+    "test": "node --test test/sanity.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

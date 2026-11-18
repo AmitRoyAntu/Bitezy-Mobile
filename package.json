@@ -7,7 +7,8 @@
     "start:backend": "npm start --prefix backend",
     "start:frontend": "npm start --prefix frontend",
     "start:ai": "cd ai-service && ./venv/bin/uvicorn main:app --host 0.0.0.0 --port 8001 --reload",
-    "seed": "node backend/utils/seedData.js"
+    "seed": "node backend/utils/seedData.js",
+    "test": "npm test --prefix backend"
   },
   "keywords": [
     "react-native",
