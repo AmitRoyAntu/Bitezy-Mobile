@@ -70,21 +70,22 @@ Output strictly valid JSON with keys: name, category, price, desc, img.
     except Exception as e:
         logger.warning(f"Quick menu AI parsing failed, using rule-based fallback: {e}")
         # Rule-based fallback
-        # Extract number for price
+        # Extract number for price (enforcing positive non-zero price)
         nums = re.findall(r'\d+', prompt)
-        price = float(nums[0]) if nums else 50
+        raw_price = float(nums[0]) if nums else 50
+        price = raw_price if raw_price > 0 else 50
         name_part = re.sub(r'\d+.*$', '', prompt).strip() or prompt.strip()
         name = name_part.title()
 
         # Guess category
         lower = prompt.lower()
-        if any(w in lower for w in ["rice", "biryani", "khichuri", "polau"]):
-            cat = "Rice"
-        elif any(w in lower for w in ["curry", "beef", "chicken", "fish", "dal", "egg"]):
-            cat = "Curry"
-        elif any(w in lower for w in ["burger", "pizza", "roll", "sandwich", "fries"]):
+        if any(w in lower for w in ["burger", "pizza", "roll", "sandwich", "fries", "chowmein", "pasta"]):
             cat = "Fast Food"
-        elif any(w in lower for w in ["tea", "cha", "coffee", "coke", "drink", "juice", "water"]):
+        elif any(w in lower for w in ["rice", "biryani", "khichuri", "polau", "tehari"]):
+            cat = "Rice"
+        elif any(w in lower for w in ["curry", "beef", "chicken", "fish", "dal", "egg", "vegetable"]):
+            cat = "Curry"
+        elif any(w in lower for w in ["tea", "cha", "coffee", "coke", "drink", "juice", "water", "borhani"]):
             cat = "Drinks"
         elif any(w in lower for w in ["sweet", "cake", "ice cream", "dessert", "pudding"]):
             cat = "Dessert"
