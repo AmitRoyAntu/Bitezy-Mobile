@@ -9,6 +9,10 @@ export const DEFAULT_HOST = "10.19.90.65"; // Mac's current Wi-Fi IP
 export const DEFAULT_PORT = 8002;
 export const AI_PORT = 8001;
 
+// Live Cloud Backend (Render)
+export const PRODUCTION_BACKEND_URL = "https://bitezy-backend-2zcg.onrender.com/api";
+export const USE_CLOUD_BACKEND = true; // Set to false to switch back to local network IP
+
 /**
  * Automatically extracts the Metro host IP from NativeModules.SourceCode.scriptURL
  * Falls back to DEFAULT_HOST when running via tunnel or when scriptURL is not an IP.
@@ -33,6 +37,9 @@ const getAutoDetectedHost = () => {
 };
 
 export const getBaseUrl = () => {
+  if (USE_CLOUD_BACKEND) {
+    return PRODUCTION_BACKEND_URL;
+  }
   if (Platform.OS === "web") {
     return `http://localhost:${DEFAULT_PORT}/api`;
   }
