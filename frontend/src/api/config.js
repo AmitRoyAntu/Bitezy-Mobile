@@ -11,6 +11,7 @@ export const AI_PORT = 8001;
 
 // Live Cloud Backend (Render)
 export const PRODUCTION_BACKEND_URL = "https://bitezy-backend-2zcg.onrender.com/api";
+export const PRODUCTION_AI_URL = "https://bitezy-ai-service.onrender.com/api/ai"; // Set your Render AI service URL here
 export const USE_CLOUD_BACKEND = true; // Set to false to switch back to local network IP
 
 /**
@@ -48,6 +49,9 @@ export const getBaseUrl = () => {
 };
 
 export const getAiBaseUrl = () => {
+  if (USE_CLOUD_BACKEND) {
+    return PRODUCTION_AI_URL;
+  }
   if (Platform.OS === "web") {
     return `http://localhost:${AI_PORT}/api/ai`;
   }

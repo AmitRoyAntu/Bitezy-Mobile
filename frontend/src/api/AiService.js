@@ -2,7 +2,7 @@ import { getAiBaseUrl } from './config';
 
 class AiService {
   constructor() {
-    this.timeoutMs = 25000;
+    this.timeoutMs = 60000; // 60s timeout to allow for Render free-tier cold starts
   }
 
   async request(endpoint, method = 'GET', body = null) {
